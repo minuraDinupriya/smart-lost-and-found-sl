@@ -1,0 +1,32 @@
+const express = require('express');
+const router = express.Router();
+const { verifyToken } = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem } = require('../controllers/item.controller');
+
+// @route   POST /api/items
+// @desc    Create a new item (requires authentication)
+// @access  Private
+router.post('/', verifyToken, upload.single('image'), createItem);
+
+// @route   GET /api/items
+// @desc    Fetch items (supports ?province=X&district=Y&city=Z filtering)
+// @access  Public
+router.get('/', getAllItems);
+
+// @route   GET /api/items/:itemId
+// @desc    Get a single item by ID
+// @access  Public
+router.get('/:itemId', getItemById);
+
+// @route   PUT /api/items/:itemId
+// @desc    Update an item (requires authentication & ownership)
+// @access  Private
+router.put('/:itemId', verifyToken, upload.single('image'), updateItem);
+
+// @route   DELETE /api/items/:itemId
+// @desc    Delete an item (requires authentication & ownership)
+// @access  Private
+router.delete('/:itemId', verifyToken, deleteItem);
+
+module.exports = router;
