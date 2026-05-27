@@ -45,6 +45,12 @@ const itemSchema = new mongoose.Schema(
       type: String,
       required: [true, 'City is required'],
     },
+    latitude: {
+      type: Number,
+    },
+    longitude: {
+      type: Number,
+    },
     // Security & Contact Fields
     contactNumber: {
       type: String,

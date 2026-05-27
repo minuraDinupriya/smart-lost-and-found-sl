@@ -1,9 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Map as MapIcon, LayoutGrid } from 'lucide-react';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import ItemCard, { ItemProps } from '../components/ItemCard';
 import { motion } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, Tooltip, Circle } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useNavigate } from 'react-router-dom';
+
+// Fix Leaflet marker icon
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const DashboardPage: React.FC = () => {
   const [items, setItems] = useState<ItemProps[]>([]);
@@ -12,6 +26,9 @@ const DashboardPage: React.FC = () => {
   const [filterType, setFilterType] = useState<'ALL' | 'LOST' | 'FOUND'>('ALL');
   const [locationFilter, setLocationFilter] = useState<LocationState>({ province: '', district: '', city: '' });
   const [resetKey, setResetKey] = useState(0);
+  const [viewMode, setViewMode] = useState<'GRID' | 'MAP'>('GRID');
+  const [hiddenPins, setHiddenPins] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
 
   const fetchItems = async () => {
     setLoading(true);
@@ -78,25 +95,33 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Modular Location Dropdowns & Reset */}
+        {/* Modular Location Dropdowns & Controls */}
         <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-end gap-4">
           <div className="flex-grow w-full">
             <LocationSelector key={resetKey} onLocationChange={setLocationFilter} />
           </div>
-          <button 
-            onClick={() => {
-              setSearchTerm('');
-              setFilterType('ALL');
-              setResetKey(prev => prev + 1);
-            }}
-            className="w-full sm:w-auto px-6 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors shadow-sm"
-          >
-            Reset Filters
-          </button>
+          <div className="flex w-full sm:w-auto gap-2">
+            <button 
+              onClick={() => setViewMode(viewMode === 'GRID' ? 'MAP' : 'GRID')}
+              className="flex items-center justify-center px-4 py-2.5 bg-[#800000]/10 text-[#800000] font-semibold rounded-xl hover:bg-[#800000]/20 transition-colors shadow-sm whitespace-nowrap"
+            >
+              {viewMode === 'GRID' ? <><MapIcon className="w-5 h-5 mr-2" /> Map View</> : <><LayoutGrid className="w-5 h-5 mr-2" /> Grid View</>}
+            </button>
+            <button 
+              onClick={() => {
+                setSearchTerm('');
+                setFilterType('ALL');
+                setResetKey(prev => prev + 1);
+              }}
+              className="px-6 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors shadow-sm whitespace-nowrap"
+            >
+              Reset Filters
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Item Feed Grid View */}
+      {/* Item Feed or Map View */}
       {loading ? (
         // Skeleton Loading State
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -115,15 +140,89 @@ const DashboardPage: React.FC = () => {
           ))}
         </div>
       ) : filteredItems.length > 0 ? (
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {filteredItems.map(item => (
-            <ItemCard key={item._id} item={item} />
-          ))}
-        </motion.div>
+        viewMode === 'GRID' ? (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {filteredItems.map(item => (
+              <ItemCard key={item._id} item={item} />
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            className="h-[800px] w-full rounded-2xl overflow-hidden shadow-xl border border-gray-200 relative z-0"
+          >
+            <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={true} className="h-full w-full">
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+              {filteredItems.filter((i: any) => i.latitude && i.longitude).map((item: any) => {
+                if (item.type === 'FOUND' && item.isFuzzy) {
+                  return (
+                    <Circle 
+                      key={item._id}
+                      center={[item.latitude, item.longitude]}
+                      radius={1000} // 1km radius
+                      pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.4 }}
+                      eventHandlers={{ click: () => setHiddenPins(prev => { const next = new Set(prev); next.has(item._id) ? next.delete(item._id) : next.add(item._id); return next; }) }}
+                    >
+                      {!hiddenPins.has(item._id) && (
+                        <Tooltip permanent direction="top" className="custom-map-tooltip" offset={[0, -20]}>
+                          <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
+                            {item.imageUrl ? (
+                              <div className="h-24 w-full rounded-lg overflow-hidden mb-2">
+                                <img src={`http://localhost:5000/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                                <span className="text-[10px] text-gray-400 font-medium">No Image</span>
+                              </div>
+                            )}
+                            <div className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{item.category}</div>
+                            <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
+                            <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
+                            <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">Review Match</button>
+                          </div>
+                        </Tooltip>
+                      )}
+                    </Circle>
+                  )
+                }
+                
+                return (
+                  <Marker 
+                    key={item._id} 
+                    position={[item.latitude, item.longitude]}
+                    eventHandlers={{ click: () => setHiddenPins(prev => { const next = new Set(prev); next.has(item._id) ? next.delete(item._id) : next.add(item._id); return next; }) }}
+                  >
+                    {!hiddenPins.has(item._id) && (
+                      <Tooltip permanent direction="top" className="custom-map-tooltip" offset={[0, -40]}>
+                        <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
+                          {item.imageUrl ? (
+                            <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
+                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">LOST</div>
+                              <img src={`http://localhost:5000/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">
+                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">LOST</div>
+                              <span className="text-[10px] text-gray-400 font-medium">No Image</span>
+                            </div>
+                          )}
+                          <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
+                          <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
+                          <button className="bg-[#800000] text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-[#600000] transition shadow-sm pointer-events-none">Help Find This</button>
+                        </div>
+                      </Tooltip>
+                    )}
+                  </Marker>
+                )
+              })}
+            </MapContainer>
+          </motion.div>
+        )
       ) : (
         // Empty Results State
         <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-16 text-center">

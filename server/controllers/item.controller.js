@@ -135,7 +135,19 @@ const getAllItems = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('createdBy', 'username'); // Helpful to display the reporter's username
       
-    res.status(200).json(items);
+    // Apply Fuzzy Geolocation to FOUND items to prevent scammers from knowing exact spots
+    const obfuscatedItems = items.map(item => {
+      const doc = item.toObject();
+      if (doc.type === 'FOUND' && doc.latitude && doc.longitude) {
+        // Obfuscate coordinates with a ~1km random offset (+/- ~0.009 degrees)
+        doc.latitude += (Math.random() - 0.5) * 0.018;
+        doc.longitude += (Math.random() - 0.5) * 0.018;
+        doc.isFuzzy = true; // Flag for the frontend to render a circle instead of a sharp pin
+      }
+      return doc;
+    });
+
+    res.status(200).json(obfuscatedItems);
   } catch (error) {
     console.error('Fetch items error:', error);
     res.status(500).json({ message: 'Server error while fetching items.' });
