@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getProvinces, getDistricts, getCities } from '../../../utils/locations';
 
 export interface LocationState {
@@ -14,6 +15,7 @@ interface LocationSelectorProps {
 }
 
 const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, initialLocation, externalLocation }) => {
+  const { t } = useTranslation();
   const [province, setProvince] = useState(initialLocation?.province || '');
   const [district, setDistrict] = useState(initialLocation?.district || '');
   const [city, setCity] = useState(initialLocation?.city || '');
@@ -52,13 +54,13 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="flex flex-col">
-        <label className="text-sm font-semibold text-gray-700 mb-1.5">Province</label>
+        <label className="text-sm font-semibold text-gray-700 mb-1.5">{t('location.province')}</label>
         <select
           value={province}
           onChange={handleProvinceChange}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white text-gray-900 transition-all cursor-pointer shadow-sm"
         >
-          <option value="">Select Province</option>
+          <option value="">{t('location.selectProvince')}</option>
           {provinces.map((p) => (
             <option key={p} value={p}>{p}</option>
           ))}
@@ -66,14 +68,14 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
       </div>
 
       <div className="flex flex-col">
-        <label className="text-sm font-semibold text-gray-700 mb-1.5">District</label>
+        <label className="text-sm font-semibold text-gray-700 mb-1.5">{t('location.district')}</label>
         <select
           value={district}
           onChange={handleDistrictChange}
           disabled={!province}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white text-gray-900 transition-all cursor-pointer shadow-sm disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
         >
-          <option value="">Select District</option>
+          <option value="">{t('location.selectDistrict')}</option>
           {districts.map((d) => (
             <option key={d} value={d}>{d}</option>
           ))}
@@ -81,14 +83,14 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
       </div>
 
       <div className="flex flex-col">
-        <label className="text-sm font-semibold text-gray-700 mb-1.5">City</label>
+        <label className="text-sm font-semibold text-gray-700 mb-1.5">{t('location.city')}</label>
         <select
           value={city}
           onChange={(e) => setCity(e.target.value)}
           disabled={!district}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white text-gray-900 transition-all cursor-pointer shadow-sm disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
         >
-          <option value="">Select City</option>
+          <option value="">{t('location.selectCity')}</option>
           {cities.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}

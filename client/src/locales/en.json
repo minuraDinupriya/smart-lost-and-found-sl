@@ -1,0 +1,72 @@
+{
+  "nav": {
+    "search": "Search",
+    "smartTags": "Smart Tags",
+    "analytics": "Analytics",
+    "inbox": "Inbox",
+    "postItem": "+ Post Item",
+    "logout": "Logout",
+    "trustScore": "Trust Score",
+    "login": "Login",
+    "register": "Register"
+  },
+  "dashboard": {
+    "title": "Welcome to Smart Lost & Found 🇱🇰",
+    "subtitle": "The smartest way to recover your lost belongings across Sri Lanka.",
+    "searchPlaceholder": "Search by item name...",
+    "categoryFilter": "All Categories",
+    "provinceFilter": "All Provinces",
+    "districtFilter": "All Districts",
+    "cityFilter": "City",
+    "noItems": "No items found",
+    "topSamaritans": "Top Samaritans 🇱🇰",
+    "mapView": "Map View",
+    "gridView": "Grid View",
+    "resetFilters": "Reset Filters",
+    "noImage": "No Image",
+    "reviewMatch": "Review Match",
+    "lost": "LOST",
+    "helpFind": "Help Find This",
+    "localHeroes": "Local Heroes 🇱🇰",
+    "noHeroesYet": "No heroes yet...",
+    "noItemsFound": "No items found",
+    "adjustFilters": "Try adjusting your search keywords, switching categories, or clearing the location filters.",
+    "all": "ALL",
+    "lostTab": "LOST",
+    "foundTab": "FOUND"
+  },
+  "location": {
+    "province": "Province",
+    "district": "District",
+    "city": "City",
+    "selectProvince": "Select Province",
+    "selectDistrict": "Select District",
+    "selectCity": "Select City"
+  },
+  "item": {
+    "noImage": "No Image Provided",
+    "lost": "LOST",
+    "found": "FOUND",
+    "smartTag": "SMART TAG",
+    "contactOwner": "Contact Owner",
+    "claim": "Claim Item",
+    "claimed": "CLAIMED",
+    "yourPost": "YOUR POST",
+    "blindClaimVerification": "BLIND CLAIM VERIFICATION REQUIRED",
+    "markAsClaimed": "Mark as Claimed"
+  },
+  "categories": {
+    "Electronics": "Electronics",
+    "Documents": "Documents",
+    "Keys": "Keys",
+    "Bags": "Bags",
+    "Wallets": "Wallets",
+    "Pets": "Pets",
+    "Others": "Others"
+  },
+  "common": {
+    "loading": "Loading...",
+    "edit": "Edit",
+    "delete": "Delete"
+  }
+}

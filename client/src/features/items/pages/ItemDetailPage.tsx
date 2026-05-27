@@ -4,6 +4,7 @@ import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Package, MapPin, Calendar, Tag, User, MessageCircle, AlertCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useTranslation } from 'react-i18next';
 
 const ItemDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
@@ -11,6 +12,7 @@ const ItemDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { user, fetchMe } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -134,9 +136,11 @@ const ItemDetailPage: React.FC = () => {
       <div className="p-8">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">{item.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">
+              {i18n.language === 'si' && item.titleSi ? item.titleSi : (i18n.language === 'ta' && item.titleTa ? item.titleTa : item.title)}
+            </h1>
             <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-500">
-              <span className="flex items-center"><Tag className="w-4 h-4 mr-1.5" /> {item.category}</span>
+              <span className="flex items-center"><Tag className="w-4 h-4 mr-1.5" /> {t(`categories.${item.category}`, { defaultValue: item.category })}</span>
               {!isSmartTag && (
                 <>
                   <span className="flex items-center"><MapPin className="w-4 h-4 mr-1.5" /> {item.city}, {item.district}</span>
@@ -148,7 +152,9 @@ const ItemDetailPage: React.FC = () => {
         </div>
 
         <div className="prose prose-sm sm:prose lg:prose-lg text-gray-700 mb-8 bg-gray-50 p-5 rounded-xl border border-gray-100">
-          <p className="leading-relaxed whitespace-pre-wrap">{item.description}</p>
+          <p className="leading-relaxed whitespace-pre-wrap">
+            {i18n.language === 'si' && item.descriptionSi ? item.descriptionSi : (i18n.language === 'ta' && item.descriptionTa ? item.descriptionTa : item.description)}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-sm">

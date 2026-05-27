@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const Item = require('../models/Item');
 const User = require('../models/User');
+const translate = require('google-translate-api-x');
 
 // Load env vars
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -39,38 +40,51 @@ const seedDatabase = async () => {
 
     console.log(`Assigning seed items to user: ${user.username} (${user._id})`);
 
+    console.log('Cleaning up old posts...');
+    await Item.deleteMany({ type: { $ne: 'SMART_TAG' } });
+
     const itemsToInsert = [];
     
-    for (let i = 0; i < 75; i++) {
+    console.log('Generating and Translating 15 items... (Please wait)');
+    for (let i = 0; i < 15; i++) {
       const type = Math.random() > 0.4 ? 'LOST' : 'FOUND';
       const category = categories[Math.floor(Math.random() * categories.length)];
       const title = titles[category][Math.floor(Math.random() * titles[category].length)];
       const province = provinces[Math.floor(Math.random() * provinces.length)];
       
-      // Generate a date within the last 6 months
       const date = new Date();
       date.setMonth(date.getMonth() - Math.floor(Math.random() * 6));
       date.setDate(date.getDate() - Math.floor(Math.random() * 30));
 
       const status = Math.random() > 0.7 ? 'Claimed' : 'Available';
+      const description = `This is a generated sample description for a ${category.toLowerCase()} item reported in ${province}.`;
+
+      let titleSi, titleTa, descriptionSi, descriptionTa;
+      try {
+        titleSi = (await translate(title, { to: 'si' })).text;
+        titleTa = (await translate(title, { to: 'ta' })).text;
+        descriptionSi = (await translate(description, { to: 'si' })).text;
+        descriptionTa = (await translate(description, { to: 'ta' })).text;
+      } catch (err) {
+        console.error('Translation error on seed:', err.message);
+      }
 
       itemsToInsert.push({
-        title,
-        description: `This is a generated sample description for a ${category.toLowerCase()} item reported in ${province}.`,
-        type,
-        category,
-        date,
-        province,
+        title, titleSi, titleTa,
+        description, descriptionSi, descriptionTa,
+        type, category, date, province,
         district: `${province} District`,
         city: `${province} City`,
         contactNumber: '0712345678',
         status,
         createdBy: user._id
       });
+      process.stdout.write('.');
     }
 
+    console.log('\nInserting...');
     await Item.insertMany(itemsToInsert);
-    console.log('Successfully seeded 75 items into the database! 🎉');
+    console.log('Successfully seeded 15 translated items into the database! 🎉');
     
     process.exit();
   } catch (error) {

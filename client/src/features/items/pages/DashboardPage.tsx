@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Map as MapIcon, LayoutGrid, Trophy } from 'lucide-react';
+import { Search, Map as MapIcon, LayoutGrid, Trophy, MapPin, Filter, PackageSearch, AlertCircle } from 'lucide-react';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import ItemCard, { ItemProps } from '../components/ItemCard';
@@ -8,6 +8,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, Circle } from 'react-leaflet'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // Fix Leaflet marker icon
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -20,6 +21,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const DashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ItemProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,28 +81,24 @@ const DashboardPage: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search items by keywords..." 
+              placeholder={t('dashboard.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all shadow-inner bg-slate-50 focus:bg-white"
             />
           </div>
           
-          <div className="flex space-x-2 w-full sm:w-auto bg-slate-100 p-1 rounded-xl">
-            {['ALL', 'LOST', 'FOUND'].map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type as any)}
-                className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-semibold text-sm transition-all ${
-                  filterType === type 
-                    ? 'bg-white text-slate-900 shadow-sm font-semibold rounded-lg' 
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
+          <div className="bg-gray-100 p-1.5 rounded-2xl inline-flex shadow-inner border border-gray-200/50">
+              {['ALL', 'LOST', 'FOUND'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type as any)}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${filterType === type ? 'bg-white text-[#800000] shadow-md transform scale-105' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                >
+                  {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : t('dashboard.foundTab')}
+                </button>
+              ))}
+            </div>
         </div>
 
         {/* Modular Location Dropdowns & Controls */}
@@ -113,7 +111,7 @@ const DashboardPage: React.FC = () => {
               onClick={() => setViewMode(viewMode === 'GRID' ? 'MAP' : 'GRID')}
               className="flex items-center justify-center px-4 py-2.5 bg-[#800000]/10 text-[#800000] font-semibold rounded-xl hover:bg-[#800000]/20 transition-colors shadow-sm whitespace-nowrap"
             >
-              {viewMode === 'GRID' ? <><MapIcon className="w-5 h-5 mr-2" /> Map View</> : <><LayoutGrid className="w-5 h-5 mr-2" /> Grid View</>}
+              {viewMode === 'GRID' ? <><MapIcon className="w-5 h-5 mr-2" /> {t('dashboard.mapView')}</> : <><LayoutGrid className="w-5 h-5 mr-2" /> {t('dashboard.gridView')}</>}
             </button>
             <button 
               onClick={() => {
@@ -123,7 +121,7 @@ const DashboardPage: React.FC = () => {
               }}
               className="px-6 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors shadow-sm whitespace-nowrap"
             >
-              Reset Filters
+              {t('dashboard.resetFilters')}
             </button>
           </div>
         </div>
@@ -185,13 +183,13 @@ const DashboardPage: React.FC = () => {
                               </div>
                             ) : (
                               <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
-                                <span className="text-[10px] text-gray-400 font-medium">No Image</span>
+                                <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
                               </div>
                             )}
                             <div className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{item.category}</div>
                             <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
                             <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                            <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">Review Match</button>
+                            <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">{t('dashboard.reviewMatch')}</button>
                           </div>
                         </Tooltip>
                       )}
@@ -210,18 +208,18 @@ const DashboardPage: React.FC = () => {
                         <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
                           {item.imageUrl ? (
                             <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
-                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">LOST</div>
+                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
                               <img src={`http://localhost:5000/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
                             </div>
                           ) : (
                             <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">
-                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">LOST</div>
-                              <span className="text-[10px] text-gray-400 font-medium">No Image</span>
+                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
+                              <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
                             </div>
                           )}
                           <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
                           <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                          <button className="bg-[#800000] text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-[#600000] transition shadow-sm pointer-events-none">Help Find This</button>
+                          <button className="bg-[#800000] text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-[#600000] transition shadow-sm pointer-events-none">{t('dashboard.helpFind')}</button>
                         </div>
                       </Tooltip>
                     )}
@@ -234,11 +232,11 @@ const DashboardPage: React.FC = () => {
             <div className="absolute bottom-8 right-8 z-[400] w-64 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 overflow-hidden pointer-events-auto">
               <div className="bg-[#800000] text-white p-3 flex items-center justify-center space-x-2">
                 <Trophy className="w-5 h-5 text-yellow-400" />
-                <h3 className="font-bold text-sm">Local Heroes 🇱🇰</h3>
+                <h3 className="font-bold text-sm">{t('dashboard.localHeroes')}</h3>
               </div>
               <div className="p-3">
                 {leaderboard.length === 0 ? (
-                  <p className="text-xs text-center text-gray-500">No heroes yet...</p>
+                  <p className="text-xs text-center text-gray-500">{t('dashboard.noHeroesYet')}</p>
                 ) : (
                   <ul className="space-y-2">
                     {leaderboard.map((u, index) => (
@@ -266,8 +264,8 @@ const DashboardPage: React.FC = () => {
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-5">
             <Search className="w-10 h-10 text-gray-400" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">No items found</h3>
-          <p className="text-gray-500 max-w-sm mx-auto">Try adjusting your search keywords, switching categories, or clearing the location filters.</p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('dashboard.noItemsFound')}</h3>
+          <p className="text-gray-500 max-w-sm mx-auto">{t('dashboard.adjustFilters')}</p>
         </div>
       )}
     </div>

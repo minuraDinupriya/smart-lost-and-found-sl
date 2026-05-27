@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { registerSW } from 'virtual:pwa-register';
 import './index.css';
+import './i18n';
 
 // Automatically register the Service Worker for Progressive Web App capabilities
 registerSW({ immediate: true });

@@ -1,14 +1,19 @@
 import React from 'react';
-import { MapPin, Calendar, Phone, ShieldQuestion, ImageOff } from 'lucide-react';
+import { MapPin, Calendar, Phone, Image as ImageIcon, CheckCircle, ShieldCheck, ImageOff, ShieldQuestion } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
+import { useTranslation } from 'react-i18next';
 
 export interface ItemProps {
   _id: string;
   title: string;
+  titleSi?: string;
+  titleTa?: string;
   description: string;
+  descriptionSi?: string;
+  descriptionTa?: string;
   type: string;
   category: string;
   imageUrl?: string;
@@ -23,7 +28,9 @@ export interface ItemProps {
 }
 
 const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
+  const { t, i18n } = useTranslation();
   const isLost = item.type === 'LOST';
+  const isSmartTag = item.type === 'SMART_TAG';
   const navigate = useNavigate();
   const { user, fetchMe } = useAuth();
 
@@ -116,19 +123,35 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50 border-b border-slate-100">
             <ImageOff className="w-10 h-10 mb-2 opacity-50" />
-            <span className="text-sm font-medium opacity-75">No Image Provided</span>
+            <span className="text-sm font-medium opacity-75">{t('item.noImage')}</span>
           </div>
         )}
-        <div className={`absolute top-4 left-4 px-2.5 py-0.5 text-xs font-medium rounded-full shadow-sm tracking-wide ${
-          isLost ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-        }`}>
-          {isLost ? 'LOST' : 'FOUND'}
+        
+        <div className="absolute top-3 left-3 flex gap-2">
+          {item.status === 'Claimed' && (
+            <span className="bg-emerald-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-emerald-400/50 shadow-sm flex items-center">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              {t('item.claimed')}
+            </span>
+          )}
+          {isSmartTag ? (
+            <span className="bg-indigo-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-indigo-400/50 shadow-sm flex items-center">
+              <ShieldCheck className="w-3 h-3 mr-1" />
+              {t('item.smartTag')}
+            </span>
+          ) : (
+            <span className={`text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border shadow-sm ${
+              isLost ? 'bg-rose-500/90 border-rose-400/50' : 'bg-emerald-500/90 border-emerald-400/50'
+            }`}>
+              {isLost ? t('item.lost') : t('item.found')}
+            </span>
+          )}
         </div>
         
         {isOwner && (
           <div className="absolute top-4 right-4 bg-slate-900 text-white font-medium text-xs tracking-wider px-2.5 py-0.5 rounded-full shadow-sm flex items-center">
             <span className="w-2 h-2 rounded-full bg-white mr-2 animate-pulse"></span>
-            YOUR POST
+            {t('item.yourPost')}
           </div>
         )}
       </div>
@@ -136,13 +159,17 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
       {/* Content Section */}
       <div className="p-6 flex-grow flex flex-col">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-1 pr-2">{item.title}</h3>
+          <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-1 pr-2">
+            {i18n.language === 'si' && item.titleSi ? item.titleSi : (i18n.language === 'ta' && item.titleTa ? item.titleTa : item.title)}
+          </h3>
           <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-md font-semibold whitespace-nowrap">
-            {item.category}
+            {t(`categories.${item.category}`, { defaultValue: item.category })}
           </span>
         </div>
         
-        <p className="text-gray-500 text-sm mb-5 line-clamp-2 flex-grow leading-relaxed">{item.description}</p>
+        <p className="text-gray-500 text-sm mb-5 line-clamp-2 flex-grow leading-relaxed">
+          {i18n.language === 'si' && item.descriptionSi ? item.descriptionSi : (i18n.language === 'ta' && item.descriptionTa ? item.descriptionTa : item.description)}
+        </p>
 
         {/* Structured Metadata block */}
         <div className="space-y-2.5 mb-5 bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -164,7 +191,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
         {item.securityQuestion && !isLost && (
            <div className="mb-5 flex items-center text-xs font-bold tracking-wide text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200/60">
              <ShieldQuestion className="w-4 h-4 mr-2" />
-             BLIND CLAIM VERIFICATION REQUIRED
+             {t('item.blindClaimVerification')}
            </div>
         )}
 
@@ -176,7 +203,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
                 onClick={handleMarkAsClaimed}
                 className="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-sm"
               >
-                Mark as Claimed
+                {t('item.markAsClaimed')}
               </button>
             )}
             <div className="flex gap-2">
@@ -184,7 +211,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
                 onClick={() => navigate(`/edit/${item._id}`)}
                 className="flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
               >
-                Edit Details
+                {t('common.edit')}
               </button>
               <button 
                 onClick={handleDelete}

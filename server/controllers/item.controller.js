@@ -1,5 +1,6 @@
 const Item = require('../models/Item');
 const Message = require('../models/Message');
+const translate = require('google-translate-api-x');
 const path = require('path');
 const { generateImageHash, calculateHammingDistance } = require('../utils/imageHash');
 const { calculateTextSimilarity } = require('../utils/textMatch');
@@ -9,9 +10,27 @@ const createItem = async (req, res) => {
   try {
     const itemData = req.body;
 
+    let titleSi, titleTa, descriptionSi, descriptionTa;
+    try {
+       if (itemData.title) {
+         titleSi = (await translate(itemData.title, { to: 'si' })).text;
+         titleTa = (await translate(itemData.title, { to: 'ta' })).text;
+       }
+       if (itemData.description) {
+         descriptionSi = (await translate(itemData.description, { to: 'si' })).text;
+         descriptionTa = (await translate(itemData.description, { to: 'ta' })).text;
+       }
+    } catch (translateErr) {
+       console.error("Translation failed:", translateErr);
+    }
+
     // Instantiate new Item, enforcing the createdBy user mapping from auth middleware
     const newItem = new Item({
       ...itemData,
+      titleSi,
+      titleTa,
+      descriptionSi,
+      descriptionTa,
       createdBy: req.userId,
     });
 

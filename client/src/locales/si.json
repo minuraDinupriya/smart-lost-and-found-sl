@@ -1,0 +1,72 @@
+{
+  "nav": {
+    "search": "සොයන්න",
+    "smartTags": "ස්මාර්ට් ටැග්",
+    "analytics": "විශ්ලේෂණ",
+    "inbox": "පණිවිඩ",
+    "postItem": "+ අයිතමයක් පළ කරන්න",
+    "logout": "ඉවත්වන්න",
+    "trustScore": "විශ්වාස ලකුණු",
+    "login": "ඇතුල් වන්න",
+    "register": "ලියාපදිංචි වන්න"
+  },
+  "dashboard": {
+    "title": "Smart Lost & Found වෙත සාදරයෙන් පිළිගනිමු 🇱🇰",
+    "subtitle": "ශ්‍රී ලංකාව පුරා නැතිවූ දේවල් සොයා ගැනීමේ ස්මාර්ට්ම ක්‍රමය.",
+    "searchPlaceholder": "අයිතමයේ නමින් සොයන්න...",
+    "categoryFilter": "සියලුම වර්ග",
+    "provinceFilter": "සියලුම පළාත්",
+    "districtFilter": "සියලුම දිස්ත්‍රික්ක",
+    "cityFilter": "නගරය",
+    "noItems": "කිසිදු අයිතමයක් හමු නොවීය",
+    "topSamaritans": "හොඳම උදව්කරුවන් 🇱🇰",
+    "mapView": "සිතියම් දසුන",
+    "gridView": "ජාල දසුන",
+    "resetFilters": "පෙරහන් ඉවත් කරන්න",
+    "noImage": "පින්තූරයක් නොමැත",
+    "reviewMatch": "ගැලපීම පරීක්ෂා කරන්න",
+    "lost": "නැතිවූ",
+    "helpFind": "සොයා ගැනීමට උදව් කරන්න",
+    "localHeroes": "ප්‍රාදේශීය වීරයන් 🇱🇰",
+    "noHeroesYet": "තවමත් වීරයන් නොමැත...",
+    "noItemsFound": "කිසිදු අයිතමයක් හමු නොවීය",
+    "adjustFilters": "ඔබගේ සෙවුම් වචන වෙනස් කිරීමට හෝ පෙරහන් ඉවත් කිරීමට උත්සාහ කරන්න.",
+    "all": "සියල්ල",
+    "lostTab": "නැතිවූ",
+    "foundTab": "හමුවූ"
+  },
+  "location": {
+    "province": "පළාත",
+    "district": "දිස්ත්‍රික්කය",
+    "city": "නගරය",
+    "selectProvince": "පළාත තෝරන්න",
+    "selectDistrict": "දිස්ත්‍රික්කය තෝරන්න",
+    "selectCity": "නගරය තෝරන්න"
+  },
+  "item": {
+    "noImage": "පින්තූරයක් සපයා නැත",
+    "lost": "නැතිවූ",
+    "found": "හමුවූ",
+    "smartTag": "ස්මාර්ට් ටැගය",
+    "contactOwner": "අයිතිකරු අමතන්න",
+    "claim": "හිමිකම් කියන්න",
+    "claimed": "හිමිකම් කියූ",
+    "yourPost": "ඔබගේ පළ කිරීම",
+    "blindClaimVerification": "අන්ධ හිමිකම් තහවුරු කිරීම අවශ්‍ය වේ",
+    "markAsClaimed": "හිමිකම් කියූ ලෙස ලකුණු කරන්න"
+  },
+  "categories": {
+    "Electronics": "ඉලෙක්ට්‍රොනික",
+    "Documents": "ලිපිලේඛන",
+    "Keys": "යතුරු",
+    "Bags": "බෑග්",
+    "Wallets": "පසුම්බි",
+    "Pets": "සුරතල් සතුන්",
+    "Others": "වෙනත්"
+  },
+  "common": {
+    "loading": "පූරණය වෙමින් පවතී...",
+    "edit": "සංස්කරණය කරන්න",
+    "delete": "මකන්න"
+  }
+}

@@ -4,13 +4,19 @@ const itemSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, 'Title is required'],
+      required: [true, 'Please add a title'],
       trim: true,
+      maxlength: [100, 'Title cannot be more than 100 characters'],
     },
+    titleSi: { type: String, trim: true },
+    titleTa: { type: String, trim: true },
     description: {
       type: String,
-      required: [true, 'Description is required'],
+      required: [true, 'Please add a description'],
+      maxlength: [1000, 'Description cannot be more than 1000 characters'],
     },
+    descriptionSi: { type: String },
+    descriptionTa: { type: String },
     type: {
       type: String,
       enum: ['LOST', 'FOUND', 'SMART_TAG'],
