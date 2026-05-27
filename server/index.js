@@ -14,7 +14,20 @@ const app = express();
 connectDB();
 
 // Middlewares
-app.use(cors());
+const allowedOrigins = process.env.CLIENT_URL 
+  ? [process.env.CLIENT_URL, 'http://localhost:5173']
+  : ['http://localhost:5173'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -33,8 +46,15 @@ const server = http.createServer(app);
 // ----- WEB SOCKET REAL-TIME CHAT INTEGRATION -----
 const io = new Server(server, {
   cors: {
-    origin: '*', // Permissive for local development
-    methods: ['GET', 'POST']
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
