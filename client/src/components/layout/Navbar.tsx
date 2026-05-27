@@ -80,8 +80,8 @@ const Navbar: React.FC = () => {
             </div>
 
             {user ? (
-              <div className="flex items-center space-x-4 ml-2 sm:ml-4 pl-2 sm:pl-4 border-l border-gray-100">
-                <div className="hidden lg:flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4 ml-1 sm:ml-4 pl-1 sm:pl-4 border-l border-gray-100 overflow-x-auto no-scrollbar">
+                <div className="flex items-center space-x-1 sm:space-x-4">
                   <div className="flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-full border border-yellow-200">
                     <span className="text-sm font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</span>
                   </div>
@@ -127,7 +127,7 @@ const Navbar: React.FC = () => {
                     <div className="w-7 h-7 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {user.username.charAt(0).toUpperCase()}
                     </div>
-                    <span className="font-semibold text-gray-700 text-sm hidden sm:block max-w-[100px] truncate">{user.username}</span>
+                    <span className="font-semibold text-gray-700 text-sm hidden lg:block max-w-[100px] truncate">{user.username}</span>
                   </button>
                   
                   {/* Dropdown Menu */}
