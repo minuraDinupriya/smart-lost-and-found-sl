@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
 
 const RegisterPage: React.FC = () => {
-  const { registerUser } = useAuth();
+  const { registerUser, loginWithGoogle } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -99,9 +100,35 @@ const RegisterPage: React.FC = () => {
             disabled={isSubmitting}
             className="w-full bg-[#800000] text-white font-medium py-3 rounded-xl hover:bg-[#600000] transition-all shadow-lg shadow-[#800000]/20 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 mt-6"
           >
-            {isSubmitting ? 'Registering...' : 'Register Account'}
+            {isSubmitting ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
+
+        <div className="relative mt-8 mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm font-medium">
+            <span className="px-4 bg-white text-gray-500">Or continue with</span>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={credentialResponse => {
+              if (credentialResponse.credential) {
+                loginWithGoogle(credentialResponse.credential);
+              }
+            }}
+            onError={() => {
+              toast.error('Google Login Failed', { id: 'google-error' });
+            }}
+            theme="outline"
+            size="large"
+            shape="rectangular"
+            width="100%"
+          />
+        </div>
 
         <p className="text-center mt-8 text-sm font-medium text-gray-500">
           Already have an account?{' '}

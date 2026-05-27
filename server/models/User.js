@@ -10,7 +10,21 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      // Optional now to support OAuth
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows null/undefined values to not conflict
+    },
+    email: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    profilePicture: {
+      type: String,
     },
     karmaPoints: {
       type: Number,

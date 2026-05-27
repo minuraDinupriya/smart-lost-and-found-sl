@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
 
 const LoginPage: React.FC = () => {
-  const { loginUser } = useAuth();
+  const { loginUser, loginWithGoogle } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,6 +82,32 @@ const LoginPage: React.FC = () => {
             {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <div className="relative mt-8 mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm font-medium">
+            <span className="px-4 bg-white text-gray-500">Or continue with</span>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={credentialResponse => {
+              if (credentialResponse.credential) {
+                loginWithGoogle(credentialResponse.credential);
+              }
+            }}
+            onError={() => {
+              toast.error('Google Login Failed', { id: 'google-error' });
+            }}
+            theme="outline"
+            size="large"
+            shape="rectangular"
+            width="100%"
+          />
+        </div>
 
         <p className="text-center mt-8 text-sm font-medium text-gray-500">
           Don't have an account?{' '}

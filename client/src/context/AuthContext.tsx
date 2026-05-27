@@ -15,6 +15,7 @@ interface AuthContextType {
   loading: boolean;
   loginUser: (username: string, password: string) => Promise<void>;
   registerUser: (username: string, password: string) => Promise<void>;
+  loginWithGoogle: (token: string) => Promise<void>;
   fetchMe: () => Promise<void>;
   logout: () => void;
 }
@@ -136,6 +137,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const loginWithGoogle = async (googleToken: string) => {
+    try {
+      const response = await api.post('/auth/google', { token: googleToken });
+      const { token: receivedToken, username: receivedUsername, userId } = response.data;
+
+      setToken(receivedToken);
+      setUser({ username: receivedUsername, _id: userId });
+      fetchMe();
+
+      localStorage.setItem('token', receivedToken);
+      localStorage.setItem('username', receivedUsername);
+      if (userId) localStorage.setItem('userId', userId);
+
+      Swal.fire({
+        title: 'Welcome Back!',
+        text: `Successfully logged in with Google as ${receivedUsername}.`,
+        icon: 'success',
+        confirmButtonColor: '#800000',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      navigate('/');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Google Login failed.';
+      Swal.fire({
+        title: 'Error!',
+        text: message,
+        icon: 'error',
+        confirmButtonColor: '#800000',
+      });
+      throw error;
+    }
+  };
+
   const logout = () => {
     // Clear state arrays
     setToken(null);
@@ -149,7 +185,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, loginUser, registerUser, fetchMe, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, loginUser, registerUser, loginWithGoogle, fetchMe, logout }}>
       {children}
     </AuthContext.Provider>
   );

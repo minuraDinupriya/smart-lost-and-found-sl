@@ -1,6 +1,9 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const register = async (req, res) => {
   try {
@@ -62,6 +65,61 @@ const login = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+    
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Check if user already exists
+    let user = await User.findOne({ 
+      $or: [{ googleId }, { email }]
+    });
+
+    if (!user) {
+      // Check if username is taken, if so, append random string
+      let username = name.replace(/\s+/g, '').toLowerCase();
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        username = `${username}${Math.floor(Math.random() * 10000)}`;
+      }
+
+      // Create new user without a password
+      user = new User({
+        username,
+        googleId,
+        email,
+        profilePicture: picture,
+      });
+      await user.save();
+    } else if (!user.googleId) {
+      // Link Google account to existing user by email
+      user.googleId = googleId;
+      user.profilePicture = picture;
+      await user.save();
+    }
+
+    // Sign JWT
+    const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
+    const jwtToken = jwt.sign({ id: user._id }, secret, { expiresIn: '7d' });
+
+    res.status(200).json({
+      token: jwtToken,
+      username: user.username,
+      userId: user._id,
+    });
+  } catch (error) {
+    console.error('Google Login error:', error);
+    res.status(500).json({ message: 'Server error during Google Login.' });
+  }
+};
+
 // @desc    Get current logged in user
 // @route   GET /api/auth/me
 // @access  Private
@@ -94,6 +152,7 @@ const getLeaderboard = async (req, res) => {
 module.exports = {
   register,
   login,
+  googleLogin,
   getMe,
   getLeaderboard,
 };
