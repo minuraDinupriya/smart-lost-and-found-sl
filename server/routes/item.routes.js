@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics } = require('../controllers/item.controller');
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
@@ -18,6 +18,11 @@ router.get('/', getAllItems);
 // @desc    Fetch smart tags created by logged in user
 // @access  Private
 router.get('/my/smart-tags', verifyToken, getMySmartTags);
+
+// @route   GET /api/items/analytics
+// @desc    Get aggregated statistics for National Dashboard
+// @access  Public
+router.get('/analytics', getAnalytics);
 
 // @route   GET /api/items/:itemId
 // @desc    Get a single item by ID

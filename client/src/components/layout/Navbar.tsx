@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, User, LogOut, PackageSearch, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Search, User, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3 } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -69,6 +69,13 @@ const Navbar: React.FC = () => {
                 >
                   <ShieldCheck className="w-4 h-4 mr-1.5" />
                   <span className="hidden sm:inline">Smart Tags</span>
+                </Link>
+                <Link
+                  to="/analytics"
+                  className="relative flex items-center text-sm font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 hover:border-indigo-200 border border-indigo-200/60 transition-colors shadow-sm"
+                >
+                  <BarChart3 className="w-4 h-4 mr-1.5" />
+                  <span className="hidden sm:inline">Analytics</span>
                 </Link>
                 <Link
                   to="/inbox"

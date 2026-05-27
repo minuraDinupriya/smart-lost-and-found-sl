@@ -177,6 +177,56 @@ const getMySmartTags = async (req, res) => {
   }
 };
 
+const getAnalytics = async (req, res) => {
+  try {
+    // Basic Counts
+    const totalItems = await Item.countDocuments({ type: { $ne: 'SMART_TAG' } });
+    const totalRecovered = await Item.countDocuments({ type: { $ne: 'SMART_TAG' }, status: 'Claimed' });
+    const totalLost = await Item.countDocuments({ type: 'LOST' });
+    const totalFound = await Item.countDocuments({ type: 'FOUND' });
+
+    // Category Distribution
+    const itemsByCategory = await Item.aggregate([
+      { $match: { type: { $ne: 'SMART_TAG' } } },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    // Provincial Heatmap Data
+    const itemsByProvince = await Item.aggregate([
+      { $match: { type: { $ne: 'SMART_TAG' } } },
+      { $group: { _id: '$province', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    // Monthly Timeline Data
+    const timelineData = await Item.aggregate([
+      { $match: { type: { $ne: 'SMART_TAG' } } },
+      { 
+        $group: { 
+          _id: { $month: "$date" }, 
+          count: { $sum: 1 } 
+        } 
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.status(200).json({
+      totalItems,
+      totalRecovered,
+      totalLost,
+      totalFound,
+      itemsByCategory: itemsByCategory.map(i => ({ name: i._id, value: i.count })),
+      itemsByProvince: itemsByProvince.map(i => ({ name: i._id, value: i.count })),
+      timelineData: timelineData.map(i => ({ name: `Month ${i._id}`, value: i.count }))
+    });
+
+  } catch (error) {
+    console.error('Analytics fetch error:', error);
+    res.status(500).json({ message: 'Server error while fetching analytics.' });
+  }
+};
+
 const getItemById = async (req, res) => {
   try {
     const item = await Item.findById(req.params.itemId).populate('createdBy', 'username');
@@ -278,4 +328,5 @@ module.exports = {
   deleteItem,
   claimItem,
   getMySmartTags,
+  getAnalytics,
 };

@@ -10,6 +10,7 @@ import QRTagsPage from './features/items/pages/QRTagsPage';
 import PostItemPage from './features/items/pages/PostItemPage';
 import EditItemPage from './features/items/pages/EditItemPage';
 import ItemDetailPage from './features/items/pages/ItemDetailPage';
+import AnalyticsPage from './features/items/pages/AnalyticsPage';
 import ChatPage from './features/chat/pages/ChatPage';
 import InboxPage from './features/chat/pages/InboxPage';
 
@@ -38,6 +39,9 @@ const App: React.FC = () => {
           
           {/* Protected Smart Tags Route */}
           <Route path="/smart-tags" element={<QRTagsPage />} />
+
+          {/* Analytics Route */}
+          <Route path="/analytics" element={<AnalyticsPage />} />
 
           <Route path="/chat/:itemId" element={<ChatPage />} />
           <Route path="/inbox" element={<InboxPage />} />
