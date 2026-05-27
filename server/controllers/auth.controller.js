@@ -62,7 +62,38 @@ const login = async (req, res) => {
   }
 };
 
+// @desc    Get current logged in user
+// @route   GET /api/auth/me
+// @access  Private
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password karmaPoints');
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Get top users by karma points
+// @route   GET /api/auth/leaderboard
+// @access  Public
+const getLeaderboard = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select('username karmaPoints')
+      .sort({ karmaPoints: -1 })
+      .limit(10);
+    res.status(200).json({ leaderboard: users });
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 module.exports = {
   register,
   login,
+  getMe,
+  getLeaderboard,
 };

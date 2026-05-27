@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Map as MapIcon, LayoutGrid } from 'lucide-react';
+import { Search, Map as MapIcon, LayoutGrid, Trophy } from 'lucide-react';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import ItemCard, { ItemProps } from '../components/ItemCard';
@@ -28,7 +28,15 @@ const DashboardPage: React.FC = () => {
   const [resetKey, setResetKey] = useState(0);
   const [viewMode, setViewMode] = useState<'GRID' | 'MAP'>('GRID');
   const [hiddenPins, setHiddenPins] = useState<Set<string>>(new Set());
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch Top Samaritans
+    api.get('/auth/leaderboard').then(res => {
+      setLeaderboard(res.data.leaderboard);
+    }).catch(err => console.error(err));
+  }, []);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -221,6 +229,35 @@ const DashboardPage: React.FC = () => {
                 )
               })}
             </MapContainer>
+
+            {/* Floating Leaderboard */}
+            <div className="absolute bottom-8 right-8 z-[400] w-64 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 overflow-hidden pointer-events-auto">
+              <div className="bg-[#800000] text-white p-3 flex items-center justify-center space-x-2">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                <h3 className="font-bold text-sm">Local Heroes 🇱🇰</h3>
+              </div>
+              <div className="p-3">
+                {leaderboard.length === 0 ? (
+                  <p className="text-xs text-center text-gray-500">No heroes yet...</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {leaderboard.map((u, index) => (
+                      <li key={u._id} className="flex justify-between items-center text-sm border-b border-gray-100 last:border-0 pb-1 last:pb-0">
+                        <span className="font-medium text-gray-800 flex items-center">
+                          <span className={`w-4 text-xs font-bold mr-2 text-center ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-amber-700' : 'text-gray-300'}`}>
+                            #{index + 1}
+                          </span>
+                          {u.username}
+                        </span>
+                        <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-xs">
+                          {u.karmaPoints}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           </motion.div>
         )
       ) : (

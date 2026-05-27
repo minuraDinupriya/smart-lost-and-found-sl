@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem } = require('../controllers/item.controller');
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
@@ -28,5 +28,10 @@ router.put('/:itemId', verifyToken, upload.single('image'), updateItem);
 // @desc    Delete an item (requires authentication & ownership)
 // @access  Private
 router.delete('/:itemId', verifyToken, deleteItem);
+
+// @route   PUT /api/items/:itemId/claim
+// @desc    Mark an item as Claimed (Awards Karma Points)
+// @access  Private (Creator only)
+router.put('/:itemId/claim', verifyToken, claimItem);
 
 module.exports = router;

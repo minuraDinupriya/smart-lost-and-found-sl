@@ -6,6 +6,7 @@ import api from '../services/api';
 interface User {
   username: string;
   _id?: string;
+  karmaPoints?: number;
 }
 
 interface AuthContextType {
@@ -14,6 +15,7 @@ interface AuthContextType {
   loading: boolean;
   loginUser: (username: string, password: string) => Promise<void>;
   registerUser: (username: string, password: string) => Promise<void>;
+  fetchMe: () => Promise<void>;
   logout: () => void;
 }
 
@@ -24,6 +26,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
+
+  const fetchMe = async () => {
+    try {
+      const response = await api.get('/auth/me');
+      if (response.data && response.data.user) {
+        setUser({ 
+          username: response.data.user.username, 
+          _id: response.data.user._id,
+          karmaPoints: response.data.user.karmaPoints 
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   // On mount, check if token exists in localStorage to maintain persistence
   useEffect(() => {
@@ -40,6 +57,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       setToken(storedToken);
       setUser({ username: storedUsername, _id: decodedId || undefined });
+      
+      // Fetch latest profile to get Karma Points
+      api.get('/auth/me', { headers: { Authorization: `Bearer ${storedToken}` } })
+        .then(res => {
+          if (res.data && res.data.user) {
+            setUser({ 
+              username: res.data.user.username, 
+              _id: res.data.user._id,
+              karmaPoints: res.data.user.karmaPoints 
+            });
+          }
+        })
+        .catch(err => console.error('Failed to fetch user:', err));
     }
     
     setLoading(false);
@@ -74,9 +104,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await api.post('/auth/login', { username, password });
       const { token: receivedToken, username: receivedUsername, userId } = response.data;
 
-      // Update local state
+      // Update local state (karma will be 0 initially or updated via fetchMe)
       setToken(receivedToken);
       setUser({ username: receivedUsername, _id: userId });
+      fetchMe(); // fetch karma points
 
       // Persist in localStorage
       localStorage.setItem('token', receivedToken);
@@ -118,7 +149,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, loginUser, registerUser, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, loginUser, registerUser, fetchMe, logout }}>
       {children}
     </AuthContext.Provider>
   );

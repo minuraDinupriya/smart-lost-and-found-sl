@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
     },
+    karmaPoints: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     // Mongoose automatically creates and manages 'createdAt' and 'updatedAt' fields

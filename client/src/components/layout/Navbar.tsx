@@ -60,6 +60,9 @@ const Navbar: React.FC = () => {
 
             {user ? (
               <div className="flex items-center space-x-4 ml-2 sm:ml-4 pl-2 sm:pl-4 border-l border-gray-100">
+                <div className="flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-full border border-yellow-200">
+                  <span className="text-sm font-bold">🏆 {user.karmaPoints || 0} Trust Score</span>
+                </div>
                 <Link
                   to="/inbox"
                   className="relative flex items-center text-sm font-medium text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 border border-slate-200/60 transition-colors shadow-sm mr-2"

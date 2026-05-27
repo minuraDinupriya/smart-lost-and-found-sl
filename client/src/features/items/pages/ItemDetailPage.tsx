@@ -9,7 +9,7 @@ const ItemDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, fetchMe } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,6 +65,37 @@ const ItemDetailPage: React.FC = () => {
       });
     } else {
       navigate(`/chat/${item._id}`);
+    }
+  };
+
+  const handleMarkAsClaimed = async () => {
+    try {
+      await api.put(`/items/${item._id}/claim`);
+      // Update local state
+      setItem((prev: any) => ({ ...prev, status: 'Claimed' }));
+      
+      if (item.type === 'FOUND') {
+        Swal.fire({
+          title: 'Thank You Hero!',
+          text: 'You successfully returned this item and earned +50 Trust Score!',
+          icon: 'success',
+          confirmButtonColor: '#10b981'
+        });
+        fetchMe(); // Refresh Karma Points in Navbar
+      } else {
+        Swal.fire({
+          title: 'Resolved!',
+          text: 'This lost item has been marked as claimed.',
+          icon: 'success',
+          confirmButtonColor: '#800000'
+        });
+      }
+    } catch (error: any) {
+      Swal.fire({
+        title: 'Error',
+        text: error.response?.data?.message || 'Failed to claim item.',
+        icon: 'error'
+      });
     }
   };
 
@@ -145,6 +176,15 @@ const ItemDetailPage: React.FC = () => {
           >
             {isOwner ? 'Edit Your Post' : (isFound ? 'I Have This Item' : 'I Found This Item')}
           </button>
+
+          {isOwner && item.status !== 'Claimed' && (
+            <button 
+              onClick={handleMarkAsClaimed}
+              className="flex-grow px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all focus:outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-md shadow-emerald-500/20 flex items-center justify-center"
+            >
+              Mark as Claimed
+            </button>
+          )}
         </div>
       </div>
     </div>

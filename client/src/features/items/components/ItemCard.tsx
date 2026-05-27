@@ -25,7 +25,7 @@ export interface ItemProps {
 const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
   const isLost = item.type === 'LOST';
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, fetchMe } = useAuth();
 
   const createdById = typeof item.createdBy === 'object' ? item.createdBy?._id : item.createdBy;
   const isOwner = user?._id === createdById;
@@ -76,6 +76,35 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
         });
       }
     });
+  };
+
+  const handleMarkAsClaimed = async () => {
+    try {
+      await api.put(`/items/${item._id}/claim`);
+      
+      if (item.type === 'FOUND') {
+        Swal.fire({
+          title: 'Thank You Hero!',
+          text: 'You successfully returned this item and earned +50 Trust Score!',
+          icon: 'success',
+          confirmButtonColor: '#10b981'
+        }).then(() => {
+          fetchMe();
+          window.location.reload();
+        });
+      } else {
+        Swal.fire({
+          title: 'Resolved!',
+          text: 'This lost item has been marked as claimed.',
+          icon: 'success',
+          confirmButtonColor: '#800000'
+        }).then(() => {
+          window.location.reload();
+        });
+      }
+    } catch (error: any) {
+      Swal.fire('Error', error.response?.data?.message || 'Failed to claim item.', 'error');
+    }
   };
 
   return (
@@ -141,19 +170,29 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
 
         {/* Contextual Action Button */}
         {isOwner ? (
-          <div className="mt-auto flex gap-3">
-            <button 
-              onClick={() => navigate(`/edit/${item._id}`)}
-              className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors"
-            >
-              Edit Details
-            </button>
-            <button 
-              onClick={handleDelete}
-              className="flex-1 py-3 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors"
-            >
-              Delete Post
-            </button>
+          <div className="mt-auto flex flex-col gap-2">
+            {item.status !== 'Claimed' && (
+              <button 
+                onClick={handleMarkAsClaimed}
+                className="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+              >
+                Mark as Claimed
+              </button>
+            )}
+            <div className="flex gap-2">
+              <button 
+                onClick={() => navigate(`/edit/${item._id}`)}
+                className="flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
+              >
+                Edit Details
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="flex-1 py-2 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors text-sm"
+              >
+                Delete Post
+              </button>
+            </div>
           </div>
         ) : (
           <button 

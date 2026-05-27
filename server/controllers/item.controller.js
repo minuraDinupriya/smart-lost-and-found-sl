@@ -130,8 +130,8 @@ const getAllItems = async (req, res) => {
     if (district) filter.district = district;
     if (city) filter.city = city;
 
-    // Fetch items with filter, sort descending (newest first)
-    const items = await Item.find(filter)
+    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items
+    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' } })
       .sort({ createdAt: -1 })
       .populate('createdBy', 'username'); // Helpful to display the reporter's username
       
@@ -217,10 +217,41 @@ const deleteItem = async (req, res) => {
   }
 };
 
+const claimItem = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const item = await Item.findById(itemId);
+    
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (item.status === 'Claimed') return res.status(400).json({ message: 'Item is already claimed' });
+    
+    // Authorization: Ensure the requester is the original creator of the post
+    if (item.createdBy.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Unauthorized to claim this item' });
+    }
+
+    item.status = 'Claimed';
+    await item.save();
+
+    // The Good Samaritan Karma System
+    // If the user posted a FOUND item and successfully returned it, award them 50 Karma points
+    if (item.type === 'FOUND') {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(req.userId, { $inc: { karmaPoints: 50 } });
+    }
+
+    res.status(200).json({ message: 'Item successfully marked as Claimed', item });
+  } catch (error) {
+    console.error('Claim item error:', error);
+    res.status(500).json({ message: 'Server error while claiming item.' });
+  }
+};
+
 module.exports = {
   createItem,
   getAllItems,
   getItemById,
   updateItem,
   deleteItem,
+  claimItem,
 };
