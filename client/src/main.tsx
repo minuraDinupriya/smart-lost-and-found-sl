@@ -4,7 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { registerSW } from 'virtual:pwa-register';
 import './index.css';
+
+// Automatically register the Service Worker for Progressive Web App capabilities
+registerSW({ immediate: true });
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
