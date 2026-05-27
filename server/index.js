@@ -7,6 +7,7 @@ const connectDB = require('./config/db');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const Message = require('./models/Message');
+const socketService = require('./services/socket.service');
 
 // Initialize Express application
 const app = express();
@@ -53,11 +54,11 @@ io.use((socket, next) => {
 });
 
 // Track active connections
-const userSockets = new Map();
+socketService.setIo(io);
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.userId} on socket ${socket.id}`);
-  userSockets.set(socket.userId.toString(), socket.id);
+  socketService.addUserSocket(socket.userId, socket.id);
 
   // Join isolated negotiation room
   socket.on('join_room', (itemId) => {
@@ -79,10 +80,7 @@ io.on('connection', (socket) => {
       io.to(itemId).emit('receive_message', savedMessage);
 
       // Trigger a global notification to the receiver for the Navbar badge
-      const receiverSocketId = userSockets.get(receiverId.toString());
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('global_notification', savedMessage);
-      }
+      socketService.emitGlobalNotification(receiverId, savedMessage);
     } catch (error) {
       console.error('Socket DB persistence error:', error);
     }
@@ -90,7 +88,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.userId}`);
-    userSockets.delete(socket.userId.toString());
+    socketService.removeUserSocket(socket.userId);
   });
 });
 

@@ -8,6 +8,7 @@ import RegisterPage from './features/auth/pages/RegisterPage';
 import DashboardPage from './features/items/pages/DashboardPage';
 import PostItemPage from './features/items/pages/PostItemPage';
 import EditItemPage from './features/items/pages/EditItemPage';
+import ItemDetailPage from './features/items/pages/ItemDetailPage';
 import ChatPage from './features/chat/pages/ChatPage';
 import InboxPage from './features/chat/pages/InboxPage';
 
@@ -32,6 +33,7 @@ const App: React.FC = () => {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/post" element={<PostItemPage />} />
           <Route path="/edit/:itemId" element={<EditItemPage />} />
+          <Route path="/items/:itemId" element={<ItemDetailPage />} />
           <Route path="/chat/:itemId" element={<ChatPage />} />
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/login" element={<LoginPage />} />

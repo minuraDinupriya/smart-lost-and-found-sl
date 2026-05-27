@@ -2,6 +2,8 @@ const Item = require('../models/Item');
 const Message = require('../models/Message');
 const path = require('path');
 const { generateImageHash, calculateHammingDistance } = require('../utils/imageHash');
+const { calculateTextSimilarity } = require('../utils/textMatch');
+const { emitGlobalNotification } = require('../services/socket.service');
 
 const createItem = async (req, res) => {
   try {
@@ -25,41 +27,91 @@ const createItem = async (req, res) => {
 
     const savedItem = await newItem.save();
     
-    // Scan for visual matches using Hamming Distance asynchronously
-    if (savedItem.imageHash) {
-      const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
-      // Fetch potential matches in the same category
-      Item.find({
-        type: oppositeType,
-        category: savedItem.category,
-        imageHash: { $exists: true, $ne: null, $ne: '' }
-      }).then(potentialMatches => {
-        for (const match of potentialMatches) {
+    // Scan for visual and text matches asynchronously
+    const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
+    
+    // Fetch potential matches in the same category
+    Item.find({
+      type: oppositeType,
+      category: savedItem.category
+    }).then(potentialMatches => {
+      console.log(`\n=========================================================`);
+      console.log(`🧠 [AI MATCHING ENGINE] - STARTING ANALYSIS...`);
+      console.log(`=========================================================`);
+      console.log(`Target Item: "${savedItem.title}" (${savedItem.type})`);
+      console.log(`Scanning against: ${potentialMatches.length} ${oppositeType} items...\n`);
+
+      for (const match of potentialMatches) {
+        // PREVENT SELF-MATCHING: Do not match a user's newly posted item against their own previously posted items
+        if (savedItem.createdBy.toString() === match.createdBy.toString()) {
+          console.log(`-> Skipping "${match.title}": Created by the same user.\n`);
+          continue;
+        }
+
+        let isMatch = false;
+        let matchReason = '';
+        let matchPhase = ''; // 'VISUAL' or 'NLP'
+
+        console.log(`[Phase 1] 📷 Image Perceptual Hashing (pHash) Algorithm:`);
+        console.log(`-> Comparing Bitwise Hamming Distance against: "${match.title}"`);
+        // 1. Evaluate Image Similarity (if both have images)
+        if (savedItem.imageHash && match.imageHash) {
           const distance = calculateHammingDistance(savedItem.imageHash, match.imageHash);
           if (distance !== null && distance <= 10) {
-            console.log(`\n🚨 VISUAL MATCH DETECTED! Images are visually similar (Distance: ${distance})`);
-            console.log(`- New Item: [${savedItem.type}] ${savedItem.title} (${savedItem._id})`);
-            console.log(`- Matched Item: [${match.type}] ${match.title} (${match._id})\n`);
-
-            // Inject System Alert into original item owner's inbox (pointing to new item)
-            Message.create({
-              itemId: savedItem._id,
-              senderId: savedItem.createdBy,
-              receiverId: match.createdBy,
-              text: `🤖 AUTOMATIC SMART MATCH DETECTED! We found a highly similar listing matching your item. Click here to view it: /items/${savedItem._id}`
-            }).catch(e => console.error('Failed to send alert to original owner:', e));
-
-            // Inject System Alert into new item poster's inbox (pointing to old item)
-            Message.create({
-              itemId: match._id,
-              senderId: match.createdBy,
-              receiverId: savedItem.createdBy,
-              text: `🤖 AUTOMATIC SMART MATCH DETECTED! We found a highly similar listing already on the network. Click here to view it: /items/${match._id}`
-            }).catch(e => console.error('Failed to send alert to new poster:', e));
+            isMatch = true;
+            matchReason = `Visual Match (Distance: ${distance})`;
+            matchPhase = 'VISUAL';
+            console.log(`-> Result: Distance = ${distance} (Threshold: <= 10) - 🟢 VISUAL MATCH FOUND!\n`);
+          } else {
+             console.log(`-> Result: Distance = ${distance} (Threshold: <= 10) - NO VISUAL MATCH\n`);
           }
+        } else {
+           console.log(`-> Result: SKIPPED (Missing Image Data)\n`);
         }
-      }).catch(err => console.error('Error during visual matching:', err));
-    }
+
+        console.log(`[Phase 2] 📝 Natural Language Processing (NLP) Engine:`);
+        console.log(`-> Algorithm: Dice's Coefficient (String Similarity)`);
+        // 2. Evaluate Text Similarity (if visual match failed or was skipped)
+        if (!isMatch) {
+          const textScore = calculateTextSimilarity(savedItem, match);
+          if (textScore >= 0.60) {
+            isMatch = true;
+            matchReason = `Text Similarity Match (Score: ${(textScore * 100).toFixed(1)}%)`;
+            matchPhase = 'NLP';
+            console.log(`-> Result: Score = ${(textScore * 100).toFixed(1)}% (Threshold: >= 60%) - 🟢 NLP MATCH FOUND!\n`);
+          } else {
+            console.log(`-> Result: Score = ${(textScore * 100).toFixed(1)}% (Threshold: >= 60%) - NO MATCH\n`);
+          }
+        } else {
+          console.log(`-> Result: SKIPPED (Visual Match already confirmed)\n`);
+        }
+
+        if (isMatch) {
+          console.log(`🚨 SMART MATCH CONFIRMED!`);
+          console.log(`-> Triggering Global Inboxes...`);
+          console.log(`=========================================================\n`);
+
+          // Dynamically generate the message based on the AI engine that triggered it
+          let alertMessage = '';
+          if (matchPhase === 'VISUAL') {
+            alertMessage = `🤖 AI VISUAL MATCH: Our Image Recognition engine detected a structural match between your photos! Click here to view the potential match: /items/${savedItem._id}`;
+          } else {
+            alertMessage = `🤖 AI NLP MATCH: Our Text Analysis engine detected highly similar keyword overlap between your descriptions! Click here to view the potential match: /items/${savedItem._id}`;
+          }
+
+          // Professionally drop exactly ONE message into the original item's chat room connecting both users
+          Message.create({
+            itemId: match._id,
+            senderId: savedItem.createdBy,
+            receiverId: match.createdBy,
+            text: alertMessage
+          }).then(msg => {
+            emitGlobalNotification(match.createdBy, msg);
+            emitGlobalNotification(savedItem.createdBy, msg);
+          }).catch(e => console.error('Failed to send smart match alert:', e));
+        }
+      }
+    }).catch(err => console.error('Error during autonomous matching:', err));
 
     res.status(201).json(savedItem);
   } catch (error) {

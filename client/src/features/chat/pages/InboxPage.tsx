@@ -22,6 +22,7 @@ interface ThreadProps {
     username: string;
   };
   text: string;
+  isRead: boolean;
   createdAt: string;
 }
 
@@ -46,7 +47,7 @@ const InboxPage: React.FC = () => {
   }, []);
 
   // Helper function to detect AI System Alerts
-  const isSystemAlert = (text: string) => text.includes('🤖 AUTOMATIC SMART MATCH DETECTED');
+  const isSystemAlert = (text: string) => text.includes('🤖 AI VISUAL MATCH') || text.includes('🤖 AI NLP MATCH') || text.includes('🤖 AUTOMATIC SMART MATCH DETECTED');
 
   // Interactive Message Parser
   const renderMessageText = (text: string) => {
@@ -116,12 +117,13 @@ const InboxPage: React.FC = () => {
           {threads.map((thread) => {
             const isAlert = isSystemAlert(thread.text);
             const otherUser = thread.senderId._id === user?._id ? thread.receiverId : thread.senderId;
+            const isUnread = !thread.isRead && thread.receiverId._id === user?._id;
             
             return (
               <div 
                 key={thread._id}
                 onClick={() => thread.itemId && navigate(`/chat/${thread.itemId._id}`)}
-                className={`flex items-start p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                className={`relative flex items-start p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   isAlert 
                     ? 'bg-amber-50/60 border-l-4 border-amber-400 shadow-sm hover:bg-amber-50' 
                     : 'bg-white border border-slate-100 hover:border-slate-300 shadow-sm'
@@ -155,10 +157,17 @@ const InboxPage: React.FC = () => {
                     {isAlert ? '🤖 SYSTEM_BOT' : `From: ${otherUser.username}`}
                   </div>
 
-                  <p className={`text-sm leading-relaxed ${isAlert ? 'text-amber-900 font-medium' : 'text-slate-600 line-clamp-2'}`}>
+                  <p className={`text-sm leading-relaxed pr-8 ${isAlert ? 'text-amber-900 font-medium' : 'text-slate-600 line-clamp-2'}`}>
                     {renderMessageText(thread.text)}
                   </p>
                 </div>
+                
+                {/* Unread Notification Dot */}
+                {isUnread && (
+                  <div className="absolute top-1/2 -translate-y-1/2 right-6">
+                    <div className="w-3.5 h-3.5 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse"></div>
+                  </div>
+                )}
               </div>
             );
           })}

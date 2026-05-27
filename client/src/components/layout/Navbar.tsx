@@ -42,14 +42,14 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16 items-center">
           
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
+          <a href="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
             <div className="p-1.5 bg-[#800000]/5 rounded-xl">
               <PackageSearch className="w-7 h-7 text-[#800000]" />
             </div>
             <span className="font-bold text-xl tracking-tight text-gray-900 hidden sm:block">
               Smart Lost <span className="text-[#800000]">&</span> Found
             </span>
-          </Link>
+          </a>
 
           {/* Navigation Links & Auth Actions */}
           <div className="flex items-center space-x-3">

@@ -5,6 +5,7 @@ import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
 import { Send, FileText, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ItemLinkPreview from '../components/ItemLinkPreview';
 
 interface Message {
   _id: string;
@@ -40,7 +41,19 @@ const ChatPage: React.FC = () => {
 
         // Fetch historical logs from MongoDB
         const msgRes = await api.get(`/messages/${itemId}`);
-        setMessages(msgRes.data);
+        const fetchedMessages = msgRes.data;
+        setMessages(fetchedMessages);
+
+        // Dynamically determine the correct receiverId!
+        // If we have chat history, find the OTHER user involved in this conversation
+        let computedReceiverId = posterId;
+        if (user && fetchedMessages.length > 0) {
+           const relevantMsg = fetchedMessages.find((m: any) => m.senderId === user._id || m.receiverId === user._id);
+           if (relevantMsg) {
+             computedReceiverId = relevantMsg.senderId === user._id ? relevantMsg.receiverId : relevantMsg.senderId;
+           }
+        }
+        setReceiverId(computedReceiverId);
       } catch (error) {
         console.error("Failed to load chat data", error);
       } finally {
@@ -147,6 +160,11 @@ const ChatPage: React.FC = () => {
             // Correct alignment logic mapping for UI
             const alignRight = msg.senderId === user?._id; 
             
+            // Detect Item Links (e.g., /items/6a1409a94e364baf912eb68b)
+            const itemRegex = /\/items\/([a-fA-F0-9]{24})/;
+            const match = msg.text.match(itemRegex);
+            const extractedItemId = match ? match[1] : null;
+
             return (
               <motion.div 
                 key={msg._id || index}
@@ -154,12 +172,19 @@ const ChatPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${alignRight ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[75%] px-5 py-3.5 shadow-sm text-sm ${
+                <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 shadow-sm text-sm ${
                   alignRight 
                     ? 'bg-[#800000] text-white rounded-2xl rounded-br-sm' 
                     : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
                 }`}>
-                  {msg.text}
+                  {/* Render Text */}
+                  <span className="whitespace-pre-wrap">{msg.text}</span>
+                  
+                  {/* WhatsApp-style Rich Link Preview */}
+                  {extractedItemId && (
+                    <ItemLinkPreview itemId={extractedItemId} alignRight={alignRight} />
+                  )}
+
                   <div className={`text-[10px] mt-1.5 text-right font-medium ${alignRight ? 'text-white/60' : 'text-gray-400'}`}>
                     {new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
