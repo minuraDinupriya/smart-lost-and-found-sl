@@ -6,6 +6,7 @@ import LoginPage from './features/auth/pages/LoginPage';
 import RegisterPage from './features/auth/pages/RegisterPage';
 
 import DashboardPage from './features/items/pages/DashboardPage';
+import QRTagsPage from './features/items/pages/QRTagsPage';
 import PostItemPage from './features/items/pages/PostItemPage';
 import EditItemPage from './features/items/pages/EditItemPage';
 import ItemDetailPage from './features/items/pages/ItemDetailPage';
@@ -34,6 +35,10 @@ const App: React.FC = () => {
           <Route path="/post" element={<PostItemPage />} />
           <Route path="/edit/:itemId" element={<EditItemPage />} />
           <Route path="/items/:itemId" element={<ItemDetailPage />} />
+          
+          {/* Protected Smart Tags Route */}
+          <Route path="/smart-tags" element={<QRTagsPage />} />
+
           <Route path="/chat/:itemId" element={<ChatPage />} />
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/login" element={<LoginPage />} />

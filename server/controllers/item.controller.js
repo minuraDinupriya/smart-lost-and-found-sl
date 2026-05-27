@@ -27,8 +27,10 @@ const createItem = async (req, res) => {
 
     const savedItem = await newItem.save();
     
-    // Scan for visual and text matches asynchronously
-    const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
+    // Skip matching engine for Smart Tags
+    if (savedItem.type !== 'SMART_TAG') {
+      // Scan for visual and text matches asynchronously
+      const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
     
     // Fetch potential matches in the same category
     Item.find({
@@ -112,6 +114,7 @@ const createItem = async (req, res) => {
         }
       }
     }).catch(err => console.error('Error during autonomous matching:', err));
+    }
 
     res.status(201).json(savedItem);
   } catch (error) {
@@ -122,10 +125,19 @@ const createItem = async (req, res) => {
 
 const getAllItems = async (req, res) => {
   try {
-    const { province, district, city } = req.query;
+    const { province, district, city, type, createdBy } = req.query;
     
     // Construct dynamic geographic filter
     const filter = {};
+    
+    if (type === 'SMART_TAG') {
+      filter.type = 'SMART_TAG';
+    } else {
+      // Hide SMART_TAGs from the public feed
+      filter.type = { $ne: 'SMART_TAG' };
+    }
+    
+    if (createdBy) filter.createdBy = createdBy;
     if (province) filter.province = province;
     if (district) filter.district = district;
     if (city) filter.city = city;
@@ -151,6 +163,17 @@ const getAllItems = async (req, res) => {
   } catch (error) {
     console.error('Fetch items error:', error);
     res.status(500).json({ message: 'Server error while fetching items.' });
+  }
+};
+
+const getMySmartTags = async (req, res) => {
+  try {
+    const items = await Item.find({ type: 'SMART_TAG', createdBy: req.userId })
+      .sort({ createdAt: -1 });
+    res.status(200).json(items);
+  } catch (error) {
+    console.error('Fetch smart tags error:', error);
+    res.status(500).json({ message: 'Server error while fetching smart tags.' });
   }
 };
 
@@ -254,4 +277,5 @@ module.exports = {
   updateItem,
   deleteItem,
   claimItem,
+  getMySmartTags,
 };

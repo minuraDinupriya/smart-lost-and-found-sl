@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, User, LogOut, PackageSearch, MessageSquare } from 'lucide-react';
+import { Search, User, LogOut, PackageSearch, MessageSquare, ShieldCheck } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -63,6 +63,13 @@ const Navbar: React.FC = () => {
                 <div className="flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-full border border-yellow-200">
                   <span className="text-sm font-bold">🏆 {user.karmaPoints || 0} Trust Score</span>
                 </div>
+                <Link
+                  to="/smart-tags"
+                  className="relative flex items-center text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 hover:border-emerald-200 border border-emerald-200/60 transition-colors shadow-sm"
+                >
+                  <ShieldCheck className="w-4 h-4 mr-1.5" />
+                  <span className="hidden sm:inline">Smart Tags</span>
+                </Link>
                 <Link
                   to="/inbox"
                   className="relative flex items-center text-sm font-medium text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 border border-slate-200/60 transition-colors shadow-sm mr-2"

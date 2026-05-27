@@ -13,8 +13,8 @@ const itemSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['LOST', 'FOUND'],
-      required: [true, 'Item type (LOST or FOUND) is required'],
+      enum: ['LOST', 'FOUND', 'SMART_TAG'],
+      required: [true, 'Item type is required'],
     },
     category: {
       type: String,
@@ -30,20 +30,20 @@ const itemSchema = new mongoose.Schema(
     },
     date: {
       type: Date,
-      required: [true, 'Date of loss or find is required'],
+      required: [function() { return this.type !== 'SMART_TAG'; }, 'Date is required'],
     },
     // Geographic Fields for Hierarchical National Scale Filtering
     province: {
       type: String,
-      required: [true, 'Province is required'],
+      required: [function() { return this.type !== 'SMART_TAG'; }, 'Province is required'],
     },
     district: {
       type: String,
-      required: [true, 'District is required'],
+      required: [function() { return this.type !== 'SMART_TAG'; }, 'District is required'],
     },
     city: {
       type: String,
-      required: [true, 'City is required'],
+      required: [function() { return this.type !== 'SMART_TAG'; }, 'City is required'],
     },
     latitude: {
       type: Number,
@@ -54,7 +54,7 @@ const itemSchema = new mongoose.Schema(
     // Security & Contact Fields
     contactNumber: {
       type: String,
-      required: [true, 'Contact number is required'],
+      required: [function() { return this.type !== 'SMART_TAG'; }, 'Contact number is required'],
     },
     securityQuestion: {
       type: String,

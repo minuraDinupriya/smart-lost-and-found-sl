@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags } = require('../controllers/item.controller');
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
@@ -13,6 +13,11 @@ router.post('/', verifyToken, upload.single('image'), createItem);
 // @desc    Fetch items (supports ?province=X&district=Y&city=Z filtering)
 // @access  Public
 router.get('/', getAllItems);
+
+// @route   GET /api/items/my/smart-tags
+// @desc    Fetch smart tags created by logged in user
+// @access  Private
+router.get('/my/smart-tags', verifyToken, getMySmartTags);
 
 // @route   GET /api/items/:itemId
 // @desc    Get a single item by ID

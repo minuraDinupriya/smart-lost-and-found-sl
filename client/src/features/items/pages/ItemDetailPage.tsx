@@ -42,6 +42,7 @@ const ItemDetailPage: React.FC = () => {
 
   const isOwner = item.createdBy?._id === user?._id || item.createdBy === user?._id;
   const isFound = item.type === 'FOUND';
+  const isSmartTag = item.type === 'SMART_TAG';
 
   const handleClaimOrChat = () => {
     if (isOwner) {
@@ -118,12 +119,14 @@ const ItemDetailPage: React.FC = () => {
         
         {/* Floating Badges */}
         <div className="absolute top-4 left-4 flex space-x-2">
-          <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm tracking-wider ${isFound ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-            {item.type}
+          <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm tracking-wider ${isFound ? 'bg-emerald-100 text-emerald-800' : isSmartTag ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>
+            {isSmartTag ? 'SECURE SMART TAG' : item.type}
           </span>
-          <span className="px-3 py-1 text-xs font-bold rounded-full shadow-sm bg-white/90 text-gray-700 backdrop-blur-sm">
-            {item.status || 'Available'}
-          </span>
+          {!isSmartTag && (
+            <span className="px-3 py-1 text-xs font-bold rounded-full shadow-sm bg-white/90 text-gray-700 backdrop-blur-sm">
+              {item.status || 'Available'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -134,8 +137,12 @@ const ItemDetailPage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">{item.title}</h1>
             <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-500">
               <span className="flex items-center"><Tag className="w-4 h-4 mr-1.5" /> {item.category}</span>
-              <span className="flex items-center"><MapPin className="w-4 h-4 mr-1.5" /> {item.city}, {item.district}</span>
-              <span className="flex items-center"><Calendar className="w-4 h-4 mr-1.5" /> {new Date(item.date).toLocaleDateString()}</span>
+              {!isSmartTag && (
+                <>
+                  <span className="flex items-center"><MapPin className="w-4 h-4 mr-1.5" /> {item.city}, {item.district}</span>
+                  <span className="flex items-center"><Calendar className="w-4 h-4 mr-1.5" /> {new Date(item.date).toLocaleDateString()}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -148,17 +155,19 @@ const ItemDetailPage: React.FC = () => {
           <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
             <User className="w-5 h-5 text-gray-400 mr-3" />
             <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Posted By</p>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Owner / Poster</p>
               <p className="font-medium text-gray-900">{item.createdBy?.username || 'System User'}</p>
             </div>
           </div>
-          <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-            <MessageCircle className="w-5 h-5 text-gray-400 mr-3" />
-            <div>
-              <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Contact</p>
-              <p className="font-medium text-gray-900">{item.contactNumber}</p>
+          {!isSmartTag && (
+            <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <MessageCircle className="w-5 h-5 text-gray-400 mr-3" />
+              <div>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Contact</p>
+                <p className="font-medium text-gray-900">{item.contactNumber}</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Action Bar */}
@@ -172,9 +181,11 @@ const ItemDetailPage: React.FC = () => {
           
           <button 
             onClick={handleClaimOrChat}
-            className="flex-grow px-6 py-3 bg-[#800000] text-white font-bold rounded-xl hover:bg-[#600000] transition-all focus:outline-none focus:ring-4 focus:ring-[#800000]/20 shadow-md shadow-[#800000]/20 flex items-center justify-center"
+            className={`flex-grow px-6 py-3 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center focus:outline-none focus:ring-4 ${
+              isSmartTag ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-600/20 shadow-blue-600/20' : 'bg-[#800000] hover:bg-[#600000] focus:ring-[#800000]/20 shadow-[#800000]/20'
+            }`}
           >
-            {isOwner ? 'Edit Your Post' : (isFound ? 'I Have This Item' : 'I Found This Item')}
+            {isOwner ? 'Edit Your Post' : (isSmartTag ? 'Scan Successful: Contact Owner' : (isFound ? 'I Have This Item' : 'I Found This Item'))}
           </button>
 
           {isOwner && item.status !== 'Claimed' && (
