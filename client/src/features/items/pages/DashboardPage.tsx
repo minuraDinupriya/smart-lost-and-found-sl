@@ -179,7 +179,7 @@ const DashboardPage: React.FC = () => {
                           <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
                             {item.imageUrl ? (
                               <div className="h-24 w-full rounded-lg overflow-hidden mb-2">
-                                <img src={`http://localhost:5000/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                                <img src={`${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
                               </div>
                             ) : (
                               <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
@@ -209,7 +209,7 @@ const DashboardPage: React.FC = () => {
                           {item.imageUrl ? (
                             <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
                                <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
-                              <img src={`http://localhost:5000/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                              <img src={`${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
                             </div>
                           ) : (
                             <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">

@@ -102,8 +102,8 @@ const ItemDetailPage: React.FC = () => {
     }
   };
 
-  const imgUrl = item.imageUrl 
-    ? (item.imageUrl.startsWith('http') ? item.imageUrl : `http://localhost:5000/uploads/${item.imageUrl}`)
+  const imgUrl = item.imageUrl
+    ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`)
     : null;
 
   return (

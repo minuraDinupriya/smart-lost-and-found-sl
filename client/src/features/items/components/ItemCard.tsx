@@ -119,7 +119,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
       {/* Image Banner & Dynamic Type Badge */}
       <div className="relative h-56 bg-gray-100 flex-shrink-0 overflow-hidden group">
         {item.imageUrl ? (
-          <img src={`http://localhost:5000/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={`${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50 border-b border-slate-100">
             <ImageOff className="w-10 h-10 mb-2 opacity-50" />
