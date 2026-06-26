@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, googleLogin, getLeaderboard } = require('../controllers/auth.controller');
+const { register, login, googleLogin, getMe, getLeaderboard } = require('../controllers/auth.controller');
+const { verifyToken } = require('../middleware/auth.middleware');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -21,5 +22,10 @@ router.post('/google', googleLogin);
 // @desc    Get leaderboard
 // @access  Public
 router.get('/leaderboard', getLeaderboard);
+
+// @route   GET /api/auth/me
+// @desc    Get current user
+// @access  Private
+router.get('/me', verifyToken, getMe);
 
 module.exports = router;
