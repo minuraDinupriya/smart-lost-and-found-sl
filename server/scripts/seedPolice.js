@@ -15,9 +15,9 @@ const seedPolice = async () => {
     });
     console.log('MongoDB Connected for Seeding');
 
-    const username = 'colombo_police';
-    const password = 'password123';
-    const stationName = 'Police Headquarters, Colombo';
+    const username = 'national_police';
+    const password = 'slpolice119';
+    const stationName = 'National Police Headquarters';
 
     const existingPolice = await User.findOne({ username });
     if (existingPolice) {
