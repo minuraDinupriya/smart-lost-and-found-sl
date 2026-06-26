@@ -75,7 +75,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Search & Filter Control Hub */}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xl shadow-slate-100/70 border border-slate-100 space-y-5 sticky top-20 z-40">
+      <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xl shadow-slate-100/70 border border-slate-100 space-y-5 relative lg:sticky lg:top-20 z-40">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="relative w-full sm:w-96">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
