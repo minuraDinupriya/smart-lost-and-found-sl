@@ -31,7 +31,7 @@ const createItem = async (req, res) => {
       titleTa,
       descriptionSi,
       descriptionTa,
-      status: itemData.handedToPolice ? 'At Police Station' : 'Available',
+      status: (itemData.handedToPolice === 'true' || itemData.handedToPolice === true) ? 'At Police Station' : 'Available',
       createdBy: req.userId,
     });
 

@@ -182,11 +182,6 @@ const PostItemPage: React.FC = () => {
         data.append('longitude', mapPosition[1].toString());
       }
       
-      data.append('handedToPolice', formData.handedToPolice.toString());
-      if (formData.handedToPolice && formData.policeStationName) {
-        data.append('policeStationName', formData.policeStationName);
-      }
-      
       if (imageFile) data.append('image', imageFile);
 
       await api.post('/items', data, {
