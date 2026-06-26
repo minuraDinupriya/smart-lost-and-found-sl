@@ -6,6 +6,7 @@ import L from 'leaflet';
 import Swal from 'sweetalert2';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
+import { ShieldCheck, Navigation } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
 // Leaflet marker icon configuration fix for React compatibility
@@ -28,6 +29,19 @@ const MapClickHandler = ({ setPosition }: { setPosition: (pos: [number, number])
   return null;
 };
 
+// Haversine distance formula
+const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; 
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  return R * c;
+}
+
 const PostItemPage: React.FC = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +50,10 @@ const PostItemPage: React.FC = () => {
   const [mapPosition, setMapPosition] = useState<[number, number] | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   
+  // Police Station Recommendation State
+  const [nearestPolice, setNearestPolice] = useState<{name: string, lat: number, lon: number, distance: number} | null>(null);
+  const [isSearchingPolice, setIsSearchingPolice] = useState(false);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -75,11 +93,59 @@ const PostItemPage: React.FC = () => {
           console.error("Reverse geocoding failed", error);
         }
       };
-      // 500ms debounce to prevent spamming the Nominatim API while clicking rapidly
-      const timeout = setTimeout(fetchLocation, 500);
+      
+      const fetchPolice = async () => {
+        if (formData.type !== 'FOUND') return;
+        setIsSearchingPolice(true);
+        setNearestPolice(null);
+        try {
+          const query = `
+            [out:json];
+            node["amenity"="police"](around:10000,${mapPosition[0]},${mapPosition[1]});
+            out 5;
+          `;
+          const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.elements && data.elements.length > 0) {
+            let closest = null;
+            let minDistance = Infinity;
+
+            data.elements.forEach((el: any) => {
+              const dist = getDistanceFromLatLonInKm(mapPosition[0], mapPosition[1], el.lat, el.lon);
+              if (dist < minDistance) {
+                minDistance = dist;
+                closest = {
+                  name: el.tags.name || 'Local Police Station',
+                  lat: el.lat,
+                  lon: el.lon,
+                  distance: dist
+                };
+              }
+            });
+
+            if (closest) {
+              setNearestPolice(closest);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to find police station", error);
+        } finally {
+          setIsSearchingPolice(false);
+        }
+      };
+
+      // 500ms debounce
+      const timeout = setTimeout(() => {
+        fetchLocation();
+        fetchPolice();
+      }, 500);
       return () => clearTimeout(timeout);
+    } else {
+      setNearestPolice(null);
     }
-  }, [mapPosition]);
+  }, [mapPosition, formData.type]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) setImageFile(e.target.files[0]);
@@ -100,13 +166,11 @@ const PostItemPage: React.FC = () => {
       data.append('district', location.district);
       data.append('city', location.city);
       
-      // Optionally attach explicit coordinates if a pin was dropped
       if (mapPosition) {
         data.append('latitude', mapPosition[0].toString());
         data.append('longitude', mapPosition[1].toString());
       }
       
-      // Append physical image blob for Multer
       if (imageFile) data.append('image', imageFile);
 
       await api.post('/items', data, {
@@ -195,13 +259,50 @@ const PostItemPage: React.FC = () => {
           
           <div className="mt-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Pinpoint Exact Location (Optional)</label>
-            <div className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative shadow-inner">
+            <div className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative shadow-inner mb-2">
               <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={true} className="h-full w-full">
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
                 <MapClickHandler setPosition={setMapPosition} />
                 {mapPosition && <Marker position={mapPosition} />}
               </MapContainer>
             </div>
+            
+            {/* Police Station Suggestion Widget */}
+            {formData.type === 'FOUND' && isSearchingPolice && (
+              <div className="flex items-center text-sm text-gray-500 animate-pulse bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
+                <div className="w-4 h-4 border-2 border-[#800000] border-t-transparent rounded-full animate-spin mr-3"></div>
+                Scanning for nearest police stations...
+              </div>
+            )}
+
+            {formData.type === 'FOUND' && nearestPolice && !isSearchingPolice && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-2 overflow-hidden"
+              >
+                <div className="flex items-start">
+                  <div className="bg-blue-100 p-2 rounded-full mr-4">
+                    <ShieldCheck className="w-6 h-6 text-blue-700" />
+                  </div>
+                  <div className="flex-grow">
+                    <h4 className="font-bold text-blue-900">Recommended Action: Surrender to Police</h4>
+                    <p className="text-sm text-blue-800 mt-1 mb-3">
+                      We detected <strong>{nearestPolice.name}</strong> just {nearestPolice.distance.toFixed(1)} km away from this location. We recommend surrendering high-value items here to ensure maximum safety and legal compliance.
+                    </p>
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${nearestPolice.lat},${nearestPolice.lon}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-xs font-bold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm"
+                    >
+                      <Navigation className="w-4 h-4 mr-2" />
+                      Get Directions to Station
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 
