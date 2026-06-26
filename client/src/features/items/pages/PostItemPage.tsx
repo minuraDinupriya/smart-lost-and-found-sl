@@ -103,7 +103,7 @@ const PostItemPage: React.FC = () => {
           const query = `
             [out:json];
             nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});
-            out center 5;
+            out center;
           `;
           const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
           const response = await fetch(url);
