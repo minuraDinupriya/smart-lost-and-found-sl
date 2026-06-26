@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, Tooltip, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -34,6 +34,27 @@ const DashboardPage: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Scroll to highlighted item once loaded
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && items.length > 0 && viewMode === 'GRID') {
+      setTimeout(() => {
+        const element = document.getElementById(`item-${highlightId}`);
+        if (element) {
+          // Scroll into view
+          const y = element.getBoundingClientRect().top + window.scrollY - 120;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+          
+          // Clear param after scrolling so it doesn't happen on every re-render
+          const params = new URLSearchParams(searchParams);
+          params.delete('highlight');
+          setSearchParams(params, { replace: true });
+        }
+      }, 500); // Wait for render
+    }
+  }, [items, searchParams, viewMode, setSearchParams]);
 
   useEffect(() => {
     // Fetch Top Samaritans
@@ -161,7 +182,9 @@ const DashboardPage: React.FC = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {filteredItems.map(item => (
-              <ItemCard key={item._id} item={item} />
+              <div key={item._id} id={`item-${item._id}`} className={searchParams.get('highlight') === item._id ? 'ring-4 ring-[#800000] ring-offset-4 rounded-2xl transition-all duration-1000' : ''}>
+                <ItemCard item={item} />
+              </div>
             ))}
           </motion.div>
         ) : (

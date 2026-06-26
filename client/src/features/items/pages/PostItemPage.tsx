@@ -184,7 +184,7 @@ const PostItemPage: React.FC = () => {
       
       if (imageFile) data.append('image', imageFile);
 
-      await api.post('/items', data, {
+      const response = await api.post('/items', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -194,7 +194,7 @@ const PostItemPage: React.FC = () => {
         icon: 'success',
         confirmButtonColor: '#800000'
       });
-      navigate('/');
+      navigate(`/?highlight=${response.data._id}`);
     } catch (error: any) {
       Swal.fire({
         title: 'Error!',
