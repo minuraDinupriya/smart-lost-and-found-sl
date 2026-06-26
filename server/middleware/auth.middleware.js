@@ -27,4 +27,24 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-module.exports = { verifyToken };
+const User = require('../models/User');
+
+const verifyPolice = async (req, res, next) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ message: 'User ID missing from token.' });
+    }
+    const user = await User.findById(req.userId);
+    if (!user || user.role !== 'police') {
+      return res.status(403).json({ message: 'Access denied. Police authorization required.' });
+    }
+    // Optionally attach the policeStationName to req for convenience
+    req.policeStationName = user.policeStationName;
+    next();
+  } catch (error) {
+    console.error('Verify police error:', error);
+    res.status(500).json({ message: 'Server error during authorization.' });
+  }
+};
+
+module.exports = { verifyToken, verifyPolice };

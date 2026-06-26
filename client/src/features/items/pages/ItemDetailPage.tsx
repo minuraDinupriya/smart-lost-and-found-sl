@@ -129,6 +129,12 @@ const ItemDetailPage: React.FC = () => {
               {item.status || 'Available'}
             </span>
           )}
+          {item.handedToPolice && item.status === 'At Police Station' && (
+            <span className="px-3 py-1 text-xs font-bold rounded-full shadow-sm bg-blue-600/90 text-white backdrop-blur-sm flex items-center">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              At Police Station
+            </span>
+          )}
         </div>
       </div>
 
@@ -165,7 +171,15 @@ const ItemDetailPage: React.FC = () => {
               <p className="font-medium text-gray-900">{item.createdBy?.username || 'System User'}</p>
             </div>
           </div>
-          {!isSmartTag && (
+          {item.handedToPolice && item.policeStationName ? (
+            <div className="flex items-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <MapPin className="w-5 h-5 text-blue-600 mr-3" />
+              <div>
+                <p className="text-blue-600 text-xs font-bold uppercase tracking-wider">Available For Pickup At</p>
+                <p className="font-bold text-blue-900">{item.policeStationName}</p>
+              </div>
+            </div>
+          ) : !isSmartTag ? (
             <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
               <MessageCircle className="w-5 h-5 text-gray-400 mr-3" />
               <div>
@@ -173,7 +187,7 @@ const ItemDetailPage: React.FC = () => {
                 <p className="font-medium text-gray-900">{item.contactNumber}</p>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Action Bar */}

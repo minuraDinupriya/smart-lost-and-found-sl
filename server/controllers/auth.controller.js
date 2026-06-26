@@ -58,6 +58,8 @@ const login = async (req, res) => {
       token,
       username: user.username,
       userId: user._id,
+      role: user.role,
+      policeStationName: user.policeStationName,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -113,6 +115,8 @@ const googleLogin = async (req, res) => {
       token: jwtToken,
       username: user.username,
       userId: user._id,
+      role: user.role,
+      policeStationName: user.policeStationName,
     });
   } catch (error) {
     console.error('Google Login error:', error);

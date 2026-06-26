@@ -66,10 +66,19 @@ const itemSchema = new mongoose.Schema(
       type: String,
       // Optional field specifically supporting the Blind Claim protocol
     },
+    // Police Tracking Fields
+    handedToPolice: {
+      type: Boolean,
+      default: false,
+    },
+    policeStationName: {
+      type: String,
+      trim: true,
+    },
     // System Fields
     status: {
       type: String,
-      enum: ['Available', 'Pending Verification', 'Claimed'],
+      enum: ['Available', 'Pending Verification', 'Claimed', 'At Police Station'],
       default: 'Available',
     },
     createdBy: {

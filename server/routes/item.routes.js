@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth.middleware');
+const { verifyToken, verifyPolice } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem } = require('../controllers/item.controller');
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
@@ -28,6 +28,16 @@ router.get('/analytics', getAnalytics);
 // @desc    Get nearest police stations via Overpass API proxy
 // @access  Public
 router.get('/nearest-police', getNearestPolice);
+
+// @route   GET /api/items/police-inventory
+// @desc    Get inventory for the logged-in police station
+// @access  Private (Police only)
+router.get('/police-inventory', verifyToken, verifyPolice, getPoliceInventory);
+
+// @route   PATCH /api/items/:id/police-resolve
+// @desc    Resolve an item at the police station
+// @access  Private (Police only)
+router.patch('/:id/police-resolve', verifyToken, verifyPolice, resolvePoliceItem);
 
 // @route   GET /api/items/:itemId
 // @desc    Get a single item by ID

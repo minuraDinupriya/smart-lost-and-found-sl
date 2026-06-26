@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Navbar: React.FC = () => {
@@ -90,6 +90,15 @@ const Navbar: React.FC = () => {
                     <ShieldCheck className="w-4 h-4 mr-1.5" />
                     <span>{t('nav.smartTags')}</span>
                   </Link>
+                  {user.role === 'police' && (
+                    <Link
+                      to="/police-dashboard"
+                      className="relative flex items-center text-sm font-medium text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 hover:border-blue-200 border border-blue-200/60 transition-colors shadow-sm"
+                    >
+                      <Building className="w-4 h-4 mr-1.5" />
+                      <span>Station Dashboard</span>
+                    </Link>
+                  )}
                   <Link
                     to="/analytics"
                     className="relative flex items-center text-sm font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 hover:border-indigo-200 border border-indigo-200/60 transition-colors shadow-sm"
@@ -192,6 +201,12 @@ const Navbar: React.FC = () => {
               <ShieldCheck className="w-6 h-6 mb-1" />
               <span className="text-sm font-semibold">{t('nav.smartTags')}</span>
             </Link>
+            {user.role === 'police' && (
+              <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-blue-50 text-blue-700 rounded-xl border border-blue-100">
+                <Building className="w-6 h-6 mb-1" />
+                <span className="text-sm font-semibold">Station Dashboard</span>
+              </Link>
+            )}
             <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100">
               <BarChart3 className="w-6 h-6 mb-1" />
               <span className="text-sm font-semibold">{t('nav.analytics')}</span>

@@ -62,7 +62,9 @@ const PostItemPage: React.FC = () => {
     category: 'Electronics',
     date: '',
     contactNumber: '',
-    securityQuestion: ''
+    securityQuestion: '',
+    handedToPolice: false,
+    policeStationName: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -130,6 +132,7 @@ const PostItemPage: React.FC = () => {
 
             if (closest) {
               setNearestPolice(closest);
+              setFormData(prev => ({ ...prev, policeStationName: closest.name }));
             }
           }
         } catch (error) {
@@ -174,6 +177,11 @@ const PostItemPage: React.FC = () => {
       if (mapPosition) {
         data.append('latitude', mapPosition[0].toString());
         data.append('longitude', mapPosition[1].toString());
+      }
+      
+      data.append('handedToPolice', formData.handedToPolice.toString());
+      if (formData.handedToPolice && formData.policeStationName) {
+        data.append('policeStationName', formData.policeStationName);
       }
       
       if (imageFile) data.append('image', imageFile);
@@ -302,15 +310,27 @@ const PostItemPage: React.FC = () => {
                     <p className="text-sm text-blue-800 mt-1 mb-3">
                       We detected <strong>{nearestPolice.name}</strong> just {nearestPolice.distance.toFixed(1)} km away from this location. We recommend surrendering high-value items here to ensure maximum safety and legal compliance.
                     </p>
-                    <a 
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${nearestPolice.lat},${nearestPolice.lon}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-xs font-bold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm"
-                    >
-                      <Navigation className="w-4 h-4 mr-2" />
-                      Get Directions to Station
-                    </a>
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                      <a 
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${nearestPolice.lat},${nearestPolice.lon}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center text-xs font-bold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm"
+                      >
+                        <Navigation className="w-4 h-4 mr-2" />
+                        Get Directions
+                      </a>
+                      
+                      <label className="flex items-center space-x-2 cursor-pointer bg-white/60 px-3 py-2 rounded-lg border border-blue-200 hover:bg-white transition-colors">
+                        <input 
+                          type="checkbox" 
+                          checked={formData.handedToPolice}
+                          onChange={(e) => setFormData({...formData, handedToPolice: e.target.checked})}
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-semibold text-blue-900">I handed this item to {nearestPolice.name}</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </motion.div>

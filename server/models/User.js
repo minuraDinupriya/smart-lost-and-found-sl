@@ -30,6 +30,16 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    role: {
+      type: String,
+      enum: ['user', 'police', 'admin'],
+      default: 'user',
+    },
+    policeStationName: {
+      type: String,
+      trim: true,
+      // Only applicable if role is 'police'
+    },
   },
   {
     // Mongoose automatically creates and manages 'createdAt' and 'updatedAt' fields

@@ -24,6 +24,8 @@ export interface ItemProps {
   contactNumber: string;
   securityQuestion?: string;
   status: string;
+  handedToPolice?: boolean;
+  policeStationName?: string;
   createdBy: any;
 }
 
@@ -146,6 +148,12 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
               {isLost ? t('item.lost') : t('item.found')}
             </span>
           )}
+          {item.handedToPolice && item.status === 'At Police Station' && (
+            <span className="bg-blue-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-blue-400/50 shadow-sm flex items-center">
+              <ShieldCheck className="w-3 h-3 mr-1" />
+              At Police Station
+            </span>
+          )}
         </div>
         
         {isOwner && (
@@ -185,6 +193,12 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
             <Phone className="w-4 h-4 mr-2.5 text-[#800000]" />
             <span>{item.contactNumber}</span>
           </div>
+          {item.handedToPolice && item.policeStationName && (
+            <div className="flex items-center text-sm font-bold text-blue-800 bg-blue-50 p-2 rounded-lg mt-2">
+              <ShieldCheck className="w-4 h-4 mr-2 text-blue-600" />
+              Available to pick up at {item.policeStationName}
+            </div>
+          )}
         </div>
         
         {/* Blind Claim Indicator Banner */}

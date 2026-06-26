@@ -11,6 +11,7 @@ import PostItemPage from './features/items/pages/PostItemPage';
 import EditItemPage from './features/items/pages/EditItemPage';
 import ItemDetailPage from './features/items/pages/ItemDetailPage';
 import AnalyticsPage from './features/items/pages/AnalyticsPage';
+import PoliceDashboardPage from './features/police/pages/PoliceDashboardPage';
 import ChatPage from './features/chat/pages/ChatPage';
 import InboxPage from './features/chat/pages/InboxPage';
 
@@ -42,6 +43,9 @@ const App: React.FC = () => {
 
           {/* Analytics Route */}
           <Route path="/analytics" element={<AnalyticsPage />} />
+          
+          {/* Police Dashboard */}
+          <Route path="/police-dashboard" element={<PoliceDashboardPage />} />
 
           <Route path="/chat/:itemId" element={<ChatPage />} />
           <Route path="/inbox" element={<InboxPage />} />
