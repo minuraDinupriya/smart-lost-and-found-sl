@@ -15,7 +15,11 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   useEffect(() => {
     // Only establish a persistent connection if a user is authenticated
     if (user && token) {
-      const socketInstance = io('http://localhost:5000', {
+      const socketBaseUrl = import.meta.env.VITE_API_URL 
+        ? import.meta.env.VITE_API_URL.replace('/api', '') 
+        : 'http://localhost:5000';
+        
+      const socketInstance = io(socketBaseUrl, {
         auth: {
           token // Securely pass the JWT token for future backend Socket middleware
         }
