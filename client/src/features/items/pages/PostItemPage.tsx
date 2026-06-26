@@ -53,6 +53,7 @@ const PostItemPage: React.FC = () => {
   // Police Station Recommendation State
   const [nearestPolice, setNearestPolice] = useState<{name: string, lat: number, lon: number, distance: number} | null>(null);
   const [isSearchingPolice, setIsSearchingPolice] = useState(false);
+  const [hasSearchedPolice, setHasSearchedPolice] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -101,8 +102,8 @@ const PostItemPage: React.FC = () => {
         try {
           const query = `
             [out:json];
-            node["amenity"="police"](around:10000,${mapPosition[0]},${mapPosition[1]});
-            out 5;
+            nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});
+            out center 5;
           `;
           const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
           const response = await fetch(url);
@@ -113,15 +114,20 @@ const PostItemPage: React.FC = () => {
             let minDistance = Infinity;
 
             data.elements.forEach((el: any) => {
-              const dist = getDistanceFromLatLonInKm(mapPosition[0], mapPosition[1], el.lat, el.lon);
-              if (dist < minDistance) {
-                minDistance = dist;
-                closest = {
-                  name: el.tags.name || 'Local Police Station',
-                  lat: el.lat,
-                  lon: el.lon,
-                  distance: dist
-                };
+              const elLat = el.lat || (el.center && el.center.lat);
+              const elLon = el.lon || (el.center && el.center.lon);
+              
+              if (elLat && elLon) {
+                const dist = getDistanceFromLatLonInKm(mapPosition[0], mapPosition[1], elLat, elLon);
+                if (dist < minDistance) {
+                  minDistance = dist;
+                  closest = {
+                    name: el.tags?.name || 'Local Police Station',
+                    lat: elLat,
+                    lon: elLon,
+                    distance: dist
+                  };
+                }
               }
             });
 
@@ -133,6 +139,7 @@ const PostItemPage: React.FC = () => {
           console.error("Failed to find police station", error);
         } finally {
           setIsSearchingPolice(false);
+          setHasSearchedPolice(true);
         }
       };
 
@@ -144,6 +151,7 @@ const PostItemPage: React.FC = () => {
       return () => clearTimeout(timeout);
     } else {
       setNearestPolice(null);
+      setHasSearchedPolice(false);
     }
   }, [mapPosition, formData.type]);
 
@@ -272,6 +280,13 @@ const PostItemPage: React.FC = () => {
               <div className="flex items-center text-sm text-gray-500 animate-pulse bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
                 <div className="w-4 h-4 border-2 border-[#800000] border-t-transparent rounded-full animate-spin mr-3"></div>
                 Scanning for nearest police stations...
+              </div>
+            )}
+
+            {formData.type === 'FOUND' && !isSearchingPolice && hasSearchedPolice && !nearestPolice && (
+              <div className="flex items-center text-sm text-gray-500 bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
+                <ShieldCheck className="w-5 h-5 text-gray-400 mr-2" />
+                No police stations detected within a 15km radius.
               </div>
             )}
 
