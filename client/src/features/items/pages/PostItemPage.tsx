@@ -100,11 +100,7 @@ const PostItemPage: React.FC = () => {
         setIsSearchingPolice(true);
         setNearestPolice(null);
         try {
-          const query = `
-            [out:json];
-            nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});
-            out center;
-          `;
+          const query = `[out:json];nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});out center;`;
           const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
           const response = await fetch(url);
           const data = await response.json();
