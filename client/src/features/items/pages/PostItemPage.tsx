@@ -100,8 +100,9 @@ const PostItemPage: React.FC = () => {
         setIsSearchingPolice(true);
         setNearestPolice(null);
         try {
-          const query = `[out:json];nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});out center;`;
-          const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+          // Use our reliable backend proxy to query Overpass API to bypass Browser CORS/WAF blocks
+          const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+          const url = `${baseUrl}/items/nearest-police?lat=${mapPosition[0]}&lng=${mapPosition[1]}`;
           const response = await fetch(url);
           const data = await response.json();
 

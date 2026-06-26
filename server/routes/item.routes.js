@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice } = require('../controllers/item.controller');
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
@@ -23,6 +23,11 @@ router.get('/my/smart-tags', verifyToken, getMySmartTags);
 // @desc    Get aggregated statistics for National Dashboard
 // @access  Public
 router.get('/analytics', getAnalytics);
+
+// @route   GET /api/items/nearest-police
+// @desc    Get nearest police stations via Overpass API proxy
+// @access  Public
+router.get('/nearest-police', getNearestPolice);
 
 // @route   GET /api/items/:itemId
 // @desc    Get a single item by ID

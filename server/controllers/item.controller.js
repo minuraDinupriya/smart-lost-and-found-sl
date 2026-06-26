@@ -339,6 +339,43 @@ const claimItem = async (req, res) => {
   }
 };
 
+// @desc    Get nearest police via Overpass API proxy
+// @route   GET /api/items/nearest-police
+// @access  Public
+const getNearestPolice = async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+    if (!lat || !lng) {
+      return res.status(400).json({ message: 'Latitude and Longitude are required' });
+    }
+
+    const query = `[out:json];nwr["amenity"="police"](around:15000,${lat},${lng});out center;`;
+    const url = `https://overpass-api.de/api/interpreter`;
+
+    // Using POST from the backend to bypass WAF and caching issues safely
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'LostAndFoundApp/1.0 Node.js'
+      },
+      body: `data=${encodeURIComponent(query)}`
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Overpass API Error:", response.status, errorText);
+      return res.status(502).json({ message: 'Failed to fetch from Overpass API' });
+    }
+
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('getNearestPolice error:', error);
+    res.status(500).json({ message: 'Server error fetching police stations' });
+  }
+};
+
 module.exports = {
   createItem,
   getAllItems,
@@ -348,4 +385,5 @@ module.exports = {
   claimItem,
   getMySmartTags,
   getAnalytics,
+  getNearestPolice,
 };
