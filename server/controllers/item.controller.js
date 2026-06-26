@@ -377,17 +377,12 @@ const getNearestPolice = async (req, res) => {
   }
 };
 
-// @desc    Get inventory for the logged-in police station
+// @desc    Get inventory for all police stations
 // @route   GET /api/items/police-inventory
 // @access  Private (Police only)
 const getPoliceInventory = async (req, res) => {
   try {
-    if (!req.policeStationName) {
-      return res.status(400).json({ message: 'No police station associated with this account.' });
-    }
-
     const items = await Item.find({
-      policeStationName: req.policeStationName,
       handedToPolice: true,
       status: { $in: ['At Police Station', 'Claimed'] }
     }).sort({ createdAt: -1 }).populate('createdBy', 'username');
@@ -399,7 +394,7 @@ const getPoliceInventory = async (req, res) => {
   }
 };
 
-// @desc    Resolve an item at the police station
+// @desc    Resolve an item at any police station
 // @route   PATCH /api/items/:id/police-resolve
 // @access  Private (Police only)
 const resolvePoliceItem = async (req, res) => {
@@ -407,11 +402,6 @@ const resolvePoliceItem = async (req, res) => {
     const item = await Item.findById(req.params.id);
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
-    }
-
-    // Ensure it belongs to their station
-    if (item.policeStationName !== req.policeStationName) {
-      return res.status(403).json({ message: 'Item does not belong to your station.' });
     }
 
     item.status = 'Claimed';

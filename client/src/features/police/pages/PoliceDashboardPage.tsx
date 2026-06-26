@@ -13,6 +13,7 @@ interface Item {
   status: string;
   createdBy: { username: string };
   createdAt: string;
+  policeStationName?: string;
 }
 
 const PoliceDashboardPage: React.FC = () => {
@@ -72,11 +73,11 @@ const PoliceDashboardPage: React.FC = () => {
         <div className="relative z-10">
           <div className="flex items-center space-x-3 mb-2">
             <Building className="w-8 h-8 text-blue-300" />
-            <h1 className="text-3xl font-bold tracking-tight">Police Station Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">National Police Dashboard</h1>
           </div>
           <p className="text-blue-100 text-lg max-w-2xl">
-            Welcome to the official portal for <span className="font-bold text-white">{user?.policeStationName}</span>. 
-            Here you can manage all physical items that citizens have dropped off at your station.
+            Welcome to the official portal for the <span className="font-bold text-white">Sri Lanka Police Force</span>. 
+            Here you can view and manage all physical items that citizens have dropped off at any station nationwide.
           </p>
         </div>
       </div>
@@ -102,6 +103,7 @@ const PoliceDashboardPage: React.FC = () => {
                 <tr className="bg-gray-50 text-gray-500 text-sm uppercase tracking-wider border-b border-gray-100">
                   <th className="p-4 font-semibold">Item Details</th>
                   <th className="p-4 font-semibold">Category</th>
+                  <th className="p-4 font-semibold">Station Location</th>
                   <th className="p-4 font-semibold">Dropped Off By</th>
                   <th className="p-4 font-semibold">Status</th>
                   <th className="p-4 font-semibold text-right">Actions</th>
@@ -121,6 +123,12 @@ const PoliceDashboardPage: React.FC = () => {
                       <span className="bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded-md font-medium border border-gray-200">
                         {item.category}
                       </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-sm text-gray-900 font-bold flex items-center">
+                        <Building className="w-4 h-4 mr-1.5 text-blue-600" />
+                        {item.policeStationName || 'Unknown Station'}
+                      </div>
                     </td>
                     <td className="p-4">
                       <div className="text-sm text-gray-900 font-medium">
