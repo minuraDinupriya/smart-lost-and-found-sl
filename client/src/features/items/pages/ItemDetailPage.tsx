@@ -199,14 +199,17 @@ const ItemDetailPage: React.FC = () => {
             Back
           </button>
           
-          <button 
-            onClick={handleClaimOrChat}
-            className={`flex-grow px-6 py-3 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center focus:outline-none focus:ring-4 ${
-              isSmartTag ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-600/20 shadow-blue-600/20' : 'bg-[#800000] hover:bg-[#600000] focus:ring-[#800000]/20 shadow-[#800000]/20'
-            }`}
-          >
-            {isOwner ? 'Edit Your Post' : (isSmartTag ? 'Scan Successful: Contact Owner' : (isFound ? 'I Have This Item' : 'I Found This Item'))}
-          </button>
+          
+          {user?.role !== 'police' && (
+            <button 
+              onClick={handleClaimOrChat}
+              className={`flex-grow px-6 py-3 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center focus:outline-none focus:ring-4 ${
+                isSmartTag ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-600/20 shadow-blue-600/20' : 'bg-[#800000] hover:bg-[#600000] focus:ring-[#800000]/20 shadow-[#800000]/20'
+              }`}
+            >
+              {isOwner ? 'Edit Your Post' : (isSmartTag ? 'Scan Successful: Contact Owner' : (isFound ? 'I Have This Item' : 'I Found This Item'))}
+            </button>
+          )}
 
           {isOwner && item.status !== 'Claimed' && (
             <button 

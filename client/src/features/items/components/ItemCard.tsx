@@ -235,14 +235,14 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
               </button>
             </div>
           </div>
-        ) : (
+        ) : user?.role !== 'police' ? (
           <button 
             onClick={handleClaimInitiation}
             className="w-full mt-auto py-3 rounded-xl border-2 border-[#800000] text-[#800000] font-bold hover:bg-[#800000] hover:text-white transition-colors active:scale-[0.98]"
           >
             {isLost ? 'I Have This Item' : 'Claim This Item'}
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   );

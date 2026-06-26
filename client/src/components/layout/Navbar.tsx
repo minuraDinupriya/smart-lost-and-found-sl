@@ -80,16 +80,20 @@ const Navbar: React.FC = () => {
               <div className="flex items-center space-x-4 pl-2 sm:pl-4 border-l border-gray-100">
                 {/* Desktop Navigation (Hidden on Mobile) */}
                 <div className="hidden lg:flex items-center space-x-4">
-                  <div className="flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-full border border-yellow-200">
-                    <span className="text-sm font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</span>
-                  </div>
-                  <Link
-                    to="/smart-tags"
-                    className="relative flex items-center text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 hover:border-emerald-200 border border-emerald-200/60 transition-colors shadow-sm"
-                  >
-                    <ShieldCheck className="w-4 h-4 mr-1.5" />
-                    <span>{t('nav.smartTags')}</span>
-                  </Link>
+                  {user.role !== 'police' && (
+                    <>
+                      <div className="flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-full border border-yellow-200">
+                        <span className="text-sm font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</span>
+                      </div>
+                      <Link
+                        to="/smart-tags"
+                        className="relative flex items-center text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 hover:border-emerald-200 border border-emerald-200/60 transition-colors shadow-sm"
+                      >
+                        <ShieldCheck className="w-4 h-4 mr-1.5" />
+                        <span>{t('nav.smartTags')}</span>
+                      </Link>
+                    </>
+                  )}
                   {user.role === 'police' && (
                     <Link
                       to="/police-dashboard"
@@ -99,13 +103,15 @@ const Navbar: React.FC = () => {
                       <span>Station Dashboard</span>
                     </Link>
                   )}
-                  <Link
-                    to="/analytics"
-                    className="relative flex items-center text-sm font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 hover:border-indigo-200 border border-indigo-200/60 transition-colors shadow-sm"
-                  >
-                    <BarChart3 className="w-4 h-4 mr-1.5" />
-                    <span>{t('nav.analytics')}</span>
-                  </Link>
+                  {user.role !== 'police' && (
+                    <Link
+                      to="/analytics"
+                      className="relative flex items-center text-sm font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 hover:border-indigo-200 border border-indigo-200/60 transition-colors shadow-sm"
+                    >
+                      <BarChart3 className="w-4 h-4 mr-1.5" />
+                      <span>{t('nav.analytics')}</span>
+                    </Link>
+                  )}
                   <Link
                     to="/inbox"
                     className="relative flex items-center text-sm font-medium text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 border border-slate-200/60 transition-colors shadow-sm"
@@ -123,9 +129,11 @@ const Navbar: React.FC = () => {
                       </span>
                     )}
                   </Link>
-                  <Link to="/post" className="bg-[#800000] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#600000] transition shadow-md shadow-[#800000]/20 whitespace-nowrap">
-                    {t('nav.postItem')}
-                  </Link>
+                  {user.role !== 'police' && (
+                    <Link to="/post" className="bg-[#800000] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#600000] transition shadow-md shadow-[#800000]/20 whitespace-nowrap">
+                      {t('nav.postItem')}
+                    </Link>
+                  )}
                   
                   {/* User Dropdown (Desktop Only) */}
                   <div className="relative group">
@@ -139,7 +147,9 @@ const Navbar: React.FC = () => {
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
                       <div className="p-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900 truncate">{user.username}</p>
-                        <p className="text-xs text-gray-500 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                        {user.role !== 'police' && (
+                          <p className="text-xs text-gray-500 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                        )}
                       </div>
                       <div className="p-1">
                         <button 
@@ -192,25 +202,31 @@ const Navbar: React.FC = () => {
             </div>
             <div>
               <p className="font-bold text-gray-900">{user.username}</p>
-              <p className="text-xs text-yellow-600 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+              {user.role !== 'police' && (
+                <p className="text-xs text-yellow-600 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
-              <ShieldCheck className="w-6 h-6 mb-1" />
-              <span className="text-sm font-semibold">{t('nav.smartTags')}</span>
-            </Link>
+            {user.role !== 'police' && (
+              <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
+                <ShieldCheck className="w-6 h-6 mb-1" />
+                <span className="text-sm font-semibold">{t('nav.smartTags')}</span>
+              </Link>
+            )}
             {user.role === 'police' && (
               <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-blue-50 text-blue-700 rounded-xl border border-blue-100">
                 <Building className="w-6 h-6 mb-1" />
                 <span className="text-sm font-semibold">Station Dashboard</span>
               </Link>
             )}
-            <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100">
-              <BarChart3 className="w-6 h-6 mb-1" />
-              <span className="text-sm font-semibold">{t('nav.analytics')}</span>
-            </Link>
+            {user.role !== 'police' && (
+              <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100">
+                <BarChart3 className="w-6 h-6 mb-1" />
+                <span className="text-sm font-semibold">{t('nav.analytics')}</span>
+              </Link>
+            )}
             <Link to="/inbox" onClick={() => { setIsMobileMenuOpen(false); setUnreadCount(0); }} className="relative flex flex-col items-center justify-center p-3 bg-slate-50 text-slate-700 rounded-xl border border-slate-200">
               <MessageSquare className="w-6 h-6 mb-1" />
               <span className="text-sm font-semibold">{t('nav.inbox')}</span>
@@ -220,10 +236,12 @@ const Navbar: React.FC = () => {
                 </span>
               )}
             </Link>
-            <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20">
-              <PlusCircle className="w-6 h-6 mb-1" />
-              <span className="text-sm font-bold">{t('nav.postItem')}</span>
-            </Link>
+            {user.role !== 'police' && (
+              <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20">
+                <PlusCircle className="w-6 h-6 mb-1" />
+                <span className="text-sm font-bold">{t('nav.postItem')}</span>
+              </Link>
+            )}
           </div>
 
           <button 
