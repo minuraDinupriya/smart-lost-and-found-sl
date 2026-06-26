@@ -125,7 +125,7 @@ const googleLogin = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password karmaPoints');
+    const user = await User.findById(req.userId).select('-password');
     res.status(200).json({ user });
   } catch (error) {
     console.error(error);

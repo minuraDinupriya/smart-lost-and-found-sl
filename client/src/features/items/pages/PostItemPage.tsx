@@ -105,14 +105,8 @@ const PostItemPage: React.FC = () => {
             nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});
             out center;
           `;
-          const url = `https://overpass-api.de/api/interpreter`;
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `data=${encodeURIComponent(query)}`
-          });
+          const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+          const response = await fetch(url);
           const data = await response.json();
 
           if (data.elements && data.elements.length > 0) {
