@@ -9,6 +9,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../context/AuthContext';
 
 // Fix Leaflet marker icon
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -25,12 +26,13 @@ const DashboardPage: React.FC = () => {
   const [items, setItems] = useState<ItemProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'ALL' | 'LOST' | 'FOUND'>('ALL');
+  const [filterType, setFilterType] = useState<'ALL' | 'LOST' | 'FOUND' | 'MY_POSTS'>('ALL');
   const [locationFilter, setLocationFilter] = useState<LocationState>({ province: '', district: '', city: '' });
   const [resetKey, setResetKey] = useState(0);
   const [viewMode, setViewMode] = useState<'GRID' | 'MAP'>('GRID');
   const [hiddenPins, setHiddenPins] = useState<Set<string>>(new Set());
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,7 +68,13 @@ const DashboardPage: React.FC = () => {
 
   // Real-time client-side text and enum filtering
   const filteredItems = items.filter(item => {
-    const matchesType = filterType === 'ALL' || item.type === filterType;
+    let matchesType = true;
+    if (filterType === 'MY_POSTS') {
+      matchesType = !!user && (item.createdBy._id === user._id || item.createdBy === user._id);
+    } else {
+      matchesType = filterType === 'ALL' || item.type === filterType;
+    }
+
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           item.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesType && matchesSearch;
@@ -88,14 +96,14 @@ const DashboardPage: React.FC = () => {
             />
           </div>
           
-          <div className="bg-gray-100 p-1.5 rounded-2xl inline-flex shadow-inner border border-gray-200/50">
-              {['ALL', 'LOST', 'FOUND'].map(type => (
+          <div className="bg-gray-100 p-1.5 rounded-2xl inline-flex shadow-inner border border-gray-200/50 overflow-x-auto max-w-full">
+              {['ALL', 'LOST', 'FOUND', ...(user ? ['MY_POSTS'] : [])].map(type => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type as any)}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${filterType === type ? 'bg-white text-[#800000] shadow-md transform scale-105' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                  className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap ${filterType === type ? 'bg-white text-[#800000] shadow-md transform scale-105' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
                 >
-                  {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : t('dashboard.foundTab')}
+                  {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : type === 'FOUND' ? t('dashboard.foundTab') : 'My Posts'}
                 </button>
               ))}
             </div>
