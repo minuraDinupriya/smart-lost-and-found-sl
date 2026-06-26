@@ -109,7 +109,7 @@ const PostItemPage: React.FC = () => {
           const data = await response.json();
 
           if (data.elements && data.elements.length > 0) {
-            let closest = null;
+            let closest: { name: string; lat: number; lon: number; distance: number } | null = null;
             let minDistance = Infinity;
 
             data.elements.forEach((el: any) => {
@@ -131,8 +131,9 @@ const PostItemPage: React.FC = () => {
             });
 
             if (closest) {
+              const stationName = (closest as any).name;
               setNearestPolice(closest);
-              setFormData(prev => ({ ...prev, policeStationName: closest.name }));
+              setFormData(prev => ({ ...prev, policeStationName: stationName }));
             }
           }
         } catch (error) {
@@ -169,7 +170,9 @@ const PostItemPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) => data.append(key, value));
+      Object.entries(formData).forEach(([key, value]) => {
+        data.append(key, typeof value === 'boolean' ? value.toString() : value);
+      });
       data.append('province', location.province);
       data.append('district', location.district);
       data.append('city', location.city);
