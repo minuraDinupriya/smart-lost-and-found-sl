@@ -2,8 +2,16 @@ const Item = require('../models/Item');
 const Message = require('../models/Message');
 const translate = require('google-translate-api-x');
 const path = require('path');
+const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 const { generateImageHash, calculateHammingDistance } = require('../utils/imageHash');
 const { calculateTextSimilarity } = require('../utils/textMatch');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 const { emitGlobalNotification } = require('../services/socket.service');
 
 const createItem = async (req, res) => {
@@ -36,12 +44,21 @@ const createItem = async (req, res) => {
     });
 
     if (req.file) {
-      newItem.imageUrl = req.file.filename;
-      
-      // Generate perceptual hash fingerprint
+      // Generate perceptual hash fingerprint locally first
       const hash = await generateImageHash(req.file.path);
       if (hash) {
         newItem.imageHash = hash;
+      }
+      
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path);
+      newItem.imageUrl = result.secure_url;
+      
+      // Clean up the temporary local file
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error("Failed to clean up temporary local file:", err);
       }
     }
 
@@ -274,7 +291,16 @@ const updateItem = async (req, res) => {
     const updateData = req.body;
     
     if (req.file) {
-      updateData.imageUrl = req.file.filename;
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path);
+      updateData.imageUrl = result.secure_url;
+      
+      // Clean up the temporary local file
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error("Failed to clean up temporary local file:", err);
+      }
     }
     
     const updatedItem = await Item.findByIdAndUpdate(

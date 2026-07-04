@@ -133,8 +133,8 @@ const InboxPage: React.FC = () => {
                 <div className="w-20 h-20 bg-slate-100 rounded-xl mr-5 flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-200/60">
                   {thread.itemId && thread.itemId.imageUrl ? (
                     <img 
-                      src={`${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${thread.itemId.imageUrl}`} 
-                      alt="Item Thumbnail" 
+                      src={thread.itemId.imageUrl.startsWith('http') ? thread.itemId.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${thread.itemId.imageUrl}`} 
+                      alt={thread.itemId.title} 
                       className="w-full h-full object-cover"
                     />
                   ) : (
