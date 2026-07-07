@@ -8,7 +8,8 @@
     "logout": "வெளியேறு",
     "trustScore": "நம்பிக்கை மதிப்பெண்",
     "login": "உள்நுழை",
-    "register": "பதிவு செய்"
+    "register": "பதிவு செய்",
+    "profile": "சுயவிவரம்"
   },
   "dashboard": {
     "title": "Smart Lost & Found க்கு வரவேற்கிறோம் 🇱🇰",
