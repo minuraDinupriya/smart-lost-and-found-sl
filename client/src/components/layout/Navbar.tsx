@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Navbar: React.FC = () => {
@@ -138,8 +138,16 @@ const Navbar: React.FC = () => {
                   {/* User Dropdown (Desktop Only) */}
                   <div className="relative group">
                     <button className="flex items-center space-x-2 bg-white border border-gray-200 rounded-full py-1.5 px-3 hover:bg-gray-50 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
-                      <div className="w-7 h-7 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
-                        {user.username.charAt(0).toUpperCase()}
+                      <div className="w-7 h-7 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm overflow-hidden">
+                        {user.profilePicture ? (
+                          <img 
+                            src={user.profilePicture.startsWith('http') ? user.profilePicture : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${user.profilePicture}`} 
+                            className="w-full h-full object-cover" 
+                            alt="" 
+                          />
+                        ) : (
+                          user.username.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <span className="font-semibold text-gray-700 text-sm max-w-[100px] truncate">{user.username}</span>
                     </button>
@@ -152,6 +160,13 @@ const Navbar: React.FC = () => {
                         )}
                       </div>
                       <div className="p-1">
+                        <Link 
+                          to="/profile"
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                        >
+                          <User className="w-4 h-4 mr-2 text-gray-500" />
+                          {t('nav.profile', 'Profile')}
+                        </Link>
                         <button 
                           onClick={logout}
                           className="w-full text-left px-4 py-2.5 text-sm text-red-600 font-semibold hover:bg-red-50 rounded-lg flex items-center transition-colors"
@@ -196,17 +211,34 @@ const Navbar: React.FC = () => {
       {/* Mobile Menu Dropdown */}
       {user && isMobileMenuOpen && (
         <div className="lg:hidden absolute top-16 left-0 w-full bg-white border-b border-gray-200 shadow-xl z-40 px-4 py-4 space-y-4">
-          <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-            <div className="w-10 h-10 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-lg">
-              {user.username.charAt(0).toUpperCase()}
+          <Link 
+            to="/profile" 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="flex items-center justify-between mb-4 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-100 transition-colors w-full"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-lg overflow-hidden flex-shrink-0">
+                {user.profilePicture ? (
+                  <img 
+                    src={user.profilePicture.startsWith('http') ? user.profilePicture : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${user.profilePicture}`} 
+                    className="w-full h-full object-cover" 
+                    alt="" 
+                  />
+                ) : (
+                  user.username.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-gray-900 text-sm leading-snug">{user.username}</p>
+                {user.role !== 'police' ? (
+                  <p className="text-xs text-yellow-600 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                ) : (
+                  <p className="text-xs text-blue-600 font-bold">👮 Station: {user.policeStationName || 'General'}</p>
+                )}
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-gray-900">{user.username}</p>
-              {user.role !== 'police' && (
-                <p className="text-xs text-yellow-600 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
-              )}
-            </div>
-          </div>
+            <span className="text-xs font-bold text-[#800000] bg-[#800000]/5 px-2.5 py-1 rounded-lg">Edit</span>
+          </Link>
 
           <div className="grid grid-cols-2 gap-3">
             {user.role !== 'police' && (
