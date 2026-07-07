@@ -9,6 +9,8 @@ interface User {
   karmaPoints?: number;
   role?: 'user' | 'police' | 'admin';
   policeStationName?: string;
+  email?: string;
+  profilePicture?: string;
 }
 
 interface AuthContextType {
@@ -39,7 +41,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             _id: response.data.user._id,
             karmaPoints: response.data.user.karmaPoints,
             role: response.data.user.role,
-            policeStationName: response.data.user.policeStationName
+            policeStationName: response.data.user.policeStationName,
+            email: response.data.user.email,
+            profilePicture: response.data.user.profilePicture
           });
       }
     } catch (error) {
@@ -72,7 +76,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               _id: res.data.user._id,
               karmaPoints: res.data.user.karmaPoints,
               role: res.data.user.role,
-              policeStationName: res.data.user.policeStationName
+              policeStationName: res.data.user.policeStationName,
+              email: res.data.user.email,
+              profilePicture: res.data.user.profilePicture
             });
           }
         })
