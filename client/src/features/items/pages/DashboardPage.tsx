@@ -4,7 +4,7 @@ import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import ItemCard, { ItemProps } from '../components/ItemCard';
 import { motion } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Tooltip, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -203,27 +203,24 @@ const DashboardPage: React.FC = () => {
                       center={[item.latitude, item.longitude]}
                       radius={1000} // 1km radius
                       pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.4 }}
-                      eventHandlers={{ click: () => setHiddenPins(prev => { const next = new Set(prev); next.has(item._id) ? next.delete(item._id) : next.add(item._id); return next; }) }}
                     >
-                      {!hiddenPins.has(item._id) && (
-                        <Tooltip permanent direction="top" className="custom-map-tooltip" offset={[0, -20]}>
-                          <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
-                            {item.imageUrl ? (
-                              <div className="h-24 w-full rounded-lg overflow-hidden mb-2">
-                                <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
-                              </div>
-                            ) : (
-                              <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
-                                <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
-                              </div>
-                            )}
-                            <div className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{item.category}</div>
-                            <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
-                            <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                            <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">{t('dashboard.reviewMatch')}</button>
-                          </div>
-                        </Tooltip>
-                      )}
+                      <Popup className="custom-map-popup" offset={[0, -20]} closeButton={false}>
+                        <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
+                          {item.imageUrl ? (
+                            <div className="h-24 w-full rounded-lg overflow-hidden mb-2">
+                              <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                              <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
+                            </div>
+                          )}
+                          <div className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{item.category}</div>
+                          <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
+                          <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
+                          <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">{t('dashboard.reviewMatch')}</button>
+                        </div>
+                      </Popup>
                     </Circle>
                   )
                 }
@@ -232,28 +229,25 @@ const DashboardPage: React.FC = () => {
                   <Marker 
                     key={item._id} 
                     position={[item.latitude, item.longitude]}
-                    eventHandlers={{ click: () => setHiddenPins(prev => { const next = new Set(prev); next.has(item._id) ? next.delete(item._id) : next.add(item._id); return next; }) }}
                   >
-                    {!hiddenPins.has(item._id) && (
-                      <Tooltip permanent direction="top" className="custom-map-tooltip" offset={[0, -40]}>
-                        <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
-                          {item.imageUrl ? (
-                            <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
-                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
-                              <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
-                            </div>
-                          ) : (
-                            <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">
-                               <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
-                              <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
-                            </div>
-                          )}
-                          <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
-                          <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                          <button className="bg-[#800000] text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-[#600000] transition shadow-sm pointer-events-none">{t('dashboard.helpFind')}</button>
-                        </div>
-                      </Tooltip>
-                    )}
+                    <Popup className="custom-map-popup" offset={[0, -40]} closeButton={false}>
+                      <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
+                        {item.imageUrl ? (
+                          <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
+                             <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
+                            <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">
+                             <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
+                            <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
+                          </div>
+                        )}
+                        <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
+                        <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
+                        <button className="bg-[#800000] text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-[#600000] transition shadow-sm pointer-events-none">{t('dashboard.helpFind')}</button>
+                      </div>
+                    </Popup>
                   </Marker>
                 )
               })}
