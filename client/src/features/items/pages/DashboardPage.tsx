@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Search, Map as MapIcon, LayoutGrid, Trophy, MapPin, Filter, PackageSearch, AlertCircle } from 'lucide-react';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import ItemCard, { ItemProps } from '../components/ItemCard';
 import { motion } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -20,6 +20,47 @@ let DefaultIcon = L.icon({
     iconAnchor: [12, 41]
 });
 L.Marker.prototype.options.icon = DefaultIcon;
+
+// Wrapper: opens Leaflet popup on marker hover instead of click
+const HoverMarker: React.FC<{ position: [number, number]; children: React.ReactNode }> = ({ position, children }) => {
+  const markerRef = useRef<L.Marker>(null);
+  return (
+    <Marker
+      position={position}
+      ref={markerRef}
+      eventHandlers={{
+        mouseover: () => markerRef.current?.openPopup(),
+        mouseout: () => markerRef.current?.closePopup(),
+      }}
+    >
+      {children}
+    </Marker>
+  );
+};
+
+// Wrapper: opens Leaflet popup on circle hover
+const HoverCircle: React.FC<{
+  center: [number, number];
+  radius: number;
+  pathOptions: object;
+  children: React.ReactNode;
+}> = ({ center, radius, pathOptions, children }) => {
+  const circleRef = useRef<L.Circle>(null);
+  return (
+    <Circle
+      center={center}
+      radius={radius}
+      pathOptions={pathOptions}
+      ref={circleRef}
+      eventHandlers={{
+        mouseover: () => circleRef.current?.openPopup(),
+        mouseout: () => circleRef.current?.closePopup(),
+      }}
+    >
+      {children}
+    </Circle>
+  );
+};
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -198,10 +239,10 @@ const DashboardPage: React.FC = () => {
               {filteredItems.filter((i: any) => i.latitude && i.longitude).map((item: any) => {
                 if (item.type === 'FOUND' && item.isFuzzy) {
                   return (
-                    <Circle 
+                    <HoverCircle
                       key={item._id}
                       center={[item.latitude, item.longitude]}
-                      radius={1000} // 1km radius
+                      radius={1000}
                       pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.4 }}
                     >
                       <Popup className="custom-map-popup" offset={[0, -20]} closeButton={false}>
@@ -221,13 +262,13 @@ const DashboardPage: React.FC = () => {
                           <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">{t('dashboard.reviewMatch')}</button>
                         </div>
                       </Popup>
-                    </Circle>
+                    </HoverCircle>
                   )
                 }
                 
                 return (
-                  <Marker 
-                    key={item._id} 
+                  <HoverMarker
+                    key={item._id}
                     position={[item.latitude, item.longitude]}
                   >
                     <Popup className="custom-map-popup" offset={[0, -40]} closeButton={false}>
@@ -248,7 +289,7 @@ const DashboardPage: React.FC = () => {
                         <button className="bg-[#800000] text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-[#600000] transition shadow-sm pointer-events-none">{t('dashboard.helpFind')}</button>
                       </div>
                     </Popup>
-                  </Marker>
+                  </HoverMarker>
                 )
               })}
             </MapContainer>
