@@ -2,6 +2,14 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -153,10 +161,89 @@ const getLeaderboard = async (req, res) => {
   }
 };
 
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const { username, email, password, policeStationName, profilePicture } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username is already taken.' });
+      }
+      user.username = username;
+    }
+
+    if (email !== undefined) {
+      if (email && email !== user.email) {
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+          return res.status(400).json({ message: 'Email is already in use.' });
+        }
+      }
+      user.email = email;
+    }
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    if (user.role === 'police' && policeStationName !== undefined) {
+      user.policeStationName = policeStationName;
+    }
+
+    if (req.file) {
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        user.profilePicture = result.secure_url;
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkErr) {
+          console.error("Failed to clean up temp file:", unlinkErr);
+        }
+      } catch (err) {
+        console.error("Cloudinary upload failed for profile picture:", err);
+        return res.status(500).json({ message: 'Image upload failed.' });
+      }
+    } else if (profilePicture !== undefined) {
+      user.profilePicture = profilePicture;
+    }
+
+    await user.save();
+
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
+
+    res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: {
+        username: updatedUser.username,
+        _id: updatedUser._id,
+        email: updatedUser.email,
+        profilePicture: updatedUser.profilePicture,
+        karmaPoints: updatedUser.karmaPoints,
+        role: updatedUser.role,
+        policeStationName: updatedUser.policeStationName
+      },
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Server error during profile update.' });
+  }
+};
+
 module.exports = {
   register,
   login,
   googleLogin,
   getMe,
   getLeaderboard,
+  updateProfile,
 };
