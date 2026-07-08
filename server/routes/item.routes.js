@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyPolice } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems } = require('../controllers/item.controller');
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
@@ -38,6 +38,11 @@ router.get('/police-inventory', verifyToken, verifyPolice, getPoliceInventory);
 // @desc    Resolve an item at the police station
 // @access  Private (Police only)
 router.patch('/:id/police-resolve', verifyToken, verifyPolice, resolvePoliceItem);
+
+// @route   GET /api/items/archived
+// @desc    Get archived items created by the logged-in user
+// @access  Private
+router.get('/archived', verifyToken, getArchivedItems);
 
 // @route   GET /api/items/:itemId
 // @desc    Get a single item by ID

@@ -8,6 +8,7 @@ const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const Message = require('./models/Message');
 const socketService = require('./services/socket.service');
+const { startArchiveCron } = require('./services/archiveCron.service');
 
 // Initialize Express application
 const app = express();
@@ -117,4 +118,6 @@ app.get('/', (req, res) => res.send('SL-SLFMS API & Socket Server Active...'));
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server and WebSockets running synchronously on port ${PORT}`);
+  // Start the Item Expiry & Auto Archive daily cron job
+  startArchiveCron();
 });
