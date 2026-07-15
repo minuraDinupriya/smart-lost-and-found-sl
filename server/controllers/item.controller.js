@@ -439,7 +439,26 @@ const resolvePoliceItem = async (req, res) => {
     res.status(500).json({ message: 'Server Error resolving item.' });
   }
 };
+/**
+ * @desc    Get archived items created by the logged-in user
+ * @route   GET /api/items/archived
+ * @access  Private
+ */
+const getArchivedItems = async (req, res) => {
+  try {
+    const items = await Item.find({
+      createdBy: req.userId,
+      archiveStatus: 'archived',
+    }).sort({ createdAt: -1 });
 
+    res.json(items);
+  } catch (error) {
+    console.error('Get archived items error:', error);
+    res.status(500).json({
+      message: 'Failed to fetch archived items',
+    });
+  }
+};
 module.exports = {
   createItem,
   getAllItems,
@@ -452,4 +471,5 @@ module.exports = {
   getNearestPolice,
   getPoliceInventory,
   resolvePoliceItem,
+  getArchivedItems,
 };

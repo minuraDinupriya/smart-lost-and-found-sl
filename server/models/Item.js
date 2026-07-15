@@ -81,6 +81,17 @@ const itemSchema = new mongoose.Schema(
       enum: ['Available', 'Pending Verification', 'Claimed', 'At Police Station'],
       default: 'Available',
     },
+    // Item Expiry & Auto Archive Fields
+    archiveStatus: {
+      type: String,
+      enum: ['active', 'archived'],
+      default: 'active',
+    },
+    expiresAt: {
+      type: Date,
+       default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
+    },
+    // Reference to the User who created the item
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
