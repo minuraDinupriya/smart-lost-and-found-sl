@@ -36,9 +36,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const authRoutes = require('./routes/auth.routes');
 const itemRoutes = require('./routes/item.routes');
 const integrationRoutes = require('./routes/api.routes');
+const tipRoutes = require('./routes/tip.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/tips', tipRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api', integrationRoutes); // Mounts the Chat and PDF endpoints
 
 // Wrap Express with native Node HTTP Server for Socket.io
