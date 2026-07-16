@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, googleLogin, getMe, getLeaderboard } = require('../controllers/auth.controller');
+const { register, login, googleLogin, getMe, getLeaderboard, updateProfile } = require('../controllers/auth.controller');
 const { verifyToken } = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -28,4 +29,10 @@ router.get('/leaderboard', getLeaderboard);
 // @access  Private
 router.get('/me', verifyToken, getMe);
 
+// @route   PUT /api/auth/profile
+// @desc    Update user profile (username & profile picture)
+// @access  Private
+router.put('/profile', verifyToken, upload.single('profilePicture'), updateProfile);
+
 module.exports = router;
+
