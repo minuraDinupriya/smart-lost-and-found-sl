@@ -278,6 +278,14 @@ const getItemById = async (req, res) => {
     const itemObj = item.toObject();
     itemObj.returnRecord = returnRecord;
 
+    if (returnRecord) {
+      const Tip = require('../models/Tip');
+      const tip = await Tip.findOne({ returnRecordId: returnRecord._id, paymentStatus: 'paid' });
+      itemObj.tipPaid = !!tip;
+    } else {
+      itemObj.tipPaid = false;
+    }
+
     res.status(200).json(itemObj);
   } catch (error) {
     console.error('Fetch item by ID error:', error);
