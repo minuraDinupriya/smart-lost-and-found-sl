@@ -5,7 +5,8 @@ const {
   createTip,
   getTipById,
   getUserTips,
-  updateTipPaymentStatus
+  updateTipPaymentStatus,
+  getReturnRecordById
 } = require('../controllers/tip.controller');
 
 // @route   POST /api/tips
@@ -17,6 +18,11 @@ router.post('/', verifyToken, createTip);
 // @desc    Verify payment status and process updates
 // @access  Private
 router.put('/payment-status', verifyToken, updateTipPaymentStatus);
+
+// @route   GET /api/tips/return-record/:id
+// @desc    Fetch return record details
+// @access  Private
+router.get('/return-record/:id', verifyToken, getReturnRecordById);
 
 // @route   GET /api/tips/:id
 // @desc    Fetch single tip details

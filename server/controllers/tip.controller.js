@@ -221,9 +221,33 @@ const updateTipPaymentStatus = async (req, res) => {
   }
 };
 
+const getReturnRecordById = async (req, res) => {
+  try {
+    const returnRecord = await ReturnRecord.findById(req.params.id)
+      .populate('itemId')
+      .populate('ownerId', 'username')
+      .populate('finderId', 'username');
+
+    if (!returnRecord) {
+      return res.status(404).json({ message: 'Return record not found.' });
+    }
+
+    // Security check: Only the owner (sender of the tip) or finder (receiver of the tip) can see it
+    if (returnRecord.ownerId._id.toString() !== req.userId && returnRecord.finderId._id.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Unauthorized to view this return record.' });
+    }
+
+    res.status(200).json(returnRecord);
+  } catch (error) {
+    console.error('Get return record by ID error:', error);
+    res.status(500).json({ message: 'Server error retrieving return record.' });
+  }
+};
+
 module.exports = {
   createTip,
   getTipById,
   getUserTips,
   updateTipPaymentStatus,
+  getReturnRecordById,
 };
