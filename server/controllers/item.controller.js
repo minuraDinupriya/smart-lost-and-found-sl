@@ -268,7 +268,17 @@ const getItemById = async (req, res) => {
   try {
     const item = await Item.findById(req.params.itemId).populate('createdBy', 'username');
     if (!item) return res.status(404).json({ message: 'Item not found' });
-    res.status(200).json(item);
+    
+    // Fetch associated return record (if exists) populated with usernames
+    const ReturnRecord = require('../models/ReturnRecord');
+    const returnRecord = await ReturnRecord.findOne({ itemId: item._id })
+      .populate('ownerId', 'username')
+      .populate('finderId', 'username');
+
+    const itemObj = item.toObject();
+    itemObj.returnRecord = returnRecord;
+
+    res.status(200).json(itemObj);
   } catch (error) {
     console.error('Fetch item by ID error:', error);
     res.status(500).json({ message: 'Server error while fetching item.' });
@@ -351,6 +361,38 @@ const claimItem = async (req, res) => {
 
     item.status = 'Claimed';
     await item.save();
+
+    // Create a ReturnRecord automatically if we can find a chat partner
+    const ReturnRecord = require('../models/ReturnRecord');
+    const messages = await Message.find({ itemId: item._id });
+    
+    let otherUserId = null;
+    for (const msg of messages) {
+      if (msg.senderId.toString() !== item.createdBy.toString()) {
+        otherUserId = msg.senderId;
+        break;
+      }
+      if (msg.receiverId.toString() !== item.createdBy.toString()) {
+        otherUserId = msg.receiverId;
+        break;
+      }
+    }
+
+    if (otherUserId) {
+      try {
+        const existingRecord = await ReturnRecord.findOne({ itemId: item._id });
+        if (!existingRecord) {
+          await ReturnRecord.create({
+            itemId: item._id,
+            ownerId: item.type === 'LOST' ? item.createdBy : otherUserId,
+            finderId: item.type === 'FOUND' ? item.createdBy : otherUserId,
+            status: 'Returned'
+          });
+        }
+      } catch (err) {
+        console.error('Failed to create ReturnRecord:', err);
+      }
+    }
 
     // The Good Samaritan Karma System
     // If the user posted a FOUND item and successfully returned it, award them 50 Karma points
