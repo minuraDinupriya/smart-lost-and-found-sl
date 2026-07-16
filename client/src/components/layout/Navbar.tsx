@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Navbar: React.FC = () => {
@@ -152,6 +152,15 @@ const Navbar: React.FC = () => {
                         )}
                       </div>
                       <div className="p-1">
+                        {user.role !== 'police' && (
+                          <Link 
+                            to="/tips/history" 
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                          >
+                            <Wallet className="w-4 h-4 mr-2 text-amber-500" />
+                            Tip History
+                          </Link>
+                        )}
                         <button 
                           onClick={logout}
                           className="w-full text-left px-4 py-2.5 text-sm text-red-600 font-semibold hover:bg-red-50 rounded-lg flex items-center transition-colors"
@@ -240,6 +249,12 @@ const Navbar: React.FC = () => {
               <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20">
                 <PlusCircle className="w-6 h-6 mb-1" />
                 <span className="text-sm font-bold">{t('nav.postItem')}</span>
+              </Link>
+            )}
+            {user.role !== 'police' && (
+              <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 col-span-2">
+                <Wallet className="w-6 h-6 mb-1" />
+                <span className="text-sm font-semibold">Tip History</span>
               </Link>
             )}
           </div>

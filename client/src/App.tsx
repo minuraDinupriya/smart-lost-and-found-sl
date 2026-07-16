@@ -15,6 +15,13 @@ import PoliceDashboardPage from './features/police/pages/PoliceDashboardPage';
 import ChatPage from './features/chat/pages/ChatPage';
 import InboxPage from './features/chat/pages/InboxPage';
 
+// Reward Tip Pages
+import NewTipPage from './features/tips/pages/NewTipPage';
+import PaymentPage from './features/tips/pages/PaymentPage';
+import SuccessPage from './features/tips/pages/SuccessPage';
+import FailedPage from './features/tips/pages/FailedPage';
+import TipHistoryPage from './features/tips/pages/TipHistoryPage';
+
 const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50/50 text-gray-900 font-sans flex flex-col tracking-tight antialiased">
@@ -51,6 +58,13 @@ const App: React.FC = () => {
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          {/* Reward Tip Routes */}
+          <Route path="/tips/new/:returnRecordId" element={<NewTipPage />} />
+          <Route path="/tips/payment/:tipId" element={<PaymentPage />} />
+          <Route path="/tips/success" element={<SuccessPage />} />
+          <Route path="/tips/failed" element={<FailedPage />} />
+          <Route path="/tips/history" element={<TipHistoryPage />} />
         </Routes>
       </main>
     </div>

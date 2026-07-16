@@ -219,6 +219,21 @@ const ItemDetailPage: React.FC = () => {
               Mark as Claimed
             </button>
           )}
+
+          {isOwner && item.status === 'Claimed' && item.returnRecord && (
+            item.tipPaid ? (
+              <span className="flex-grow px-6 py-3 bg-gray-100 text-gray-400 font-bold rounded-xl border border-gray-200 flex items-center justify-center text-sm cursor-not-allowed">
+                🏆 Tip Sent Successfully
+              </span>
+            ) : (
+              <button 
+                onClick={() => navigate(`/tips/new/${item.returnRecord._id}`)}
+                className="flex-grow px-6 py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 hover:scale-[1.02] active:scale-[0.98] transition-all focus:outline-none focus:ring-4 focus:ring-amber-500/20 shadow-md shadow-amber-500/20 flex items-center justify-center"
+              >
+                🏆 Send Reward Tip
+              </button>
+            )
+          )}
         </div>
       </div>
     </div>
