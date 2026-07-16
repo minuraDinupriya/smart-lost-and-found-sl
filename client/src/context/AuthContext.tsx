@@ -9,6 +9,7 @@ interface User {
   karmaPoints?: number;
   role?: 'user' | 'police' | 'admin';
   policeStationName?: string;
+  profilePicture?: string;
 }
 
 interface AuthContextType {
@@ -39,7 +40,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             _id: response.data.user._id,
             karmaPoints: response.data.user.karmaPoints,
             role: response.data.user.role,
-            policeStationName: response.data.user.policeStationName
+            policeStationName: response.data.user.policeStationName,
+            profilePicture: response.data.user.profilePicture
           });
       }
     } catch (error) {
@@ -72,7 +74,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               _id: res.data.user._id,
               karmaPoints: res.data.user.karmaPoints,
               role: res.data.user.role,
-              policeStationName: res.data.user.policeStationName
+              policeStationName: res.data.user.policeStationName,
+              profilePicture: res.data.user.profilePicture
             });
           }
         })
@@ -109,11 +112,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loginUser = async (username: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { username, password });
-      const { token: receivedToken, username: receivedUsername, userId, role, policeStationName } = response.data;
+      const { token: receivedToken, username: receivedUsername, userId, role, policeStationName, profilePicture } = response.data;
 
       // Update local state (karma will be 0 initially or updated via fetchMe)
       setToken(receivedToken);
-      setUser({ username: receivedUsername, _id: userId, role, policeStationName });
+      setUser({ username: receivedUsername, _id: userId, role, policeStationName, profilePicture });
       fetchMe(); // fetch karma points
 
       // Persist in localStorage
@@ -146,10 +149,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loginWithGoogle = async (googleToken: string) => {
     try {
       const response = await api.post('/auth/google', { token: googleToken });
-      const { token: receivedToken, username: receivedUsername, userId, role, policeStationName } = response.data;
+      const { token: receivedToken, username: receivedUsername, userId, role, policeStationName, profilePicture } = response.data;
 
       setToken(receivedToken);
-      setUser({ username: receivedUsername, _id: userId, role, policeStationName });
+      setUser({ username: receivedUsername, _id: userId, role, policeStationName, profilePicture });
       fetchMe();
 
       localStorage.setItem('token', receivedToken);

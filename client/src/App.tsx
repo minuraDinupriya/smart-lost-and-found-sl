@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import Navbar from './components/layout/Navbar';
 import LoginPage from './features/auth/pages/LoginPage';
 import RegisterPage from './features/auth/pages/RegisterPage';
+import ProfilePage from './features/auth/pages/ProfilePage';
 
 import DashboardPage from './features/items/pages/DashboardPage';
 import QRTagsPage from './features/items/pages/QRTagsPage';
@@ -58,6 +59,7 @@ const App: React.FC = () => {
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
 
           {/* Reward Tip Routes */}
           <Route path="/tips/new/:returnRecordId" element={<NewTipPage />} />
@@ -65,6 +67,7 @@ const App: React.FC = () => {
           <Route path="/tips/success" element={<SuccessPage />} />
           <Route path="/tips/failed" element={<FailedPage />} />
           <Route path="/tips/history" element={<TipHistoryPage />} />
+
         </Routes>
       </main>
     </div>

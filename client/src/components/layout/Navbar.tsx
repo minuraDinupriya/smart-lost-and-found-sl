@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
@@ -146,9 +146,17 @@ const Navbar: React.FC = () => {
                   {/* User Dropdown (Desktop Only) */}
                   <div className="relative group">
                     <button className="flex items-center space-x-2 bg-white border border-gray-200 rounded-full py-1.5 px-3 hover:bg-gray-50 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
-                      <div className="w-7 h-7 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
-                        {user.username.charAt(0).toUpperCase()}
-                      </div>
+                      {user.profilePicture ? (
+                        <img 
+                          src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
+                          alt="Profile" 
+                          className="w-7 h-7 rounded-full object-cover border border-gray-200" 
+                        />
+                      ) : (
+                        <div className="w-7 h-7 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <span className="font-semibold text-gray-700 text-sm max-w-[100px] truncate">{user.username}</span>
                     </button>
                     
@@ -169,6 +177,13 @@ const Navbar: React.FC = () => {
                             Tip History
                           </Link>
                         )}
+                        <Link
+                          to="/profile"
+                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                        >
+                          <UserIcon className="w-4 h-4 mr-2 text-gray-500" />
+                          Profile
+                        </Link>
                         <button 
                           onClick={logout}
                           className="w-full text-left px-4 py-2.5 text-sm text-red-600 font-semibold hover:bg-red-50 rounded-lg flex items-center transition-colors"
@@ -214,9 +229,17 @@ const Navbar: React.FC = () => {
       {user && isMobileMenuOpen && (
         <div className="lg:hidden absolute top-16 left-0 w-full bg-white border-b border-gray-200 shadow-xl z-40 px-4 py-4 space-y-4">
           <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-            <div className="w-10 h-10 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-lg">
-              {user.username.charAt(0).toUpperCase()}
-            </div>
+            {user.profilePicture ? (
+              <img 
+                src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
+                alt="Profile" 
+                className="w-10 h-10 rounded-full object-cover border border-gray-200" 
+              />
+            ) : (
+              <div className="w-10 h-10 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-lg">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div>
               <p className="font-bold text-gray-900">{user.username}</p>
               {user.role !== 'police' && (
@@ -252,6 +275,10 @@ const Navbar: React.FC = () => {
                   {unreadCount}
                 </span>
               )}
+            </Link>
+            <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-slate-50 text-slate-700 rounded-xl border border-slate-200">
+              <UserIcon className="w-6 h-6 mb-1 text-slate-500" />
+              <span className="text-sm font-semibold">Profile</span>
             </Link>
             {user.role !== 'police' && (
               <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20">

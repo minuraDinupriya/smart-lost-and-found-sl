@@ -2,8 +2,17 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 
 const register = async (req, res) => {
   try {
@@ -60,6 +69,7 @@ const login = async (req, res) => {
       userId: user._id,
       role: user.role,
       policeStationName: user.policeStationName,
+      profilePicture: user.profilePicture,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -117,6 +127,7 @@ const googleLogin = async (req, res) => {
       userId: user._id,
       role: user.role,
       policeStationName: user.policeStationName,
+      profilePicture: user.profilePicture,
     });
   } catch (error) {
     console.error('Google Login error:', error);
@@ -153,10 +164,98 @@ const getLeaderboard = async (req, res) => {
   }
 };
 
+// @desc    Update user profile (username & profile picture)
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const { username } = req.body;
+    const userId = req.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to clean up file:", err);
+        }
+      }
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // 1. If username is being changed, verify uniqueness
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        // Clean up uploaded file if validation fails
+        if (req.file) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (err) {
+            console.error("Failed to clean up file after username validation error:", err);
+          }
+        }
+        return res.status(400).json({ message: 'Username is already taken.' });
+      }
+      user.username = username;
+    }
+
+    // 2. Handle Profile Picture upload if provided
+    if (req.file) {
+      // Check if Cloudinary is configured
+      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+        try {
+          const result = await cloudinary.uploader.upload(req.file.path);
+          user.profilePicture = result.secure_url;
+
+          // Clean up the temporary local file
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (err) {
+            console.error("Failed to clean up temporary local file:", err);
+          }
+        } catch (cloudinaryErr) {
+          console.error("Cloudinary upload failed, falling back to local storage:", cloudinaryErr);
+          // Fallback to local url
+          const localUrl = `/uploads/${req.file.filename}`;
+          user.profilePicture = localUrl;
+        }
+      } else {
+        // Fallback: use local upload static URL
+        const localUrl = `/uploads/${req.file.filename}`;
+        user.profilePicture = localUrl;
+      }
+    }
+
+    await user.save();
+
+    // Return the updated user (excluding password)
+    const updatedUser = await User.findById(userId).select('-password');
+    res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    // Clean up uploaded file if error occurs
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error("Failed to clean up file after error:", err);
+      }
+    }
+    res.status(500).json({ message: 'Server error during profile update.' });
+  }
+};
+
 module.exports = {
   register,
   login,
   googleLogin,
   getMe,
   getLeaderboard,
+  updateProfile,
 };
+
