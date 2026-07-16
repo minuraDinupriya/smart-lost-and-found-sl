@@ -5,6 +5,7 @@ import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
 import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-hot-toast';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -34,8 +35,15 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     if (socket) {
-      const handleGlobalNotification = () => {
-        setUnreadCount(prev => prev + 1);
+      const handleGlobalNotification = (data: any) => {
+        if (data && (data.type === 'TIP_RECEIVED' || data.type === 'TIP_SENT')) {
+          toast.success(data.text || data.message || 'Reward Tip Notification!', {
+            icon: '🏆',
+            duration: 6000,
+          });
+        } else {
+          setUnreadCount(prev => prev + 1);
+        }
       };
       socket.on('global_notification', handleGlobalNotification);
       return () => {
