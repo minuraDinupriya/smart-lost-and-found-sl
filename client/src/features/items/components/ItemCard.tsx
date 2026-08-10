@@ -83,7 +83,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
           icon: 'success',
           confirmButtonColor: '#800000'
         }).then(() => {
-          navigate(`/chat/${item._id}`);
+          navigate(`/chat/${item._id}/${createdById}`);
         });
       }
     });

@@ -92,9 +92,9 @@ io.on('connection', (socket) => {
   socketService.addUserSocket(socket.userId, socket.id);
 
   // Join isolated negotiation room
-  socket.on('join_room', (itemId) => {
-    socket.join(itemId);
-    console.log(`User ${socket.userId} joined room: ${itemId}`);
+  socket.on('join_room', (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.userId} joined room: ${roomId}`);
   });
 
   // Handle bi-directional real-time messaging
@@ -107,8 +107,11 @@ io.on('connection', (socket) => {
       const newMessage = new Message({ itemId, senderId, receiverId, text });
       const savedMessage = await newMessage.save();
 
-      // Broadcast exclusively to users inside the negotiation room
-      io.to(itemId).emit('receive_message', savedMessage);
+      // Secure deterministic room ID matching the frontend algorithm
+      const roomId = [senderId.toString(), receiverId.toString()].sort().join('_') + '_' + itemId;
+
+      // Broadcast exclusively to users inside the specific 1-on-1 negotiation room
+      io.to(roomId).emit('receive_message', savedMessage);
 
       // Trigger a global notification to the receiver for the Navbar badge
       socketService.emitGlobalNotification(receiverId, savedMessage);

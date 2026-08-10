@@ -16,7 +16,7 @@ interface Message {
 }
 
 const ChatPage: React.FC = () => {
-  const { itemId } = useParams<{ itemId: string }>();
+  const { itemId, otherUserId } = useParams<{ itemId: string, otherUserId: string }>();
   const { socket } = useSocket();
   const { user } = useAuth();
   
@@ -40,20 +40,11 @@ const ChatPage: React.FC = () => {
         setReceiverId(posterId);
 
         // Fetch historical logs from MongoDB
-        const msgRes = await api.get(`/messages/${itemId}`);
+        const msgRes = await api.get(`/messages/${itemId}/${otherUserId}`);
         const fetchedMessages = msgRes.data;
         setMessages(fetchedMessages);
 
-        // Dynamically determine the correct receiverId!
-        // If we have chat history, find the OTHER user involved in this conversation
-        let computedReceiverId = posterId;
-        if (user && fetchedMessages.length > 0) {
-           const relevantMsg = fetchedMessages.find((m: any) => m.senderId === user._id || m.receiverId === user._id);
-           if (relevantMsg) {
-             computedReceiverId = relevantMsg.senderId === user._id ? relevantMsg.receiverId : relevantMsg.senderId;
-           }
-        }
-        setReceiverId(computedReceiverId);
+        setReceiverId(otherUserId || null);
       } catch (error) {
         console.error("Failed to load chat data", error);
       } finally {
@@ -65,17 +56,22 @@ const ChatPage: React.FC = () => {
 
   // Hook into WebSocket Real-Time Broadcasts
   useEffect(() => {
-    if (socket && itemId) {
+    if (socket && itemId && otherUserId && user) {
+      // Create deterministic room ID sorting both user IDs so both users join the same channel
+      const roomId = [user._id, otherUserId].sort().join('_') + '_' + itemId;
+      
       // Fire immediately (will buffer if not connected)
-      socket.emit('join_room', itemId);
+      socket.emit('join_room', roomId);
 
       // Crucial: Re-join room automatically if socket drops and reconnects
-      const onConnect = () => socket.emit('join_room', itemId);
+      const onConnect = () => socket.emit('join_room', roomId);
       socket.on('connect', onConnect);
 
       socket.on('receive_message', (newMessage: Message) => {
         setMessages((prev) => {
-          // Prevent duplicates by checking if message already exists
+          // Prevent duplicates or misdirected messages from other rooms
+          if (newMessage.senderId !== otherUserId && newMessage.senderId !== user._id) return prev;
+          if (newMessage.receiverId !== otherUserId && newMessage.receiverId !== user._id) return prev;
           if (prev.some(msg => msg._id === newMessage._id)) return prev;
           return [...prev, newMessage];
         });
@@ -86,7 +82,7 @@ const ChatPage: React.FC = () => {
         socket.off('receive_message');
       };
     }
-  }, [socket, itemId]);
+  }, [socket, itemId, otherUserId, user]);
 
   useEffect(() => {
     scrollToBottom();
