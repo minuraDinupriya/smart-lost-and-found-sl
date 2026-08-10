@@ -6,6 +6,7 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const { generateImageHash, calculateHammingDistance } = require('../utils/imageHash');
 const { calculateTextSimilarity } = require('../utils/textMatch');
+const { identifyItemFromImage } = require('../services/itemIdentification.service');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -17,6 +18,17 @@ const { emitGlobalNotification } = require('../services/socket.service');
 const createItem = async (req, res) => {
   try {
     const itemData = req.body;
+
+    let aiIdentificationParsed = null;
+    if (itemData.aiIdentification && typeof itemData.aiIdentification === 'string') {
+      try {
+        aiIdentificationParsed = JSON.parse(itemData.aiIdentification);
+      } catch (e) {
+        aiIdentificationParsed = null;
+      }
+    } else if (itemData.aiIdentification && typeof itemData.aiIdentification === 'object') {
+      aiIdentificationParsed = itemData.aiIdentification;
+    }
 
     let titleSi, titleTa, descriptionSi, descriptionTa;
     try {
@@ -35,6 +47,8 @@ const createItem = async (req, res) => {
     // Instantiate new Item, enforcing the createdBy user mapping from auth middleware
     const newItem = new Item({
       ...itemData,
+      aiIdentified: itemData.aiIdentified === 'true' || itemData.aiIdentified === true,
+      aiIdentification: aiIdentificationParsed || undefined,
       titleSi,
       titleTa,
       descriptionSi,
@@ -509,6 +523,40 @@ const getArchivedItems = async (req, res) => {
     });
   }
 };
+const identifyItem = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file uploaded for identification.'
+      });
+    }
+
+    const result = await identifyItemFromImage(
+      req.file.path,
+      req.file.originalname,
+      req.file.mimetype
+    );
+
+    // Clean up temporary upload file if not being retained
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (cleanupErr) {
+      console.error('Failed to cleanup temp upload file:', cleanupErr);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Identify item controller error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process AI item identification.'
+    });
+  }
+};
+
 module.exports = {
   createItem,
   getAllItems,
@@ -522,4 +570,5 @@ module.exports = {
   getPoliceInventory,
   resolvePoliceItem,
   getArchivedItems,
+  identifyItem,
 };

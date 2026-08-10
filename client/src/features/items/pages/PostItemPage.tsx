@@ -6,6 +6,7 @@ import L from 'leaflet';
 import Swal from 'sweetalert2';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
+import AIItemIdentifier from '../components/AIItemIdentifier';
 import { ShieldCheck, Navigation } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
@@ -49,6 +50,7 @@ const PostItemPage: React.FC = () => {
   const [externalLocation, setExternalLocation] = useState<LocationState | null>(null);
   const [mapPosition, setMapPosition] = useState<[number, number] | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [aiMetadata, setAiMetadata] = useState<any>(null);
   
   // Police Station Recommendation State
   const [nearestPolice, setNearestPolice] = useState<{name: string, lat: number, lon: number, distance: number} | null>(null);
@@ -60,6 +62,9 @@ const PostItemPage: React.FC = () => {
     description: '',
     type: 'LOST',
     category: 'Electronics',
+    color: '',
+    brand: '',
+    model: '',
     date: '',
     contactNumber: '',
     securityQuestion: '',
@@ -160,6 +165,38 @@ const PostItemPage: React.FC = () => {
     if (e.target.files && e.target.files[0]) setImageFile(e.target.files[0]);
   };
 
+  const handleApplyAIResults = (details: {
+    title: string;
+    category: string;
+    description: string;
+    color: string;
+    brand: string;
+    model: string;
+    aiIdentification?: any;
+  }) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: details.title || prev.title,
+      category: details.category || prev.category,
+      description: details.description || prev.description,
+      color: details.color || prev.color,
+      brand: details.brand || prev.brand,
+      model: details.model || prev.model,
+    }));
+    if (details.aiIdentification) {
+      setAiMetadata(details.aiIdentification);
+    }
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: 'AI Details Applied!',
+      text: 'Form fields have been updated.',
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!location.province || !location.district || !location.city) {
@@ -183,6 +220,11 @@ const PostItemPage: React.FC = () => {
       }
       
       if (imageFile) data.append('image', imageFile);
+
+      if (aiMetadata) {
+        data.append('aiIdentified', 'true');
+        data.append('aiIdentification', JSON.stringify(aiMetadata));
+      }
 
       const response = await api.post('/items', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -219,6 +261,13 @@ const PostItemPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Smart Item Identification Section */}
+        <AIItemIdentifier
+          imageFile={imageFile}
+          onImageChange={(file) => setImageFile(file)}
+          onApplyResults={handleApplyAIResults}
+        />
+
         {/* Core Details */}
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">Core Details</h3>
@@ -247,19 +296,29 @@ const PostItemPage: React.FC = () => {
             <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
             <input required type="text" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., iPhone 13 Pro Max - Black" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Color (Optional)</label>
+              <input type="text" name="color" value={formData.color} onChange={handleInputChange} placeholder="e.g., Black, Navy Blue" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Brand (Optional)</label>
+              <input type="text" name="brand" value={formData.brand} onChange={handleInputChange} placeholder="e.g., Samsung, Apple" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Model (Optional)</label>
+              <input type="text" name="model" value={formData.model} onChange={handleInputChange} placeholder="e.g., Galaxy A52" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
             <textarea required rows={4} name="description" value={formData.description} onChange={handleInputChange} placeholder="Provide details like colors, specific marks, or brands..." className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"></textarea>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Date</label>
-              <input required type="date" name="date" value={formData.date} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Image Upload</label>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#800000]/10 file:text-[#800000] hover:file:bg-[#800000]/20 transition-colors" />
-            </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Date</label>
+            <input required type="date" name="date" value={formData.date} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
           </div>
         </div>
 

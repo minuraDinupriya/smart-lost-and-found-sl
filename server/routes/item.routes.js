@@ -2,7 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyPolice } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems, identifyItem } = require('../controllers/item.controller');
+
+// @route   POST /api/items/identify
+// @desc    Analyze uploaded item image with AI and suggest attributes
+// @access  Private
+router.post('/identify', verifyToken, upload.single('image'), identifyItem);
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
