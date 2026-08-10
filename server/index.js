@@ -39,12 +39,14 @@ const integrationRoutes = require('./routes/api.routes');
 const tipRoutes = require('./routes/tip.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const adminRoutes = require('./routes/admin.routes');
+const historyRoutes = require('./routes/history.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/tips', tipRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/history', historyRoutes);
 app.use('/api', integrationRoutes); // Mounts the Chat and PDF endpoints
 
 // Wrap Express with native Node HTTP Server for Socket.io
