@@ -193,8 +193,8 @@ const getAllItems = async (req, res) => {
     if (district) filter.district = district;
     if (city) filter.city = city;
 
-    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items
-    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' } })
+    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items and archived items
+    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' }, archiveStatus: { $ne: 'archived' } })
       .sort({ createdAt: -1 })
       .populate('createdBy', 'username'); // Helpful to display the reporter's username
       
