@@ -510,10 +510,17 @@ const resolvePoliceItem = async (req, res) => {
  */
 const getArchivedItems = async (req, res) => {
   try {
-    const items = await Item.find({
-      createdBy: req.userId,
-      archiveStatus: 'archived',
-    }).sort({ createdAt: -1 });
+    const User = require('../models/User');
+    const user = await User.findById(req.userId);
+
+    const query = { archiveStatus: 'archived' };
+
+    // If not admin, only show items created by the user
+    if (!user || user.role !== 'admin') {
+      query.createdBy = req.userId;
+    }
+
+    const items = await Item.find(query).sort({ createdAt: -1 });
 
     res.json(items);
   } catch (error) {
