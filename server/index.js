@@ -15,9 +15,9 @@ const app = express();
 connectDB();
 
 // Middlewares
-const allowedOrigins = process.env.CLIENT_URL 
-  ? [process.env.CLIENT_URL, 'http://localhost:5173']
-  : ['http://localhost:5173'];
+const allowedOrigins = process.env.CLIENT_URL
+  ? [process.env.CLIENT_URL, 'http://localhost:5174']
+  : ['http://localhost:5174'];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -67,7 +67,7 @@ const io = new Server(server, {
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Authentication error: No token provided'));
-  
+
   try {
     const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
     const decoded = jwt.verify(token, secret);
@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
 
 app.get('/', (req, res) => res.send('SL-SLFMS API & Socket Server Active...'));
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Server and WebSockets running synchronously on port ${PORT}`);
   // Start the Item Expiry & Auto Archive daily cron job
