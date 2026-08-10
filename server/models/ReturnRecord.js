@@ -19,16 +19,25 @@ const returnRecordSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Completed', 'Returned'],
-      default: 'Returned',
+      enum: ['FINDER_CONFIRMED', 'OWNER_CONFIRMED', 'OWNER_FINDER_VERIFIED', 'RETURN_COMPLETED', 'Completed', 'Returned'],
+      default: 'FINDER_CONFIRMED',
     },
+    finderConfirmedAt: {
+      type: Date,
+    },
+    ownerConfirmedAt: {
+      type: Date,
+    },
+    ownerReceivedAt: {
+      type: Date,
+    }
   },
   {
     timestamps: true,
   }
 );
 
-// Add unique index on itemId to prevent multiple return records for same item
-returnRecordSchema.index({ itemId: 1 }, { unique: true });
+// Allow multiple potential handovers to start, but uniquely identify them by the participants and item
+returnRecordSchema.index({ itemId: 1, ownerId: 1, finderId: 1 }, { unique: true });
 
 module.exports = mongoose.model('ReturnRecord', returnRecordSchema);

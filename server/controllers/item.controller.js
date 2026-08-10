@@ -384,38 +384,6 @@ const claimItem = async (req, res) => {
     item.status = 'Claimed';
     await item.save();
 
-    // Create a ReturnRecord automatically if we can find a chat partner
-    const ReturnRecord = require('../models/ReturnRecord');
-    const messages = await Message.find({ itemId: item._id });
-    
-    let otherUserId = null;
-    for (const msg of messages) {
-      if (msg.senderId.toString() !== item.createdBy.toString()) {
-        otherUserId = msg.senderId;
-        break;
-      }
-      if (msg.receiverId.toString() !== item.createdBy.toString()) {
-        otherUserId = msg.receiverId;
-        break;
-      }
-    }
-
-    if (otherUserId) {
-      try {
-        const existingRecord = await ReturnRecord.findOne({ itemId: item._id });
-        if (!existingRecord) {
-          await ReturnRecord.create({
-            itemId: item._id,
-            ownerId: item.type === 'LOST' ? item.createdBy : otherUserId,
-            finderId: item.type === 'FOUND' ? item.createdBy : otherUserId,
-            status: 'Returned'
-          });
-        }
-      } catch (err) {
-        console.error('Failed to create ReturnRecord:', err);
-      }
-    }
-
     // The Good Samaritan Karma System
     // If the user posted a FOUND item and successfully returned it, award them 50 Karma points
     if (item.type === 'FOUND') {

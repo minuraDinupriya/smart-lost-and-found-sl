@@ -32,9 +32,16 @@ const checkTipEligibility = async (returnRecord, userId) => {
     return { eligible: false, reason: 'The finder user does not exist.' };
   }
 
-  // 3. Handover status must be successfully completed
-  if (returnRecord.status !== 'Returned' && returnRecord.status !== 'Completed') {
+  // 3. Handover status must be successfully completed (Mutual Verification Protocol)
+  if (returnRecord.status !== 'RETURN_COMPLETED' && returnRecord.status !== 'Returned' && returnRecord.status !== 'Completed') {
     return { eligible: false, reason: 'Handover status is not completed.' };
+  }
+
+  // Ensure mutual verification actually occurred (Security against forced statuses)
+  if (returnRecord.status === 'RETURN_COMPLETED') {
+    if (!returnRecord.finderConfirmedAt || !returnRecord.ownerConfirmedAt || !returnRecord.ownerReceivedAt) {
+      return { eligible: false, reason: 'Mutual verification steps are incomplete. Both parties must confirm.' };
+    }
   }
 
   // 4. Item status must be successfully claimed/returned

@@ -76,7 +76,10 @@ async function runTests() {
       itemId: item._id,
       ownerId: owner._id,
       finderId: finder._id,
-      status: 'Returned'
+      status: 'RETURN_COMPLETED',
+      finderConfirmedAt: new Date(),
+      ownerConfirmedAt: new Date(),
+      ownerReceivedAt: new Date()
     });
     console.log('✅ [PASS]');
 
@@ -109,7 +112,7 @@ async function runTests() {
       contactNumber: '0771234567'
     });
     const selfReturnRecord = await ReturnRecord.create({
-      itemId: selfItem._id, ownerId: finder._id, finderId: finder._id, status: 'Returned'
+      itemId: selfItem._id, ownerId: finder._id, finderId: finder._id, status: 'RETURN_COMPLETED', finderConfirmedAt: new Date(), ownerConfirmedAt: new Date(), ownerReceivedAt: new Date()
     });
     res = await runController(tipController.createTip, {
       body: { returnRecordId: selfReturnRecord._id, amount: 250 },
@@ -129,13 +132,13 @@ async function runTests() {
       contactNumber: '0771234567'
     });
     const pendingReturn = await ReturnRecord.create({
-      itemId: pendingItem._id, ownerId: owner._id, finderId: finder._id, status: 'Returned'
+      itemId: pendingItem._id, ownerId: owner._id, finderId: finder._id, status: 'OWNER_FINDER_VERIFIED', finderConfirmedAt: new Date(), ownerConfirmedAt: new Date()
     });
     res = await runController(tipController.createTip, {
       body: { returnRecordId: pendingReturn._id, amount: 250 },
       userId: owner._id.toString()
     });
-    if (res.statusCode === 400 && res.body.message.includes('not been marked as Claimed')) {
+    if (res.statusCode === 400 && (res.body.message.includes('not been marked as Claimed') || res.body.message.includes('Handover status is not completed'))) {
       console.log('✅ [PASS]');
     } else {
       throw new Error(`Expected failure for pending handover, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
@@ -206,7 +209,7 @@ async function runTests() {
       contactNumber: '0771234567'
     });
     const skipReturn = await ReturnRecord.create({
-      itemId: skipItem._id, ownerId: owner._id, finderId: finder._id, status: 'Completed'
+      itemId: skipItem._id, ownerId: owner._id, finderId: finder._id, status: 'RETURN_COMPLETED', finderConfirmedAt: new Date(), ownerConfirmedAt: new Date(), ownerReceivedAt: new Date()
     });
     res = await runController(tipController.skipTip, {
       body: { returnRecordId: skipReturn._id },
