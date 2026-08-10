@@ -10,6 +10,12 @@ interface User {
   role?: 'user' | 'police' | 'admin';
   policeStationName?: string;
   profilePicture?: string;
+  bankDetails?: {
+    bankName: string;
+    branchName: string;
+    accountName: string;
+    accountNumber: string;
+  };
 }
 
 interface AuthContextType {
@@ -41,7 +47,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             karmaPoints: response.data.user.karmaPoints,
             role: response.data.user.role,
             policeStationName: response.data.user.policeStationName,
-            profilePicture: response.data.user.profilePicture
+            profilePicture: response.data.user.profilePicture,
+            bankDetails: response.data.user.bankDetails
           });
       }
     } catch (error) {
@@ -75,7 +82,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               karmaPoints: res.data.user.karmaPoints,
               role: res.data.user.role,
               policeStationName: res.data.user.policeStationName,
-              profilePicture: res.data.user.profilePicture
+              profilePicture: res.data.user.profilePicture,
+              bankDetails: res.data.user.bankDetails
             });
           }
         })
