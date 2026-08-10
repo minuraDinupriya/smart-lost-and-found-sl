@@ -12,10 +12,10 @@ import PostItemPage from './features/items/pages/PostItemPage';
 import EditItemPage from './features/items/pages/EditItemPage';
 import ItemDetailPage from './features/items/pages/ItemDetailPage';
 import AnalyticsPage from './features/items/pages/AnalyticsPage';
+import ArchivedItemsPage from './features/items/pages/ArchivedItemsPage';
 import PoliceDashboardPage from './features/police/pages/PoliceDashboardPage';
 import ChatPage from './features/chat/pages/ChatPage';
 import InboxPage from './features/chat/pages/InboxPage';
-
 // Reward Tip Pages
 import NewTipPage from './features/tips/pages/NewTipPage';
 import PaymentPage from './features/tips/pages/PaymentPage';
@@ -27,14 +27,14 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50/50 text-gray-900 font-sans flex flex-col tracking-tight antialiased">
       {/* Global Hot Toast Configuration */}
-      <Toaster 
-        position="top-right" 
-        toastOptions={{ 
+      <Toaster
+        position="top-right"
+        toastOptions={{
           className: 'rounded-xl shadow-lg font-medium border border-gray-100',
           duration: 4000,
-        }} 
+        }}
       />
-      
+
       {/* Top Navigation */}
       <Navbar />
 
@@ -45,13 +45,16 @@ const App: React.FC = () => {
           <Route path="/post" element={<PostItemPage />} />
           <Route path="/edit/:itemId" element={<EditItemPage />} />
           <Route path="/items/:itemId" element={<ItemDetailPage />} />
-          
+
           {/* Protected Smart Tags Route */}
           <Route path="/smart-tags" element={<QRTagsPage />} />
 
+          {/* Archived Items Route */}
+          <Route path="/archived" element={<ArchivedItemsPage />} />
+
           {/* Analytics Route */}
           <Route path="/analytics" element={<AnalyticsPage />} />
-          
+
           {/* Police Dashboard */}
           <Route path="/police-dashboard" element={<PoliceDashboardPage />} />
 

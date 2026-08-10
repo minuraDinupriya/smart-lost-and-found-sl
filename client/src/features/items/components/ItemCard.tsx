@@ -27,6 +27,8 @@ export interface ItemProps {
   handedToPolice?: boolean;
   policeStationName?: string;
   createdBy: any;
+  archiveStatus?: 'active' | 'archived';
+  expiresAt?: string;
 }
 
 const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
@@ -129,7 +131,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
           </div>
         )}
         
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
           {item.status === 'Claimed' && (
             <span className="bg-emerald-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-emerald-400/50 shadow-sm flex items-center">
               <CheckCircle className="w-3 h-3 mr-1" />
@@ -152,6 +154,11 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
             <span className="bg-blue-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-blue-400/50 shadow-sm flex items-center">
               <ShieldCheck className="w-3 h-3 mr-1" />
               At Police Station
+            </span>
+          )}
+          {item.archiveStatus === 'archived' && (
+            <span className="bg-slate-600/95 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-slate-500/50 shadow-sm flex items-center">
+              Archived
             </span>
           )}
         </div>
@@ -199,6 +206,15 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
               Available to pick up at {item.policeStationName}
             </div>
           )}
+          {item.expiresAt && (
+            <div className="flex items-center text-sm font-medium text-gray-600 border-t border-gray-200/50 pt-2.5 mt-2.5">
+              <Calendar className="w-4 h-4 mr-2.5 text-gray-500" />
+              <span>
+                {item.archiveStatus === 'archived' ? 'Archived on: ' : 'Expires on: '}
+                {new Date(item.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+          )}
         </div>
         
         {/* Blind Claim Indicator Banner */}
@@ -212,7 +228,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
         {/* Contextual Action Button */}
         {isOwner ? (
           <div className="mt-auto flex flex-col gap-2">
-            {item.status !== 'Claimed' && (
+            {item.status !== 'Claimed' && item.archiveStatus !== 'archived' && (
               <button 
                 onClick={handleMarkAsClaimed}
                 className="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-sm"
@@ -221,27 +237,33 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
               </button>
             )}
             <div className="flex gap-2">
-              <button 
-                onClick={() => navigate(`/edit/${item._id}`)}
-                className="flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
-              >
-                {t('common.edit')}
-              </button>
+              {item.archiveStatus !== 'archived' && (
+                <button 
+                  onClick={() => navigate(`/edit/${item._id}`)}
+                  className="flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
+                >
+                  {t('common.edit')}
+                </button>
+              )}
               <button 
                 onClick={handleDelete}
-                className="flex-1 py-2 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors text-sm"
+                className={`py-2 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors text-sm ${item.archiveStatus === 'archived' ? 'w-full' : 'flex-1'}`}
               >
                 Delete Post
               </button>
             </div>
           </div>
-        ) : user?.role !== 'police' ? (
+        ) : user?.role !== 'police' && item.archiveStatus !== 'archived' ? (
           <button 
             onClick={handleClaimInitiation}
             className="w-full mt-auto py-3 rounded-xl border-2 border-[#800000] text-[#800000] font-bold hover:bg-[#800000] hover:text-white transition-colors active:scale-[0.98]"
           >
             {isLost ? 'I Have This Item' : 'Claim This Item'}
           </button>
+        ) : item.archiveStatus === 'archived' ? (
+          <div className="w-full mt-auto py-3 text-center rounded-xl bg-gray-100 text-gray-400 font-bold text-sm select-none border border-gray-200">
+            Archived
+          </div>
         ) : null}
       </div>
     </div>
