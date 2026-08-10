@@ -17,17 +17,21 @@ const checkTipEligibility = async (returnRecord, userId) => {
     return { eligible: false, reason: 'Associated item not found.' };
   }
 
+  // Handle populated or unpopulated ownerId and finderId
+  const ownerIdString = returnRecord.ownerId._id ? returnRecord.ownerId._id.toString() : returnRecord.ownerId.toString();
+  const finderIdString = returnRecord.finderId._id ? returnRecord.finderId._id.toString() : returnRecord.finderId.toString();
+
   // 1. Logged in user must be the rightful owner
-  if (returnRecord.ownerId.toString() !== userId.toString()) {
+  if (ownerIdString !== userId.toString()) {
     return { eligible: false, reason: 'Only the rightful owner can give a tip.' };
   }
 
   // 2. Finder must be a valid user and not the owner itself
-  if (returnRecord.ownerId.toString() === returnRecord.finderId.toString()) {
+  if (ownerIdString === finderIdString) {
     return { eligible: false, reason: 'You cannot give a tip to yourself.' };
   }
 
-  const finder = await User.findById(returnRecord.finderId);
+  const finder = await User.findById(finderIdString);
   if (!finder) {
     return { eligible: false, reason: 'The finder user does not exist.' };
   }
