@@ -199,6 +199,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
       </nav>
 
       {/* Side Drawer Overlay */}
