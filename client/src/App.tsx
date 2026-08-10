@@ -14,6 +14,7 @@ import ItemDetailPage from './features/items/pages/ItemDetailPage';
 import AnalyticsPage from './features/items/pages/AnalyticsPage';
 import ArchivedItemsPage from './features/items/pages/ArchivedItemsPage';
 import PoliceDashboardPage from './features/police/pages/PoliceDashboardPage';
+import AdminDashboardPage from './features/admin/pages/AdminDashboardPage';
 import ChatPage from './features/chat/pages/ChatPage';
 import InboxPage from './features/chat/pages/InboxPage';
 // Reward Tip Pages
@@ -57,6 +58,9 @@ const App: React.FC = () => {
 
           {/* Police Dashboard */}
           <Route path="/police-dashboard" element={<PoliceDashboardPage />} />
+
+          {/* Admin Dashboard */}
+          <Route path="/admin" element={<AdminDashboardPage />} />
 
           <Route path="/chat/:itemId" element={<ChatPage />} />
           <Route path="/inbox" element={<InboxPage />} />
