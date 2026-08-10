@@ -27,6 +27,11 @@ const tipSchema = new mongoose.Schema(
       enum: ['pending', 'paid', 'completed', 'failed', 'skipped'],
       default: 'pending',
     },
+    payoutStatus: {
+      type: String,
+      enum: ['pending', 'processing', 'completed'],
+      default: 'pending',
+    },
     paymentReference: {
       type: String,
       default: '',

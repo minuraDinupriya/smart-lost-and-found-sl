@@ -232,8 +232,27 @@ const updateTipPaymentStatus = async (req, res) => {
       const returnRec = await ReturnRecord.findById(tip.returnRecordId).populate('itemId');
       const itemTitle = returnRec?.itemId?.title || 'Returned Item';
 
+      // Check for Bank Details and Handle Payout
+      let finderMessage = '';
+      if (finder.bankDetails && finder.bankDetails.accountNumber) {
+        // Initiate payout immediately
+        const payoutResult = await paymentService.initiatePayout(tip, finder);
+        if (payoutResult.status === 'completed') {
+          tip.payoutStatus = 'completed';
+          finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! The money has been transferred to your bank account.`;
+        } else {
+          tip.payoutStatus = 'pending';
+          finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'}! We had trouble transferring it to your bank. Please check your bank details in your profile.`;
+        }
+      } else {
+        // Hold in escrow
+        tip.payoutStatus = 'pending';
+        finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! Please add your bank details in your Profile to receive the money.`;
+      }
+      
+      await tip.save();
+
       // 1. Notify Finder (Receiver)
-      const finderMessage = `You received a reward tip of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for returning "${itemTitle}"!`;
       const finderNotification = await Notification.create({
         userId: tip.finderId,
         message: finderMessage,

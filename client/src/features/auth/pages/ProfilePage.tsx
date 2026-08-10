@@ -18,10 +18,15 @@ const ProfilePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'profile' | 'claimed' | 'returned'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'claimed' | 'returned' | 'bank'>('profile');
   const [claimedHistory, setClaimedHistory] = useState<any[]>([]);
   const [returnedHistory, setReturnedHistory] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  const [bankName, setBankName] = useState('');
+  const [branchName, setBranchName] = useState('');
+  const [accountName, setAccountName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -31,6 +36,12 @@ const ProfilePage: React.FC = () => {
           ? user.profilePicture
           : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`;
         setPreviewUrl(fullUrl);
+      }
+      if (user.bankDetails) {
+        setBankName(user.bankDetails.bankName || '');
+        setBranchName(user.bankDetails.branchName || '');
+        setAccountName(user.bankDetails.accountName || '');
+        setAccountNumber(user.bankDetails.accountNumber || '');
       }
     } else {
       navigate('/login');
@@ -112,6 +123,25 @@ const ProfilePage: React.FC = () => {
       Swal.fire({ title: 'Success!', text: response.data.message, icon: 'success', confirmButtonColor: '#800000', timer: 2000, showConfirmButton: false });
     } catch (error: any) {
       Swal.fire({ title: 'Update Failed', text: error.response?.data?.message || 'Failed to update profile.', icon: 'error', confirmButtonColor: '#800000' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBankSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const response = await api.put('/auth/profile/bank', {
+        bankName,
+        branchName,
+        accountName,
+        accountNumber
+      });
+      await fetchMe();
+      Swal.fire({ title: 'Success!', text: response.data.message, icon: 'success', confirmButtonColor: '#800000', timer: 3000, showConfirmButton: false });
+    } catch (error: any) {
+      Swal.fire({ title: 'Update Failed', text: error.response?.data?.message || 'Failed to update bank details.', icon: 'error', confirmButtonColor: '#800000' });
     } finally {
       setIsSubmitting(false);
     }
@@ -204,6 +234,15 @@ const ProfilePage: React.FC = () => {
           <Gift className="w-5 h-5" />
           <span>Found & Returned History</span>
         </button>
+        <button
+          onClick={() => setActiveTab('bank')}
+          className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
+            activeTab === 'bank' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+          }`}
+        >
+          <Award className="w-5 h-5" />
+          <span>Bank Details (Payouts)</span>
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -235,6 +274,76 @@ const ProfilePage: React.FC = () => {
                 className="flex items-center justify-center space-x-2 bg-[#800000] hover:bg-[#600000] text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg w-full sm:w-auto"
               >
                 {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Saving...</span></> : <><Check className="w-5 h-5" /><span>Save Changes</span></>}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* BANK DETAILS TAB */}
+        {activeTab === 'bank' && (
+          <form onSubmit={handleBankSubmit} className="space-y-6 max-w-xl mx-auto">
+            <div>
+              <p className="text-gray-500 font-medium mb-6 text-sm">
+                If you successfully return a lost item, the owner has the option to send you a monetary reward. Add your bank account details here so that we can directly transfer any rewards you receive!
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="block text-sm font-bold text-gray-700">Bank Name</label>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="e.g. Commercial Bank"
+                  className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-bold text-gray-700">Branch</label>
+                <input
+                  type="text"
+                  value={branchName}
+                  onChange={(e) => setBranchName(e.target.value)}
+                  placeholder="e.g. Nugegoda"
+                  className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-bold text-gray-700">Account Name</label>
+              <input
+                type="text"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                placeholder="e.g. J. Doe"
+                className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-bold text-gray-700">Account Number</label>
+              <input
+                type="text"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                placeholder="e.g. 1029384756"
+                className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-gray-100">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center justify-center space-x-2 bg-[#800000] hover:bg-[#600000] text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg w-full sm:w-auto"
+              >
+                {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Saving...</span></> : <><Check className="w-5 h-5" /><span>Save Bank Details</span></>}
               </button>
             </div>
           </form>
@@ -341,14 +450,21 @@ const ProfilePage: React.FC = () => {
                         </td>
                         <td className="py-4 text-right">
                           {record.tip && (record.tip.paymentStatus === 'paid' || record.tip.paymentStatus === 'completed') ? (
-                            <div className="inline-flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-xl font-bold">
-                              <Award className="w-4 h-4" />
-                              <span>Reward Received ✓ (Rs. {record.tip.amount})</span>
-                            </div>
+                            record.tip.payoutStatus === 'completed' ? (
+                              <div className="inline-flex items-center space-x-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs">
+                                <Check className="w-4 h-4" />
+                                <span>Paid to Bank ✓ (Rs. {record.tip.amount})</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-amber-100 transition-colors" onClick={() => setActiveTab('bank')}>
+                                <Award className="w-4 h-4 animate-pulse" />
+                                <span>Payout Pending (Add Bank)</span>
+                              </div>
+                            )
                           ) : record.tip && record.tip.paymentStatus === 'skipped' ? (
-                            <span className="text-gray-400 font-bold italic">No Tip</span>
+                            <span className="text-gray-400 font-bold italic text-xs">No Tip</span>
                           ) : (
-                            <span className="text-amber-500 font-bold">Tip Pending</span>
+                            <span className="text-gray-400 font-bold text-xs">Tip Pending</span>
                           )}
                         </td>
                       </tr>
