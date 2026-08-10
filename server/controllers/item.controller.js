@@ -193,8 +193,8 @@ const getAllItems = async (req, res) => {
     if (district) filter.district = district;
     if (city) filter.city = city;
 
-    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items
-    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' } })
+    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items and archived items
+    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' }, archiveStatus: { $ne: 'archived' } })
       .sort({ createdAt: -1 })
       .populate('createdBy', 'username'); // Helpful to display the reporter's username
       
@@ -510,10 +510,17 @@ const resolvePoliceItem = async (req, res) => {
  */
 const getArchivedItems = async (req, res) => {
   try {
-    const items = await Item.find({
-      createdBy: req.userId,
-      archiveStatus: 'archived',
-    }).sort({ createdAt: -1 });
+    const User = require('../models/User');
+    const user = await User.findById(req.userId);
+
+    const query = { archiveStatus: 'archived' };
+
+    // If not admin, only show items created by the user
+    if (!user || user.role !== 'admin') {
+      query.createdBy = req.userId;
+    }
+
+    const items = await Item.find(query).sort({ createdAt: -1 });
 
     res.json(items);
   } catch (error) {
