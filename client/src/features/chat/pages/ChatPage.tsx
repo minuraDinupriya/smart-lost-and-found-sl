@@ -6,7 +6,7 @@ import api from '../../../services/api';
 import { Send, FileText, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ItemLinkPreview from '../components/ItemLinkPreview';
-
+import HandoverBanner from '../components/HandoverBanner';
 interface Message {
   _id: string;
   senderId: string;
@@ -148,6 +148,11 @@ const ChatPage: React.FC = () => {
           <span className="hidden sm:block">Export Police PDF</span>
         </button>
       </div>
+
+      {/* Handover Verification Engine */}
+      {receiverId && itemId && (
+        <HandoverBanner itemId={itemId} otherUserId={receiverId} />
+      )}
 
       {/* Message Feed Canvas */}
       <div className="flex-grow p-6 overflow-y-auto bg-[#F9FAFB]/60 space-y-4">
