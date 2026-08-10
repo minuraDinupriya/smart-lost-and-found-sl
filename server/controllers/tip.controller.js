@@ -6,6 +6,55 @@ const { emitGlobalNotification } = require('../services/socket.service');
 const User = require('../models/User');
 
 /**
+ * Helper to verify all tip eligibility conditions on the backend.
+ */
+const checkTipEligibility = async (returnRecord, userId) => {
+  if (!returnRecord) {
+    return { eligible: false, reason: 'Return record not found.' };
+  }
+  
+  if (!returnRecord.itemId) {
+    return { eligible: false, reason: 'Associated item not found.' };
+  }
+
+  // 1. Logged in user must be the rightful owner
+  if (returnRecord.ownerId.toString() !== userId.toString()) {
+    return { eligible: false, reason: 'Only the rightful owner can give a tip.' };
+  }
+
+  // 2. Finder must be a valid user and not the owner itself
+  if (returnRecord.ownerId.toString() === returnRecord.finderId.toString()) {
+    return { eligible: false, reason: 'You cannot give a tip to yourself.' };
+  }
+
+  const finder = await User.findById(returnRecord.finderId);
+  if (!finder) {
+    return { eligible: false, reason: 'The finder user does not exist.' };
+  }
+
+  // 3. Handover status must be successfully completed
+  if (returnRecord.status !== 'Returned' && returnRecord.status !== 'Completed') {
+    return { eligible: false, reason: 'Handover status is not completed.' };
+  }
+
+  // 4. Item status must be successfully claimed/returned
+  if (returnRecord.itemId.status !== 'Claimed') {
+    return { eligible: false, reason: 'The item has not been marked as Claimed/Returned.' };
+  }
+
+  // 5. No completed tip already exists
+  const existingTip = await Tip.findOne({ 
+    returnRecordId: returnRecord._id, 
+    paymentStatus: { $in: ['paid', 'completed'] } 
+  });
+  if (existingTip) {
+    return { eligible: false, reason: 'A tip has already been paid for this return.' };
+  }
+
+  return { eligible: true, reason: '' };
+};
+
+/**
  * Creates a new Tip record (or updates an existing pending one) and initiates payment.
  */
 const createTip = async (req, res) => {
@@ -26,18 +75,14 @@ const createTip = async (req, res) => {
       return res.status(404).json({ message: 'Return record not found.' });
     }
 
-    // 3. Security: Only the verified owner can create a tip
-    if (returnRecord.ownerId.toString() !== req.userId) {
-      return res.status(403).json({ message: 'Only the verified owner can create a tip for this item.' });
+    // 3. Security eligibility check on the backend
+    const eligibility = await checkTipEligibility(returnRecord, req.userId);
+    if (!eligibility.eligible) {
+      return res.status(400).json({ message: eligibility.reason });
     }
 
-    // 4. Duplicate checks: Only one PAID tip allowed per completed return
+    // 4. If no tip exists, create one. If a pending one exists, update it.
     let tip = await Tip.findOne({ returnRecordId });
-    if (tip && tip.paymentStatus === 'paid') {
-      return res.status(400).json({ message: 'A tip has already been paid for this return record.' });
-    }
-
-    // 5. If no tip exists, create one. If a pending one exists, update it.
     if (!tip) {
       tip = new Tip({
         returnRecordId,
@@ -51,11 +96,12 @@ const createTip = async (req, res) => {
       tip.amount = parseFloat(amount);
       tip.thankYouMessage = thankYouMessage || '';
       tip.paymentStatus = 'pending';
+      tip.paymentReference = ''; // Reset reference for retry
     }
 
     await tip.save();
 
-    // 6. Initiate Payment Checkout Session
+    // 5. Initiate Payment Checkout Session
     const hostUrl = req.headers.origin || process.env.CLIENT_URL || 'http://localhost:5173';
     const paymentSession = await paymentService.createCheckoutSession(tip, hostUrl);
 
@@ -237,10 +283,60 @@ const getReturnRecordById = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to view this return record.' });
     }
 
-    res.status(200).json(returnRecord);
+    // Backend independently verifies all eligibility conditions
+    const eligibility = await checkTipEligibility(returnRecord, req.userId);
+
+    const recordObj = returnRecord.toObject();
+    recordObj.isEligible = eligibility.eligible;
+    recordObj.ineligibilityReason = eligibility.reason;
+
+    res.status(200).json(recordObj);
   } catch (error) {
     console.error('Get return record by ID error:', error);
     res.status(500).json({ message: 'Server error retrieving return record.' });
+  }
+};
+
+/**
+ * Logs a skipped tip status in the database.
+ */
+const skipTip = async (req, res) => {
+  try {
+    const { returnRecordId } = req.body;
+    if (!returnRecordId) {
+      return res.status(400).json({ message: 'Return record ID is required.' });
+    }
+
+    const returnRecord = await ReturnRecord.findById(returnRecordId).populate('itemId');
+    if (!returnRecord) {
+      return res.status(404).json({ message: 'Return record not found.' });
+    }
+
+    // Verify eligibility before saving skipped status
+    const eligibility = await checkTipEligibility(returnRecord, req.userId);
+    if (!eligibility.eligible) {
+      return res.status(400).json({ message: eligibility.reason });
+    }
+
+    let tip = await Tip.findOne({ returnRecordId });
+    if (!tip) {
+      tip = new Tip({
+        returnRecordId,
+        ownerId: returnRecord.ownerId,
+        finderId: returnRecord.finderId,
+        amount: 0,
+        paymentStatus: 'skipped',
+      });
+    } else {
+      tip.paymentStatus = 'skipped';
+      tip.amount = 0;
+    }
+
+    await tip.save();
+    res.status(200).json({ message: 'Tip successfully marked as skipped.', tip });
+  } catch (error) {
+    console.error('Skip tip error:', error);
+    res.status(500).json({ message: 'Server error while skipping tip.' });
   }
 };
 
@@ -250,4 +346,5 @@ module.exports = {
   getUserTips,
   updateTipPaymentStatus,
   getReturnRecordById,
+  skipTip,
 };
