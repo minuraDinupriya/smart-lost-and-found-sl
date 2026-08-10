@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
@@ -167,7 +167,7 @@ const Navbar: React.FC = () => {
                           <p className="text-xs text-gray-500 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
                         )}
                       </div>
-                      <div className="p-1">
+                      <div className="p-1 space-y-0.5">
                         {user.role !== 'police' && (
                           <Link 
                             to="/tips/history" 
@@ -183,6 +183,13 @@ const Navbar: React.FC = () => {
                         >
                           <UserIcon className="w-4 h-4 mr-2 text-gray-500" />
                           Profile
+                        </Link>
+                        <Link
+                          to="/archived"
+                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                        >
+                          <Archive className="w-4 h-4 mr-2 text-gray-500" />
+                          {t('nav.archivedItems')}
                         </Link>
                         <button 
                           onClick={logout}
@@ -279,6 +286,10 @@ const Navbar: React.FC = () => {
             <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-slate-50 text-slate-700 rounded-xl border border-slate-200">
               <UserIcon className="w-6 h-6 mb-1 text-slate-500" />
               <span className="text-sm font-semibold">Profile</span>
+            </Link>
+            <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-red-50/50 text-[#800000] rounded-xl border border-red-100">
+              <Archive className="w-6 h-6 mb-1" />
+              <span className="text-sm font-semibold">{t('nav.archivedItems')}</span>
             </Link>
             {user.role !== 'police' && (
               <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20">
