@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../../../services/api';
+import api from '../../../services/api';
 import Swal from 'sweetalert2';
-import { ShieldCheck, CheckCircle2, Gift, Loader2, Handshake, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Gift, Loader2, ThumbsUp, AlertTriangle } from 'lucide-react';
 
 interface HandoverBannerProps {
   itemId: string;
@@ -102,7 +102,7 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
             {status === 'RETURN_COMPLETED' ? (
               <CheckCircle2 className="w-6 h-6 text-emerald-500" />
             ) : status === 'OWNER_FINDER_VERIFIED' ? (
-              <Handshake className="w-6 h-6 text-blue-500" />
+              <ThumbsUp className="w-6 h-6 text-blue-500" />
             ) : (
               <ShieldCheck className="w-6 h-6 text-gray-400" />
             )}
@@ -132,7 +132,7 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
                   disabled={actionLoading}
                   className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex justify-center items-center gap-2 transition-all active:scale-95"
                 >
-                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Handshake className="w-4 h-4" />}
+                  {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ThumbsUp className="w-4 h-4" />}
                   I Found This Item
                 </button>
               )}
