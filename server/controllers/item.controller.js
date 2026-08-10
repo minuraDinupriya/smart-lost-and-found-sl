@@ -7,6 +7,7 @@ const cloudinary = require('cloudinary').v2;
 const { generateImageHash, calculateHammingDistance } = require('../utils/imageHash');
 const { calculateTextSimilarity } = require('../utils/textMatch');
 const { identifyItemFromImage } = require('../services/itemIdentification.service');
+const { analyzeVoiceReport } = require('../services/voiceReporting.service');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -564,6 +565,36 @@ const identifyItem = async (req, res) => {
   }
 };
 
+const analyzeVoiceReportController = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No audio file uploaded.' });
+    }
+
+    const result = await analyzeVoiceReport(
+      req.file.path,
+      req.file.mimetype
+    );
+
+    // Clean up temporary upload file
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (cleanupErr) {
+      console.error('Failed to cleanup temp voice file:', cleanupErr);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Voice analyze controller error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process voice report. ' + error.message
+    });
+  }
+};
+
 module.exports = {
   createItem,
   getAllItems,
@@ -578,4 +609,5 @@ module.exports = {
   resolvePoliceItem,
   getArchivedItems,
   identifyItem,
+  analyzeVoiceReport: analyzeVoiceReportController
 };

@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import AIItemIdentifier from '../components/AIItemIdentifier';
+import VoiceReporter from '../components/VoiceReporter';
 import { ShieldCheck, Navigation } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
@@ -197,6 +198,42 @@ const PostItemPage: React.FC = () => {
     });
   };
 
+  const handleApplyVoiceResults = (details: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      type: details.type || prev.type,
+      title: details.itemName || prev.title,
+      category: details.category || prev.category,
+      description: details.description || prev.description,
+      color: details.color || prev.color,
+      brand: details.brand || prev.brand,
+      model: details.model || prev.model,
+    }));
+    
+    if (details.location) {
+      setExternalLocation((prev) => ({
+        province: prev?.province || '',
+        district: prev?.district || '',
+        city: details.location
+      }));
+      setLocation((prev) => ({
+        province: prev?.province || '',
+        district: prev?.district || '',
+        city: details.location
+      }));
+    }
+
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: 'Voice Details Applied!',
+      text: 'Form fields have been populated.',
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!location.province || !location.district || !location.city) {
@@ -261,6 +298,9 @@ const PostItemPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Voice Reporting Section */}
+        <VoiceReporter onApplyResults={handleApplyVoiceResults} />
+
         {/* Smart Item Identification Section */}
         <AIItemIdentifier
           imageFile={imageFile}
