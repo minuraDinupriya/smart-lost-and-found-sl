@@ -30,6 +30,17 @@ const createItem = async (req, res) => {
       aiIdentificationParsed = itemData.aiIdentification;
     }
 
+    let ownershipProofsParsed = [];
+    if (itemData.ownershipProofs && typeof itemData.ownershipProofs === 'string') {
+      try {
+        ownershipProofsParsed = JSON.parse(itemData.ownershipProofs);
+      } catch (e) {
+        ownershipProofsParsed = [];
+      }
+    } else if (itemData.ownershipProofs && Array.isArray(itemData.ownershipProofs)) {
+      ownershipProofsParsed = itemData.ownershipProofs;
+    }
+
     let titleSi, titleTa, descriptionSi, descriptionTa;
     try {
        if (itemData.title) {
@@ -47,6 +58,7 @@ const createItem = async (req, res) => {
     // Instantiate new Item, enforcing the createdBy user mapping from auth middleware
     const newItem = new Item({
       ...itemData,
+      ownershipProofs: ownershipProofsParsed,
       aiIdentified: itemData.aiIdentified === 'true' || itemData.aiIdentified === true,
       aiIdentification: aiIdentificationParsed || undefined,
       titleSi,
@@ -201,6 +213,11 @@ const getAllItems = async (req, res) => {
     // Apply Fuzzy Geolocation to FOUND items to prevent scammers from knowing exact spots
     const obfuscatedItems = items.map(item => {
       const doc = item.toObject();
+      
+      // Remove private ownership and verification history details from public feed
+      delete doc.ownershipProofs;
+      delete doc.verificationHistory;
+
       if (doc.type === 'FOUND' && doc.latitude && doc.longitude) {
         // Obfuscate coordinates with a ~1km random offset (+/- ~0.009 degrees)
         doc.latitude += (Math.random() - 0.5) * 0.018;
@@ -289,6 +306,46 @@ const getItemById = async (req, res) => {
       .populate('ownerId', 'username')
       .populate('finderId', 'username');
 
+    // Security check to filter private ownership details and verification history
+    const jwt = require('jsonwebtoken');
+    const User = require('../models/User');
+    const Message = require('../models/Message');
+
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    let isCreator = false;
+    let hasHistoryAccess = false;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
+        const decoded = jwt.verify(token, secret);
+        const currentUserId = decoded.userId || decoded.id;
+
+        if (item.createdBy && item.createdBy._id.toString() === currentUserId.toString()) {
+          isCreator = true;
+          hasHistoryAccess = true;
+        } else {
+          // Check if user has role 'police'
+          const currentUser = await User.findById(currentUserId);
+          if (currentUser && currentUser.role === 'police') {
+            hasHistoryAccess = true;
+          } else {
+            // Check if user is participant in chat room for this item
+            const isChatParticipant = await Message.exists({
+              itemId: item._id,
+              $or: [{ senderId: currentUserId }, { receiverId: currentUserId }]
+            });
+            if (isChatParticipant) {
+              hasHistoryAccess = true;
+            }
+          }
+        }
+      } catch (err) {
+        // Ignore token errors and treat as public user
+      }
+    }
+
     const itemObj = item.toObject();
     itemObj.returnRecord = returnRecord;
 
@@ -298,6 +355,23 @@ const getItemById = async (req, res) => {
       itemObj.tipPaid = !!tip;
     } else {
       itemObj.tipPaid = false;
+    }
+
+    // Strict Privacy enforcement: Strip actual proofValue for anyone except the creator
+    if (!isCreator) {
+      if (itemObj.ownershipProofs) {
+        itemObj.ownershipProofs = itemObj.ownershipProofs.map(p => ({
+          _id: p._id,
+          proofType: p.proofType,
+          customLabel: p.customLabel,
+          createdAt: p.createdAt
+        }));
+      }
+    }
+
+    // Limit history visibility to creator, police, and chat participants
+    if (!hasHistoryAccess) {
+      delete itemObj.verificationHistory;
     }
 
     res.status(200).json(itemObj);
@@ -321,6 +395,21 @@ const updateItem = async (req, res) => {
 
     // Update fields
     const updateData = req.body;
+
+    let ownershipProofsParsed = [];
+    if (updateData.ownershipProofs && typeof updateData.ownershipProofs === 'string') {
+      try {
+        ownershipProofsParsed = JSON.parse(updateData.ownershipProofs);
+      } catch (e) {
+        ownershipProofsParsed = [];
+      }
+    } else if (updateData.ownershipProofs && Array.isArray(updateData.ownershipProofs)) {
+      ownershipProofsParsed = updateData.ownershipProofs;
+    }
+
+    if (updateData.ownershipProofs) {
+      updateData.ownershipProofs = ownershipProofsParsed;
+    }
     
     if (req.file) {
       // Upload to Cloudinary
@@ -561,6 +650,158 @@ const identifyItem = async (req, res) => {
   }
 };
 
+const verifyOwnership = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { submittedProofs } = req.body;
+    
+    if (!submittedProofs || !Array.isArray(submittedProofs)) {
+      return res.status(400).json({ message: 'Submitted proofs array is required.' });
+    }
+
+    const item = await Item.findById(itemId);
+    if (!item) return res.status(404).json({ message: 'Item not found.' });
+
+    const storedProofs = item.ownershipProofs || [];
+
+    if (storedProofs.length === 0) {
+      return res.status(400).json({ message: 'This item does not have any registered ownership proofs to verify against.' });
+    }
+
+    const stringSimilarity = require('string-similarity');
+
+    const compareValues = (val1, val2) => {
+      if (!val1 || !val2) return 0;
+
+      const norm1 = val1.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+      const norm2 = val2.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+
+      // Exact match after normalization
+      if (norm1 === norm2 && norm1.length > 0) {
+        return 1.0;
+      }
+
+      // Substring match for description/custom details
+      if (norm1.length >= 6 && norm2.length >= 6) {
+        if (norm1.includes(norm2) || norm2.includes(norm1)) {
+          return 0.9;
+        }
+      }
+
+      // String similarity using Dice's coefficient
+      const sim = stringSimilarity.compareTwoStrings(val1.toLowerCase().trim(), val2.toLowerCase().trim());
+      return sim;
+    };
+
+    let verifiedCount = 0;
+    const details = [];
+
+    for (const stored of storedProofs) {
+      let matched = false;
+      let bestScore = 0;
+      
+      for (const submitted of submittedProofs) {
+        // Match by proofType, or by customLabel if custom
+        const typeMatches = 
+          stored.proofType?.toLowerCase() === submitted.proofType?.toLowerCase() ||
+          (stored.proofType === 'custom' && stored.customLabel?.toLowerCase() === submitted.customLabel?.toLowerCase());
+
+        if (typeMatches) {
+          const score = compareValues(stored.proofValue, submitted.proofValue);
+          if (score > bestScore) {
+            bestScore = score;
+          }
+        }
+      }
+
+      // If the match confidence is high (e.g. >= 0.8), we count it as verified
+      if (bestScore >= 0.8) {
+        verifiedCount++;
+        matched = true;
+      }
+
+      details.push({
+        _id: stored._id,
+        proofType: stored.proofType,
+        customLabel: stored.customLabel,
+        matched,
+        score: bestScore
+      });
+    }
+
+    const scorePercentage = Math.round((verifiedCount / storedProofs.length) * 100);
+    
+    let overallStatus = 'NOT_VERIFIED';
+    if (scorePercentage === 100) {
+      overallStatus = 'VERIFIED';
+    } else if (scorePercentage >= 50) {
+      overallStatus = 'PARTIALLY_VERIFIED';
+    }
+
+    // Add to verificationHistory
+    const verificationRecord = {
+      verifierId: req.userId,
+      verifyingType: 'CLAIM_VERIFICATION',
+      overallStatus,
+      scorePercentage,
+      verifiedCount,
+      totalProofs: storedProofs.length,
+      timestamp: new Date()
+    };
+
+    item.verificationHistory.push(verificationRecord);
+
+    // If verification was successful (VERIFIED or PARTIALLY_VERIFIED), and the item status is 'Available',
+    // update status to 'Pending Verification'.
+    if (overallStatus !== 'NOT_VERIFIED' && item.status === 'Available') {
+      item.status = 'Pending Verification';
+    }
+
+    await item.save();
+
+    // Automatically drop a system message in the secure chat room
+    try {
+      const User = require('../models/User');
+      const verifierUser = await User.findById(req.userId);
+      const verifierName = verifierUser ? verifierUser.username : 'A claimant';
+      
+      let systemAlertMessage = `🤖 DIGITAL OWNERSHIP VERIFICATION RESULT:\nUser @${verifierName} has completed verification.\nMatch Result: ${overallStatus} (${scorePercentage}% score)\nVerified fields: ${verifiedCount} of ${storedProofs.length}.`;
+      
+      // Let's find if a chat partner exists to send message to
+      const Message = require('../models/Message');
+      const { emitGlobalNotification } = require('../services/socket.service');
+      
+      const senderId = req.userId;
+      const receiverId = item.createdBy.toString();
+
+      if (senderId !== receiverId) {
+        const systemMsg = await Message.create({
+          itemId: item._id,
+          senderId,
+          receiverId,
+          text: systemAlertMessage
+        });
+        emitGlobalNotification(receiverId, systemMsg);
+        emitGlobalNotification(senderId, systemMsg);
+      }
+    } catch (msgErr) {
+      console.error('Failed to send verification system message:', msgErr);
+    }
+
+    res.status(200).json({
+      success: true,
+      overallStatus,
+      scorePercentage,
+      verifiedCount,
+      totalProofs: storedProofs.length,
+      details
+    });
+  } catch (error) {
+    console.error('Verify ownership error:', error);
+    res.status(500).json({ message: 'Server error during ownership verification.', error: error.message });
+  }
+};
+
 module.exports = {
   createItem,
   getAllItems,
@@ -575,4 +816,5 @@ module.exports = {
   resolvePoliceItem,
   getArchivedItems,
   identifyItem,
+  verifyOwnership,
 };
