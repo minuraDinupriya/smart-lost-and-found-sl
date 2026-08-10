@@ -53,7 +53,8 @@ const Navbar: React.FC = () => {
   }, [socket]);
 
   return (
-    <nav className="backdrop-blur-md bg-white/90 border-b border-slate-100 sticky top-0 z-50">
+    <>
+      <nav className="backdrop-blur-md bg-white/90 border-b border-slate-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
@@ -198,7 +199,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* Side Drawer Overlay */}
       {user && isMobileMenuOpen && (
@@ -320,7 +321,7 @@ const Navbar: React.FC = () => {
           </>
         )}
       </div>
-    </nav>
+    </>
   );
 };
 
