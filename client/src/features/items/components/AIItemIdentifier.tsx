@@ -99,14 +99,16 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
         },
       });
 
-      if (response.data && response.data.identification) {
+      if (response.data && response.data.success && response.data.identification) {
         setResults(response.data.identification);
         setIsEditing(false);
       } else {
-        setError('Could not identify item details from the image. You can still enter details manually.');
+        setResults(null);
+        setError(response.data?.message || 'Could not identify item details from the image. You can still enter details manually.');
       }
     } catch (err: any) {
       console.error('AI Identification error:', err);
+      setResults(null);
       setError(err.response?.data?.message || 'AI service unavailable. You can continue manual reporting.');
     } finally {
       setIsAnalyzing(false);

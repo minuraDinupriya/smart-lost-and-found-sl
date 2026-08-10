@@ -547,6 +547,10 @@ const identifyItem = async (req, res) => {
       console.error('Failed to cleanup temp upload file:', cleanupErr);
     }
 
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
     return res.status(200).json(result);
   } catch (error) {
     console.error('Identify item controller error:', error);
