@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const path = require('path');
-
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, '../.env') });
+const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const User = require('../models/User');
 const Item = require('../models/Item');
@@ -11,49 +7,70 @@ const ReturnRecord = require('../models/ReturnRecord');
 const Tip = require('../models/Tip');
 const Notification = require('../models/Notification');
 
-async function testTipFlow() {
-  try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb+srv://admin:Uf7H0jJ0QGkE8K6p@cluster0.sfy6b3v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-    await mongoose.connect(mongoUri);
-    console.log('MongoDB Connected for Testing...');
+// Import controllers
+const tipController = require('../controllers/tip.controller');
 
-    // 1. Clean up any previous test records
-    await User.deleteMany({ username: { $in: ['test_owner', 'test_finder'] } });
-    
-    // 2. Create test users
+// Helper to mock req/res
+const mockResponse = () => {
+  const res = {};
+  res.status = (code) => {
+    res.statusCode = code;
+    return res;
+  };
+  res.json = (data) => {
+    res.body = data;
+    return res;
+  };
+  return res;
+};
+
+async function runTests() {
+  let mongoServer;
+  try {
+    console.log('======================================================');
+    console.log('🚀 INITIATING TIP SYSTEM AUTOMATED TEST SUITE');
+    console.log('======================================================\n');
+
+    process.stdout.write('➡️  Starting In-Memory MongoDB... ');
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
+    await mongoose.connect(mongoUri);
+    console.log('✅ [PASS]');
+
+    // Setup Test Data
+    process.stdout.write('➡️  Seeding Test Data... ');
     const owner = await User.create({
       username: 'test_owner',
-      karmaPoints: 10,
+      email: 'owner@test.com',
+      password: 'password123',
       role: 'user'
     });
 
     const finder = await User.create({
       username: 'test_finder',
-      karmaPoints: 10,
+      email: 'finder@test.com',
+      password: 'password123',
       role: 'user'
     });
 
-    console.log(`Created test users: Owner (${owner.username}), Finder (${finder.username})`);
-
-    // 3. Create test Item
-    const item = await Item.create({
-      title: 'Test Lost Laptop',
-      description: 'Black Dell XPS laptop lost near library',
-      type: 'LOST',
-      category: 'Electronics',
-      date: new Date(),
-      province: 'Western',
-      district: 'Colombo',
-      city: 'Colombo',
-      contactNumber: '0711111111',
-      status: 'Available',
-      createdBy: owner._id
+    const otherUser = await User.create({
+      username: 'test_other',
+      email: 'other@test.com',
+      password: 'password123',
+      role: 'user'
     });
-    console.log(`Created test Item: "${item.title}" (Status: ${item.status})`);
 
-    // 4. Update item status to Claimed and create ReturnRecord
-    item.status = 'Claimed';
-    await item.save();
+    const item = await Item.create({
+      title: 'Lost Wallet',
+      description: 'A black leather wallet.',
+      type: 'LOST',
+      category: 'Wallets',
+      status: 'Claimed',
+      createdBy: owner._id,
+      date: new Date(),
+      province: 'Western', district: 'Colombo', city: 'Colombo',
+      contactNumber: '0771234567'
+    });
 
     const returnRecord = await ReturnRecord.create({
       itemId: item._id,
@@ -61,94 +78,163 @@ async function testTipFlow() {
       finderId: finder._id,
       status: 'Returned'
     });
-    console.log(`Created ReturnRecord for item: owner=${owner.username}, finder=${finder.username}`);
+    console.log('✅ [PASS]');
 
-    // 5. Test Tip Validation - Amount must be > 0
-    try {
-      const invalidTip = new Tip({
-        returnRecordId: returnRecord._id,
-        ownerId: owner._id,
-        finderId: finder._id,
-        amount: -50,
-      });
-      await invalidTip.validate();
-      console.error('❌ Validation check failed: Negative tip amount was allowed.');
-    } catch (valErr) {
-      console.log('✅ Validation check passed: Negative tip amount was correctly rejected.');
-    }
+    // Start Tests
+    console.log('\n--- Running Business Logic & Security Tests ---\n');
 
-    // 6. Test Tip creation (pending state)
-    const tip = await Tip.create({
-      returnRecordId: returnRecord._id,
-      ownerId: owner._id,
-      finderId: finder._id,
-      amount: 500,
-      thankYouMessage: 'Thanks a lot for finding my laptop!',
-      paymentStatus: 'pending',
-      paymentReference: 'mock_ref_test_123'
+    const runController = async (controllerFn, req) => {
+      const res = mockResponse();
+      await controllerFn(req, res);
+      return res;
+    };
+
+    // Test 1: Unverified user cannot tip
+    process.stdout.write('Test 1: Unverified user cannot tip (Unauthorized)... ');
+    let res = await runController(tipController.createTip, {
+      body: { returnRecordId: returnRecord._id, amount: 250 },
+      userId: otherUser._id.toString()
     });
-    console.log(`Created Tip record: amount=Rs. ${tip.amount}, status=${tip.paymentStatus}`);
-
-    // 7. Test unique index (One tip per return record)
-    try {
-      await Tip.create({
-        returnRecordId: returnRecord._id,
-        ownerId: owner._id,
-        finderId: finder._id,
-        amount: 1000,
-        paymentStatus: 'pending',
-        paymentReference: 'mock_ref_test_456'
-      });
-      console.error('❌ Validation check failed: Duplicate tip allowed for same return record.');
-    } catch (dupErr) {
-      console.log('✅ Validation check passed: Duplicate tip for same return record was correctly blocked.');
+    if (res.statusCode === 400 && res.body.message.includes('Only the rightful owner')) {
+      console.log('✅ [PASS]');
+    } else {
+      throw new Error(`Expected 400 with owner restriction, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
     }
 
-    // 8. Test payment verification updates
-    const verificationRef = 'mock_ref_test_123';
-    const foundTip = await Tip.findOne({ paymentReference: verificationRef });
-    if (foundTip) {
-      foundTip.paymentStatus = 'paid';
-      await foundTip.save();
-      console.log(`Verified payment reference: status updated to paid.`);
-
-      // Create test notifications
-      await Notification.create({
-        userId: finder._id,
-        message: `You received Rs. ${foundTip.amount} tip from @${owner.username}`,
-        type: 'TIP_RECEIVED'
-      });
-      
-      await Notification.create({
-        userId: owner._id,
-        message: `Your tip of Rs. ${foundTip.amount} was sent to @${finder.username}`,
-        type: 'TIP_SENT'
-      });
-      console.log('Created notifications for owner and finder.');
+    // Test 2: Finder cannot tip themselves
+    process.stdout.write('Test 2: Finder cannot tip themselves... ');
+    const selfItem = await Item.create({
+      title: 'Glasses', description: 'Test description', type: 'LOST', category: 'Wallets', status: 'Claimed',
+      createdBy: finder._id, date: new Date(), province: 'Western', district: 'Colombo', city: 'Colombo',
+      contactNumber: '0771234567'
+    });
+    const selfReturnRecord = await ReturnRecord.create({
+      itemId: selfItem._id, ownerId: finder._id, finderId: finder._id, status: 'Returned'
+    });
+    res = await runController(tipController.createTip, {
+      body: { returnRecordId: selfReturnRecord._id, amount: 250 },
+      userId: finder._id.toString()
+    });
+    if (res.statusCode === 400 && res.body.message.includes('cannot give a tip to yourself')) {
+      console.log('✅ [PASS]');
+    } else {
+      throw new Error(`Expected failure for tipping self, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
     }
 
-    // 9. Verify notifications exist
-    const finderNotifs = await Notification.find({ userId: finder._id });
-    console.log(`Finder notifications count: ${finderNotifs.length} (${finderNotifs[0]?.message})`);
+    // Test 3: Owner cannot tip before handover is completed/claimed
+    process.stdout.write('Test 3: Owner cannot tip before handover... ');
+    const pendingItem = await Item.create({
+      title: 'Keys', description: 'Test description', type: 'LOST', category: 'Wallets', status: 'Pending Verification',
+      createdBy: owner._id, date: new Date(), province: 'Western', district: 'Colombo', city: 'Colombo',
+      contactNumber: '0771234567'
+    });
+    const pendingReturn = await ReturnRecord.create({
+      itemId: pendingItem._id, ownerId: owner._id, finderId: finder._id, status: 'Returned'
+    });
+    res = await runController(tipController.createTip, {
+      body: { returnRecordId: pendingReturn._id, amount: 250 },
+      userId: owner._id.toString()
+    });
+    if (res.statusCode === 400 && res.body.message.includes('not been marked as Claimed')) {
+      console.log('✅ [PASS]');
+    } else {
+      throw new Error(`Expected failure for pending handover, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
+    }
 
-    const ownerNotifs = await Notification.find({ userId: owner._id });
-    console.log(`Owner notifications count: ${ownerNotifs.length} (${ownerNotifs[0]?.message})`);
+    // Test 4: Negative or zero amount is rejected
+    process.stdout.write('Test 4: Negative/Zero amount is rejected... ');
+    res = await runController(tipController.createTip, {
+      body: { returnRecordId: returnRecord._id, amount: 0 },
+      userId: owner._id.toString()
+    });
+    if (res.statusCode === 400 && res.body.message.includes('Amount must be greater than zero')) {
+      console.log('✅ [PASS]');
+    } else {
+      throw new Error(`Expected failure for zero amount, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
+    }
 
-    // Clean up
-    await User.findByIdAndDelete(owner._id);
-    await User.findByIdAndDelete(finder._id);
-    await Item.findByIdAndDelete(item._id);
-    await ReturnRecord.findByIdAndDelete(returnRecord._id);
-    await Tip.findByIdAndDelete(tip._id);
-    await Notification.deleteMany({ userId: { $in: [owner._id, finder._id] } });
-    console.log('Cleaned up test data.');
+    // Test 5: Verified owner can give tip after successful handover (Success Flow)
+    process.stdout.write('Test 5: Verified owner successfully initiates tip... ');
+    res = await runController(tipController.createTip, {
+      body: { returnRecordId: returnRecord._id, amount: 500, thankYouMessage: 'Thanks!' },
+      userId: owner._id.toString(),
+      headers: { origin: 'http://localhost:5173' }
+    });
+    if (res.statusCode === 200 && res.body.checkoutUrl) {
+      console.log('✅ [PASS]');
+    } else {
+      throw new Error(`Expected success, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
+    }
     
-    console.log('🎉 ALL DB AND MODEL WORKFLOW TESTS PASSED SUCCESSFULLY! 🎉');
-    mongoose.connection.close();
-  } catch (err) {
-    console.error('❌ Test execution encountered an error:', err);
-    mongoose.connection.close();
+    // Simulate successful payment completion
+    const tip = res.body.tip;
+    
+    // Test 6: Payment completion marks tip as paid and notifies finder
+    process.stdout.write('Test 6: Successful payment flow... ');
+    res = await runController(tipController.updateTipPaymentStatus, {
+      body: { paymentReference: tip.paymentReference },
+      userId: 'system' // System call
+    });
+    if (res.statusCode === 200 && res.body.tip.paymentStatus === 'paid') {
+      const finderNotif = await Notification.findOne({ userId: finder._id, type: 'TIP_RECEIVED' });
+      if (finderNotif) {
+        console.log('✅ [PASS] - Notified Finder');
+      } else {
+        throw new Error('Finder was not notified!');
+      }
+    } else {
+      throw new Error(`Expected payment verification success, got ${res.statusCode}`);
+    }
+
+    // Test 7: Duplicate tip is rejected
+    process.stdout.write('Test 7: Duplicate tip is rejected... ');
+    res = await runController(tipController.createTip, {
+      body: { returnRecordId: returnRecord._id, amount: 250 },
+      userId: owner._id.toString()
+    });
+    if (res.statusCode === 400 && res.body.message.includes('has already been paid')) {
+      console.log('✅ [PASS]');
+    } else {
+      throw new Error(`Expected failure for duplicate tip, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
+    }
+
+    // Test 8: Skip Tip creates a skipped record with 0 amount
+    process.stdout.write('Test 8: Skipping tip creates skipped status... ');
+    const skipItem = await Item.create({
+      title: 'Bag', description: 'Test description', type: 'LOST', category: 'Wallets', status: 'Claimed',
+      createdBy: owner._id, date: new Date(), province: 'Western', district: 'Colombo', city: 'Colombo',
+      contactNumber: '0771234567'
+    });
+    const skipReturn = await ReturnRecord.create({
+      itemId: skipItem._id, ownerId: owner._id, finderId: finder._id, status: 'Completed'
+    });
+    res = await runController(tipController.skipTip, {
+      body: { returnRecordId: skipReturn._id },
+      userId: owner._id.toString()
+    });
+    if (res.statusCode === 200 && res.body.tip.paymentStatus === 'skipped') {
+      console.log('✅ [PASS]');
+    } else {
+      throw new Error(`Expected skipped status, got ${res.statusCode} - ${JSON.stringify(res.body)}`);
+    }
+
+    console.log('\n======================================================');
+    console.log('🛡️  ALL 8 COMPREHENSIVE TIP TESTS PASSED FLAWLESSLY!');
+    console.log('======================================================\n');
+
+    await mongoose.connection.close();
+    await mongoServer.stop();
+    process.exit(0);
+  } catch (error) {
+    console.log('❌ [FAIL]');
+    console.error('\n⚠️ TEST SUITE ENCOUNTERED A FATAL ERROR:');
+    console.error(error.message);
+    if (mongoServer) {
+      await mongoose.connection.close();
+      await mongoServer.stop();
+    }
+    process.exit(1);
   }
 }
 
-testTipFlow();
+runTests();
