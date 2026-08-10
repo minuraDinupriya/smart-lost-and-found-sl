@@ -14,6 +14,15 @@ interface Item {
   createdBy: { username: string };
   createdAt: string;
   policeStationName?: string;
+  verificationHistory?: {
+    verifierId?: string;
+    verifyingType?: string;
+    overallStatus: 'VERIFIED' | 'PARTIALLY_VERIFIED' | 'NOT_VERIFIED';
+    scorePercentage: number;
+    verifiedCount: number;
+    totalProofs: number;
+    timestamp: string;
+  }[];
 }
 
 const PoliceDashboardPage: React.FC = () => {
@@ -105,6 +114,7 @@ const PoliceDashboardPage: React.FC = () => {
                   <th className="p-4 font-semibold">Category</th>
                   <th className="p-4 font-semibold">Station Location</th>
                   <th className="p-4 font-semibold">Dropped Off By</th>
+                  <th className="p-4 font-semibold">Digital Verification</th>
                   <th className="p-4 font-semibold">Status</th>
                   <th className="p-4 font-semibold text-right">Actions</th>
                 </tr>
@@ -134,6 +144,33 @@ const PoliceDashboardPage: React.FC = () => {
                       <div className="text-sm text-gray-900 font-medium">
                         {item.createdBy.username}
                       </div>
+                    </td>
+                    <td className="p-4">
+                      {item.verificationHistory && item.verificationHistory.length > 0 ? (
+                        (() => {
+                          const latest = item.verificationHistory[item.verificationHistory.length - 1];
+                          let colorClass = 'text-gray-700 bg-gray-50 border-gray-200';
+                          if (latest.overallStatus === 'VERIFIED') {
+                            colorClass = 'text-emerald-700 bg-emerald-50 border-emerald-200';
+                          } else if (latest.overallStatus === 'PARTIALLY_VERIFIED') {
+                            colorClass = 'text-amber-700 bg-amber-50 border-amber-200';
+                          } else if (latest.overallStatus === 'NOT_VERIFIED') {
+                            colorClass = 'text-rose-700 bg-rose-50 border-rose-200';
+                          }
+                          return (
+                            <div className="flex flex-col">
+                              <span className={`inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full border ${colorClass} w-fit`}>
+                                {latest.overallStatus === 'VERIFIED' ? '✅ Verified' : latest.overallStatus === 'PARTIALLY_VERIFIED' ? '⚠️ Partial Match' : '❌ Failed'} ({latest.scorePercentage}%)
+                              </span>
+                              <span className="text-[10px] text-gray-400 mt-1">
+                                {latest.verifiedCount} of {latest.totalProofs} fields matched
+                              </span>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <span className="text-xs text-gray-400 font-medium">No Digital Claim</span>
+                      )}
                     </td>
                     <td className="p-4">
                       {item.status === 'Claimed' ? (
