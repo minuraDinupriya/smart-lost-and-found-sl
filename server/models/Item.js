@@ -27,6 +27,34 @@ const itemSchema = new mongoose.Schema(
       enum: ['Electronics', 'Documents', 'Keys', 'Bags', 'Wallets', 'Pets', 'Others'],
       required: [true, 'Category is required'],
     },
+    color: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    brand: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    model: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    aiIdentified: {
+      type: Boolean,
+      default: false,
+    },
+    aiIdentification: {
+      categoryConfidence: Number,
+      itemNameConfidence: Number,
+      colorConfidence: Number,
+      brandConfidence: Number,
+      modelConfidence: Number,
+      rawSuggestedDescription: String,
+      timestamp: Date,
+    },
     imageUrl: {
       type: String, // Will hold local Multer path first, then Cloudinary URL
       default: '',
