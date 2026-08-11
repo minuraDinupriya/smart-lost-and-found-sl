@@ -4,6 +4,7 @@ import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Wallet, ArrowUpRight, ArrowDownLeft, Gift, Calendar, User, MessageCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 const TipHistoryPage: React.FC = () => {
   const { user } = useAuth();
@@ -44,6 +45,8 @@ const TipHistoryPage: React.FC = () => {
   const currentTips = activeTab === 'sent' ? sentTips : receivedTips;
 
   return (
+    <>
+    <PageNavigation />
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Page Header */}
       <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -177,6 +180,7 @@ const TipHistoryPage: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

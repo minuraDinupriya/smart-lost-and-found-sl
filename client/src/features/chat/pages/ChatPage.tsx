@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 import { motion } from 'framer-motion';
 import ItemLinkPreview from '../components/ItemLinkPreview';
 import HandoverBanner from '../components/HandoverBanner';
+import PageNavigation from '../../../components/common/PageNavigation';
 interface Message {
   _id: string;
   senderId: string;
@@ -175,6 +176,8 @@ const ChatPage: React.FC = () => {
   if (loading) return <div className="flex justify-center p-10 text-gray-500 font-medium">Initializing Secure Room...</div>;
 
   return (
+    <>
+    <PageNavigation />
     <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-10rem)]">
       {/* Header & Warning Context */}
       <div className="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
@@ -368,6 +371,7 @@ const ChatPage: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

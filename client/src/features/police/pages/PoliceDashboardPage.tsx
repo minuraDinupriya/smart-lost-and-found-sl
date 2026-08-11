@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 import { Building, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 interface Item {
   _id: string;
@@ -75,6 +76,7 @@ const PoliceDashboardPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
+      <PageNavigation />
       <div className="bg-blue-900 rounded-2xl p-8 text-white shadow-xl mb-8 border border-blue-800 relative overflow-hidden">
         <div className="absolute top-0 right-0 opacity-10">
           <ShieldCheck className="w-64 h-64 -mt-10 -mr-10" />

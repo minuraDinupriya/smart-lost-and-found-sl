@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
 import { Activity, CheckCircle, Search, Map, BarChart3 } from 'lucide-react';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 interface AnalyticsData {
   totalItems: number;
@@ -46,7 +47,7 @@ const AnalyticsPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
-      
+      <PageNavigation />
       {/* Header */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">

@@ -4,6 +4,7 @@ import { MessageSquare, ImageOff, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 interface ThreadProps {
   _id: string;
@@ -79,6 +80,8 @@ const InboxPage: React.FC = () => {
   };
 
   return (
+    <>
+    <PageNavigation />
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center space-x-3 mb-8">
         <div className="p-3 bg-[#800000]/10 rounded-2xl">
@@ -174,6 +177,7 @@ const InboxPage: React.FC = () => {
         </motion.div>
       )}
     </div>
+    </>
   );
 };
 

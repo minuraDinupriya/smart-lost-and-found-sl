@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import api from '../../../services/api';
 import { Map, AlertCircle, Filter, Loader } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 // Fix Leaflet's default icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -76,6 +77,7 @@ const HotspotMapPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <PageNavigation />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">

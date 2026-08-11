@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import 'leaflet/dist/leaflet.css';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -217,6 +218,8 @@ const EditItemPage: React.FC = () => {
   }
 
   return (
+    <>
+    <PageNavigation />
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -404,6 +407,7 @@ const EditItemPage: React.FC = () => {
         </button>
       </form>
     </motion.div>
+    </>
   );
 };
 
