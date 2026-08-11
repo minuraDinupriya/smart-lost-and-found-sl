@@ -260,7 +260,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
         ) : user?.role !== 'police' && item.archiveStatus !== 'archived' ? (
           <button 
             onClick={handleClaimInitiation}
-            className="w-full mt-auto py-3 rounded-xl border-2 border-[#800000] text-[#800000] font-bold hover:bg-[#800000] hover:text-white transition-colors active:scale-[0.98]"
+            className="w-full mt-auto py-3 rounded-xl border-2 border-[#800000] dark:border-red-400 text-[#800000] dark:text-red-400 font-bold hover:bg-[#800000] dark:hover:bg-red-400 hover:text-white dark:hover:text-slate-900 transition-colors active:scale-[0.98]"
           >
             {isLost ? 'I Have This Item' : 'Claim This Item'}
           </button>

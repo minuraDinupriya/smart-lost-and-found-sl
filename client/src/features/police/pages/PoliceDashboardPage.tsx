@@ -126,7 +126,7 @@ const PoliceDashboardPage: React.FC = () => {
                 {items.map((item) => (
                   <tr 
                     key={item._id} 
-                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                     onClick={() => navigate(`/items/${item._id}`)}
                   >
                     <td className="p-4">
