@@ -208,7 +208,7 @@ const ProfilePage: React.FC = () => {
           }`}
         >
           <User className="w-5 h-5" />
-          <span>Personal Info</span>
+          <span>{t('profile.personalInfo')}</span>
         </button>
         {user.role !== 'police' && (
           <>
@@ -219,7 +219,7 @@ const ProfilePage: React.FC = () => {
               }`}
             >
               <Box className="w-5 h-5" />
-              <span>Claimed Item History</span>
+              <span>{t('profile.claimedItemHistory')}</span>
             </button>
             <button
               onClick={() => setActiveTab('returned')}
@@ -228,7 +228,7 @@ const ProfilePage: React.FC = () => {
               }`}
             >
               <Gift className="w-5 h-5" />
-              <span>Found & Returned History</span>
+              <span>{t('profile.foundReturnedHistory')}</span>
             </button>
             <button
               onClick={() => setActiveTab('bank')}
@@ -237,7 +237,7 @@ const ProfilePage: React.FC = () => {
               }`}
             >
               <Award className="w-5 h-5" />
-              <span>Bank Details (Payouts)</span>
+              <span>{t('profile.bankDetails')}</span>
             </button>
           </>
         )}
@@ -249,7 +249,7 @@ const ProfilePage: React.FC = () => {
         {activeTab === 'profile' && (
           <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto">
             <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Username</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t('profile.username')}</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
                   <User className="w-5 h-5" />
@@ -263,7 +263,7 @@ const ProfilePage: React.FC = () => {
                   required
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-2 font-medium">Changing your username will affect how you appear on items posted and messages.</p>
+              <p className="text-xs text-gray-400 mt-2 font-medium">{t('profile.usernameWarning')}</p>
             </div>
             <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-slate-700">
               <button
@@ -271,7 +271,7 @@ const ProfilePage: React.FC = () => {
                 disabled={isSubmitting}
                 className="flex items-center justify-center space-x-2 bg-[#800000] hover:bg-[#600000] text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg w-full sm:w-auto"
               >
-                {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Saving...</span></> : <><Check className="w-5 h-5" /><span>Save Changes</span></>}
+                {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Saving...</span></> : <><Check className="w-5 h-5" /><span>{t('profile.saveChanges')}</span></>}
               </button>
             </div>
           </form>

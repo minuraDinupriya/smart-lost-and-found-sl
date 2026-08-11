@@ -62,7 +62,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
         >
           <option value="">{t('location.selectProvince')}</option>
           {provinces.map((p) => (
-            <option key={p} value={p}>{p}</option>
+            <option key={p} value={p}>{t(`provinces.${p}`, { defaultValue: p })}</option>
           ))}
         </select>
       </div>

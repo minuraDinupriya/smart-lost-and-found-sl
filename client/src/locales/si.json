@@ -9,7 +9,14 @@
     "trustScore": "විශ්වාස ලකුණු",
     "login": "ඇතුල් වන්න",
     "register": "ලියාපදිංචි වන්න",
-    "archivedItems": "ලේඛනාගාර ගත කළ අයිතම"
+    "archivedItems": "ලේඛනාගාර ගත කළ අයිතම",
+    "theme": "තේමාව",
+    "light": "ආලෝකය",
+    "dark": "අඳුරු",
+    "system": "පද්ධතිය",
+    "stationDashboard": "පොලිස් ස්ථාන පුවරුව",
+    "profile": "පැතිකඩ",
+    "menu": "මෙනුව"
   },
   "dashboard": {
     "title": "Smart Lost & Found වෙත සාදරයෙන් පිළිගනිමු 🇱🇰",
@@ -34,7 +41,8 @@
     "adjustFilters": "ඔබගේ සෙවුම් වචන වෙනස් කිරීමට හෝ පෙරහන් ඉවත් කිරීමට උත්සාහ කරන්න.",
     "all": "සියල්ල",
     "lostTab": "නැතිවූ",
-    "foundTab": "හමුවූ"
+    "foundTab": "හමුවූ",
+    "myPostsTab": "මගේ පළ කිරීම්"
   },
   "location": {
     "province": "පළාත",
@@ -69,5 +77,25 @@
     "loading": "පූරණය වෙමින් පවතී...",
     "edit": "සංස්කරණය කරන්න",
     "delete": "මකන්න"
+  },
+  "profile": {
+    "personalInfo": "පුද්ගලික තොරතුරු",
+    "claimedItemHistory": "හිමිකම් කියූ අයිතම ඉතිහාසය",
+    "foundReturnedHistory": "හමුවූ සහ ආපසු ලබා දුන් ඉතිහාසය",
+    "bankDetails": "බැංකු විස්තර (ගෙවීම්)",
+    "username": "පරිශීලක නාමය",
+    "usernameWarning": "ඔබගේ පරිශීලක නාමය වෙනස් කිරීම පළ කරන ලද අයිතම සහ පණිවිඩවල ඔබ පෙනී සිටින ආකාරය කෙරෙහි බලපානු ඇත.",
+    "saveChanges": "වෙනස්කම් සුරකින්න"
+  },
+  "provinces": {
+    "Western": "බස්නාහිර",
+    "Central": "මධ්‍යම",
+    "Southern": "දකුණු",
+    "Northern": "උතුරු",
+    "Eastern": "නැගෙනහිර",
+    "North Western": "වයඹ",
+    "North Central": "උතුරු මැද",
+    "Uva": "ඌව",
+    "Sabaragamuwa": "සබරගමුව"
   }
 }
