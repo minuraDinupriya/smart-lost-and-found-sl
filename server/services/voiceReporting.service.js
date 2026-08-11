@@ -63,75 +63,82 @@ The JSON object MUST adhere to this exact format:
 }
     `;
     // Fetch available models dynamically
-    let availableModel = 'gemini-2.5-flash'; // Fallback default
+    let modelNames = ['gemini-2.0-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-flash']; // Fallback defaults
     try {
       const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
       const listRes = await fetch(listUrl);
       if (listRes.ok) {
         const listData = await listRes.json();
         const models = listData.models || [];
-        const validModel = models.find(m => 
-          m.supportedGenerationMethods.includes('generateContent') && 
-          m.name.includes('flash')
-        );
-        if (validModel) {
-          availableModel = validModel.name.replace('models/', '');
+        const validModels = models
+          .filter(m => m.supportedGenerationMethods.includes('generateContent') && m.name.includes('flash') && !m.name.includes('gemini-2.5-flash'))
+          .map(m => m.name.replace('models/', ''));
+        if (validModels.length > 0) {
+          modelNames = validModels;
         }
       }
     } catch (err) {
       console.warn('[AI Service] Failed to list models in voice report, using default:', err.message);
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${availableModel}:generateContent?key=${apiKey}`;
+    let lastError = null;
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: promptText },
+    for (const modelName of modelNames) {
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
               {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: base64Data
-                }
+                parts: [
+                  { text: promptText },
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: base64Data
+                    }
+                  }
+                ]
               }
             ]
-          }
-        ]
-      })
-    });
+          })
+        });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error(`[Voice Service API Error ${response.status}]:`, errText);
-      throw new Error('Failed to analyze voice report from AI provider.');
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`[Voice Service API Error ${response.status}]: ${errText}`);
+        }
+
+        const resData = await response.json();
+        const rawContent = resData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        
+        const cleanedText = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+
+        return {
+          success: true,
+          transcript: parsed.transcript || "No transcript generated.",
+          language: parsed.language || "unknown",
+          extractedData: {
+            itemName: parsed.extractedData?.itemName || '',
+            category: normalizeCategory(parsed.extractedData?.category),
+            color: parsed.extractedData?.color || '',
+            brand: parsed.extractedData?.brand || '',
+            model: parsed.extractedData?.model || '',
+            location: parsed.extractedData?.location || '',
+            type: parsed.extractedData?.type === 'FOUND' ? 'FOUND' : 'LOST',
+            description: parsed.extractedData?.description || ''
+          }
+        };
+      } catch (err) {
+        lastError = err;
+        console.warn(`[AI Service] Model ${modelName} failed in voice report:`, err.message);
+      }
     }
 
-    const resData = await response.json();
-    const rawContent = resData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    // Clean markdown syntax ```json ... ``` if returned by AI model
-    const cleanedText = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleanedText);
-
-    return {
-      success: true,
-      transcript: parsed.transcript || "No transcript generated.",
-      language: parsed.language || "unknown",
-      extractedData: {
-        itemName: parsed.extractedData?.itemName || '',
-        category: normalizeCategory(parsed.extractedData?.category),
-        color: parsed.extractedData?.color || '',
-        brand: parsed.extractedData?.brand || '',
-        model: parsed.extractedData?.model || '',
-        location: parsed.extractedData?.location || '',
-        type: parsed.extractedData?.type === 'FOUND' ? 'FOUND' : 'LOST',
-        description: parsed.extractedData?.description || ''
-      }
-    };
+    throw lastError || new Error('All Voice Analysis attempts failed.');
   } catch (error) {
     console.error('[Voice Service Processing Exception]:', error.message);
     throw error;
