@@ -196,33 +196,33 @@ const Navbar: React.FC = () => {
                   
                   {/* Profile Section */}
                   <div className="relative group">
-                    <button className="flex items-center space-x-2.5 bg-white border border-gray-200 rounded-full py-1.5 pl-1.5 pr-4 hover:bg-gray-50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
+                    <button className="flex items-center space-x-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full py-1.5 pl-1.5 pr-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
                       {user.profilePicture ? (
                         <img 
                           src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
                           alt="Profile" 
-                          className="w-7 h-7 rounded-full object-cover border border-gray-200" 
+                          className="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-slate-600" 
                         />
                       ) : (
                         <div className="w-7 h-7 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
                           {user.username.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="font-semibold text-gray-700 text-sm max-w-[120px] truncate hidden xl:block">{user.username}</span>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300 text-sm max-w-[120px] truncate hidden xl:block">{user.username}</span>
                     </button>
                     
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
-                      <div className="p-3 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
-                        <p className="text-sm font-bold text-gray-900 truncate">{user.username}</p>
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
+                      <div className="p-3 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 rounded-t-xl">
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{user.username}</p>
                         {user.role !== 'police' && (
-                          <p className="text-xs text-amber-600 font-bold mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                          <p className="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
                         )}
                       </div>
                       <div className="p-1.5 space-y-0.5">
                         {user.role !== 'police' && (
                           <Link 
                             to="/tips/history" 
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                           >
                             <Wallet className="w-4 h-4 mr-2 text-amber-500" />
                             Tip History
@@ -230,31 +230,31 @@ const Navbar: React.FC = () => {
                         )}
                         <Link
                           to="/profile"
-                          className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                         >
-                          <UserIcon className="w-4 h-4 mr-2 text-gray-500" />
+                          <UserIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                           Profile
                         </Link>
                         <Link
                           to="/archived"
-                          className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                         >
-                          <Archive className="w-4 h-4 mr-2 text-gray-500" />
+                          <Archive className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                           {t('nav.archivedItems')}
                         </Link>
                         {user.role !== 'police' && (
                           <Link
                             to="/hotspots"
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                           >
-                            <MapIcon className="w-4 h-4 mr-2 text-gray-500" />
+                            <MapIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                             Hotspots Map
                           </Link>
                         )}
-                        <div className="h-px bg-gray-100 my-1"></div>
+                        <div className="h-px bg-gray-100 dark:bg-slate-700 my-1"></div>
                         <button 
                           onClick={logout}
-                          className="w-full text-left px-3 py-2 text-sm text-red-600 font-bold hover:bg-red-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 font-bold hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg flex items-center transition-colors"
                         >
                           <LogOut className="w-4 h-4 mr-2" />
                           {t('nav.logout')}
