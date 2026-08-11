@@ -9,7 +9,7 @@ import LocationSelector, {
   LocationState,
 } from "../components/LocationSelector";
 import AIItemIdentifier from "../components/AIItemIdentifier";
-import policeStationsData from "../../data/policeStations.json";
+import policeStationsData from "../../../data/policeStations.json";
 import VoiceReporter from "../components/VoiceReporter";
 import { ShieldCheck, Navigation, Search, CheckCircle2, ChevronRight, ChevronLeft, Sparkles, MapPin, FileCheck } from "lucide-react";
 import "leaflet/dist/leaflet.css";
