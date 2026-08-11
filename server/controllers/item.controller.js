@@ -436,25 +436,43 @@ const getNearestPolice = async (req, res) => {
     }
 
     const query = `[out:json];nwr["amenity"="police"](around:15000,${lat},${lng});out center;`;
-    const url = `https://overpass-api.de/api/interpreter`;
+    const endpoints = [
+      'https://overpass-api.de/api/interpreter',
+      'https://lz4.overpass-api.de/api/interpreter',
+      'https://z.overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter'
+    ];
 
-    // Using POST from the backend to bypass WAF and caching issues safely
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'LostAndFoundApp/1.0 Node.js'
-      },
-      body: `data=${encodeURIComponent(query)}`
-    });
+    let data = null;
+    let success = false;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Overpass API Error:", response.status, errorText);
-      return res.status(502).json({ message: 'Failed to fetch from Overpass API' });
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'LostAndFoundApp/1.0 Node.js'
+          },
+          body: `data=${encodeURIComponent(query)}`
+        });
+
+        if (response.ok) {
+          data = await response.json();
+          success = true;
+          break; // Stop trying if successful
+        } else {
+          console.error(`Overpass API Error at ${url}:`, response.status);
+        }
+      } catch (err) {
+        console.error(`Fetch failed for ${url}:`, err.message);
+      }
     }
 
-    const data = await response.json();
+    if (!success || !data) {
+      return res.status(502).json({ message: 'Failed to fetch from all Overpass API endpoints' });
+    }
+
     res.status(200).json(data);
   } catch (error) {
     console.error('getNearestPolice error:', error);
