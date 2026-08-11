@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon, Filter } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon, Filter, ChevronLeft, Home } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
@@ -14,6 +14,7 @@ const Navbar: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [navSearch, setNavSearch] = useState(searchParams.get('q') || '');
 
@@ -89,15 +90,37 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
-          {/* Logo & Brand */}
-          <a href="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
+          {/* Navigation Controls & Logo */}
+          <div className="flex items-center">
+            {location.pathname !== '/' && (
+              <div className="flex items-center space-x-2 mr-4">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                  title="Go Back"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <Link
+                  to="/"
+                  className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                  title="Go Home"
+                >
+                  <Home className="w-5 h-5" />
+                </Link>
+              </div>
+            )}
+            
+            {/* Logo & Brand */}
+            <a href="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
             <div className="p-1.5 bg-[#800000]/5 rounded-xl">
               <PackageSearch className="w-7 h-7 text-[#800000]" />
             </div>
             <span className="font-bold text-xl tracking-tight text-gray-900 hidden sm:block">
               Smart Lost <span className="text-[#800000]">&</span> Found
             </span>
-          </a>
+            </a>
+          </div>
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-xl mx-8">
