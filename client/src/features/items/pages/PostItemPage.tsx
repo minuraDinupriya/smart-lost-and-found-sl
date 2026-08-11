@@ -396,9 +396,9 @@ const PostItemPage: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between relative">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 rounded-full z-0"></div>
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#800000] rounded-full z-0 transition-all duration-500" style={{ width: `${((currentStep - 1) / 4) * 100}%` }}></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#800000] rounded-full z-0 transition-all duration-500" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
           
-          {[1, 2, 3, 4, 5].map((step) => (
+          {[1, 2, 3, 4].map((step) => (
             <div key={step} className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all duration-300 ${currentStep === step ? "bg-[#800000] text-white shadow-lg shadow-[#800000]/30 scale-110" : currentStep > step ? "bg-[#800000] text-white" : "bg-white border-2 border-gray-200 text-gray-400"}`}>
               {step}
             </div>
@@ -406,10 +406,9 @@ const PostItemPage: React.FC = () => {
         </div>
         <div className="flex justify-between mt-3 text-xs font-semibold text-gray-500">
           <span className={currentStep === 1 ? "text-[#800000]" : ""}>Intent</span>
-          <span className={currentStep === 2 ? "text-[#800000]" : ""}>AI Assist</span>
-          <span className={currentStep === 3 ? "text-[#800000]" : ""}>Details</span>
-          <span className={currentStep === 4 ? "text-[#800000]" : ""}>Location</span>
-          <span className={currentStep === 5 ? "text-[#800000]" : ""}>Security</span>
+          <span className={currentStep === 2 ? "text-[#800000]" : ""}>Details (AI)</span>
+          <span className={currentStep === 3 ? "text-[#800000]" : ""}>Location</span>
+          <span className={currentStep === 4 ? "text-[#800000]" : ""}>Security</span>
         </div>
       </div>
 
@@ -456,24 +455,21 @@ const PostItemPage: React.FC = () => {
               <h3 className="text-xl font-bold text-blue-900 mb-2">Let AI fill this out for you!</h3>
               <p className="text-blue-700 text-sm">Save time by uploading a photo or speaking into your microphone. Our AI will automatically extract all the details.</p>
             </div>
-            {/* Smart Voice Reporting Section */}
-        <VoiceReporter onApplyResults={handleApplyVoiceResults} />
-
-        {/* Smart Item Identification Section */}
-        <AIItemIdentifier
-          imageFile={imageFile}
-          onImageChange={(file) => setImageFile(file)}
-          onApplyResults={handleApplyAIResults}
-        />
-
-          </motion.div>
-        )}
-
-        {currentStep === 3 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-          {/* Core Details */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Smart Voice Reporting Section */}
+              <VoiceReporter onApplyResults={handleApplyVoiceResults} />
+      
+              {/* Smart Item Identification Section */}
+              <AIItemIdentifier
+                imageFile={imageFile}
+                onImageChange={(file) => setImageFile(file)}
+                onApplyResults={handleApplyAIResults}
+              />
+            </div>
+            
+            {/* Core Details */}
+            <div className="space-y-4 pt-6 border-t border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
             Core Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -591,7 +587,7 @@ const PostItemPage: React.FC = () => {
           </motion.div>
         )}
 
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
           {/* Location & Interactive Map */}
         <div className="space-y-4 pt-6 border-t border-gray-100">
@@ -701,7 +697,7 @@ const PostItemPage: React.FC = () => {
           </motion.div>
         )}
 
-        {currentStep === 5 && (
+        {currentStep === 4 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
           {/* Digital Proof of Ownership */}
         <div className="space-y-4 pt-6 border-t border-gray-100">
@@ -875,17 +871,17 @@ const PostItemPage: React.FC = () => {
               Back
             </button>
 
-            {currentStep < 5 ? (
+            {currentStep < 4 ? (
               <button
                 type="button"
                 onClick={() => {
-                  if (currentStep === 3) {
+                  if (currentStep === 2) {
                     if (!formData.title || !formData.description || !formData.date) {
                       Swal.fire({icon: "error", title: "Missing Fields", text: "Please fill out Title, Description, and Date."});
                       return;
                     }
                   }
-                  if (currentStep === 4) {
+                  if (currentStep === 3) {
                     if (!location.province || !location.district || !location.city) {
                       Swal.fire({icon: "error", title: "Location Required", text: "Please select Province, District, and City."});
                       return;
