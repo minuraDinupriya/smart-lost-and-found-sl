@@ -6,8 +6,6 @@ import { Gift, ArrowLeft, Heart, Coins, CheckCircle, ChevronRight, Ban } from 'l
 import Swal from 'sweetalert2';
 import PageNavigation from '../../../components/common/PageNavigation';
 
-declare const payhere: any;
-
 const NewTipPage: React.FC = () => {
   const { returnRecordId } = useParams<{ returnRecordId: string }>();
   const { user } = useAuth();
@@ -148,32 +146,11 @@ const NewTipPage: React.FC = () => {
         thankYouMessage,
       });
 
-      const { checkoutUrl, payhereConfig, isMock } = response.data;
-      
-      if (isMock && checkoutUrl) {
+      const { checkoutUrl } = response.data;
+      if (checkoutUrl) {
         window.location.href = checkoutUrl;
-      } else if (payhereConfig) {
-        // Setup PayHere Callbacks
-        payhere.onCompleted = function onCompleted(orderId: string) {
-          console.log("Payment completed. OrderID:" + orderId);
-          navigate(`/tips/success?session_id=${orderId}`);
-        };
-
-        payhere.onDismissed = function onDismissed() {
-          console.log("Payment dismissed");
-          setSubmitting(false);
-        };
-
-        payhere.onError = function onError(error: any) {
-          console.log("Error:" + error);
-          Swal.fire('Payment Error', 'An error occurred with the payment gateway.', 'error');
-          setSubmitting(false);
-        };
-
-        // Start PayHere Payment
-        payhere.startPayment(payhereConfig);
       } else {
-        throw new Error('No checkout session URL or PayHere config received.');
+        throw new Error('No checkout session URL received.');
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
@@ -183,6 +160,7 @@ const NewTipPage: React.FC = () => {
         icon: 'error',
         confirmButtonColor: '#800000',
       });
+    } finally {
       setSubmitting(false);
     }
   };

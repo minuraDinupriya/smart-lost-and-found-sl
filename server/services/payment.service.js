@@ -1,56 +1,56 @@
-const crypto = require('crypto');
+const stripe = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
 
 /**
- * Payment Service supporting both real PayHere Integration and an offline/mock development fallback.
+ * Payment Service supporting both real Stripe Integration and an offline/mock development fallback.
  */
 class PaymentService {
   /**
-   * Create a payment checkout session (Returns PayHere Config)
+   * Create a payment checkout session.
    * @param {Object} tip - The Tip document
-   * @param {string} clientUrl - The client application host URL
-   * @returns {Promise<{isMock: boolean, url?: string, reference?: string, payhereConfig?: any}>}
+   * @param {string} clientUrl - The client application host URL (e.g., http://localhost:5173)
+   * @returns {Promise<{url: string, reference: string, isMock: boolean}>}
    */
   async createCheckoutSession(tip, clientUrl = 'http://localhost:5173') {
     const cleanClientUrl = clientUrl.endsWith('/') ? clientUrl.slice(0, -1) : clientUrl;
-    
-    const merchantId = process.env.PAYHERE_MERCHANT_ID;
-    const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET;
 
-    if (merchantId && merchantSecret) {
-      const orderId = tip._id.toString();
-      const amount = tip.amount.toFixed(2);
-      const currency = 'LKR';
-
-      const hashedSecret = crypto.createHash('md5').update(merchantSecret).digest('hex').toUpperCase();
-      const hashData = merchantId + orderId + amount + currency + hashedSecret;
-      const hash = crypto.createHash('md5').update(hashData).digest('hex').toUpperCase();
-
-      return {
-        isMock: false,
-        reference: orderId,
-        payhereConfig: {
-          sandbox: process.env.NODE_ENV !== 'production', // true for development/sandbox
-          merchant_id: merchantId,
-          return_url: `${cleanClientUrl}/tips/success?session_id=${orderId}`,
+    if (stripe) {
+      try {
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: 'lkr', // Use Sri Lankan Rupee
+                product_data: {
+                  name: `Finder Reward Tip - Smart Lost & Found`,
+                  description: `Voluntary reward tip for returning item. Thank you!`,
+                },
+                unit_amount: Math.round(tip.amount * 100), // Stripe expects cents/cents-equivalent
+              },
+              quantity: 1,
+            },
+          ],
+          mode: 'payment',
+          success_url: `${cleanClientUrl}/tips/success?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${cleanClientUrl}/tips/failed?tip_id=${tip._id}`,
-          notify_url: `${process.env.API_URL || 'http://localhost:5000/api'}/tips/payhere/notify`,
-          order_id: orderId,
-          items: `Finder Reward Tip - Smart Lost & Found`,
-          amount: amount,
-          currency: currency,
-          hash: hash,
-          first_name: tip.ownerId?.username || "Owner",
-          last_name: "",
-          email: tip.ownerId?.email || "user@example.com",
-          phone: "0771234567",
-          address: "No.1, Galle Road",
-          city: "Colombo",
-          country: "Sri Lanka"
-        }
-      };
+          metadata: {
+            tipId: tip._id.toString(),
+            returnRecordId: tip.returnRecordId.toString(),
+          },
+        });
+
+        return {
+          url: session.url,
+          reference: session.id,
+          isMock: false,
+        };
+      } catch (error) {
+        console.error('Stripe Session Creation Error:', error);
+        throw new Error('Failed to communicate with Stripe API. Please check configuration.');
+      }
     } else {
       // Mock Payment Gateway Fallback
-      console.log('PayHere not configured. Falling back to Mock Payment Mode.');
+      console.log('Stripe not configured. Falling back to Mock Payment Mode.');
       const mockReference = `mock_ref_${Math.random().toString(36).substring(2, 15)}`;
       const mockUrl = `${cleanClientUrl}/tips/payment/${tip._id}?reference=${mockReference}&mock=true`;
 
@@ -64,47 +64,46 @@ class PaymentService {
 
   /**
    * Verify a payment reference.
-   * This is now mostly used by the Mock gateway or checking if the IPN already hit.
-   * PayHere verification is done securely in the Webhook itself.
+   * @param {string} reference - The payment reference (Stripe Session ID or Mock reference)
+   * @returns {Promise<{status: 'paid' | 'failed' | 'pending', amount: number}>}
    */
-  async verifyPayment(reference, tipDocument) {
+  async verifyPayment(reference) {
     if (!reference) {
       return { status: 'failed', amount: 0 };
     }
 
-    if (reference.startsWith('mock_ref_')) {
+    if (stripe && reference.startsWith('cs_')) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(reference);
+        if (session.payment_status === 'paid') {
+          return {
+            status: 'paid',
+            amount: session.amount_total / 100,
+          };
+        } else if (session.payment_status === 'unpaid') {
+          return {
+            status: 'pending',
+            amount: session.amount_total / 100,
+          };
+        } else {
+          return {
+            status: 'failed',
+            amount: 0,
+          };
+        }
+      } catch (error) {
+        console.error('Stripe Session Verification Error:', error);
+        return { status: 'failed', amount: 0 };
+      }
+    } else if (reference.startsWith('mock_ref_')) {
+      // Mock payment is verified successfully
       return {
         status: 'paid',
-        amount: 0,
+        amount: 0, // Mock mode uses stored DB amount
       };
     }
 
-    // For PayHere, we just return the tip document's current status,
-    // assuming the Webhook will update it to 'paid' asynchronously.
-    if (tipDocument) {
-      return {
-        status: tipDocument.paymentStatus,
-        amount: tipDocument.amount
-      }
-    }
-
-    return { status: 'pending', amount: 0 };
-  }
-
-  /**
-   * Verify PayHere Webhook (IPN) MD5 Signature
-   */
-  verifyPayHereIPN(body) {
-    const { merchant_id, order_id, payhere_amount, payhere_currency, status_code, md5sig } = body;
-    const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET;
-
-    if (!merchantSecret) return false;
-
-    const hashedSecret = crypto.createHash('md5').update(merchantSecret).digest('hex').toUpperCase();
-    const hashData = merchant_id + order_id + payhere_amount + payhere_currency + status_code + hashedSecret;
-    const generatedHash = crypto.createHash('md5').update(hashData).digest('hex').toUpperCase();
-
-    return generatedHash === md5sig;
+    return { status: 'failed', amount: 0 };
   }
 
   /**
@@ -119,15 +118,18 @@ class PaymentService {
       return { status: 'failed' };
     }
 
-    const isMock = !process.env.PAYHERE_MERCHANT_ID;
-
-    if (!isMock) {
+    if (stripe) {
       try {
-        // In a real production app, this would use PayHere Payouts API
-        console.log(`[PAYHERE PAYOUT] Successfully transferred Rs. ${tip.amount} to account ${finder.bankDetails.accountNumber} at ${finder.bankDetails.bankName}`);
+        // In a real production app, this would use Stripe Connect Transfers:
+        // await stripe.transfers.create({
+        //   amount: Math.round(tip.amount * 100),
+        //   currency: 'lkr',
+        //   destination: finder.stripeAccountId,
+        // });
+        console.log(`[STRIPE MOCK] Successfully transferred Rs. ${tip.amount} to account ${finder.bankDetails.accountNumber} at ${finder.bankDetails.bankName}`);
         return { status: 'completed' };
       } catch (error) {
-        console.error('PayHere Payout Error:', error);
+        console.error('Stripe Payout Error:', error);
         return { status: 'failed' };
       }
     } else {
