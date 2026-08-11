@@ -14,6 +14,7 @@ interface Item {
   status: string;
   createdBy: { username: string };
   createdAt: string;
+  updatedAt: string;
   policeStationName?: string;
   verificationHistory?: {
     verifierId?: string;
@@ -123,7 +124,11 @@ const PoliceDashboardPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {items.map((item) => (
-                  <tr key={item._id} className="hover:bg-slate-50 transition-colors">
+                  <tr 
+                    key={item._id} 
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/items/${item._id}`)}
+                  >
                     <td className="p-4">
                       <div className="font-bold text-gray-900">{item.title}</div>
                       <div className="text-xs text-gray-500 mt-1 flex items-center">
@@ -176,10 +181,15 @@ const PoliceDashboardPage: React.FC = () => {
                     </td>
                     <td className="p-4">
                       {item.status === 'Claimed' ? (
-                        <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          Resolved (Returned)
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 w-fit">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Resolved (Returned)
+                          </span>
+                          <span className="text-[10px] text-gray-500 mt-1 font-medium">
+                            Returned on: {new Date(item.updatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       ) : (
                         <span className="inline-flex items-center text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
                           At Station
@@ -189,7 +199,10 @@ const PoliceDashboardPage: React.FC = () => {
                     <td className="p-4 text-right">
                       {item.status !== 'Claimed' && (
                         <button
-                          onClick={() => handleResolve(item._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleResolve(item._id);
+                          }}
                           className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm"
                         >
                           Mark as Returned
