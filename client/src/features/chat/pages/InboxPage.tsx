@@ -27,7 +27,10 @@ interface ThreadProps {
   createdAt: string;
 }
 
+import { useTranslation } from 'react-i18next';
+
 const InboxPage: React.FC = () => {
+  const { t } = useTranslation();
   const [threads, setThreads] = useState<ThreadProps[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -88,8 +91,8 @@ const InboxPage: React.FC = () => {
           <MessageSquare className="w-8 h-8 text-[#800000]" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Active Inquiries</h1>
-          <p className="text-slate-500 dark:text-slate-400">Manage your private negotiations and system alerts.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t('inbox.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400">{t('inbox.subtitle')}</p>
         </div>
       </div>
 
@@ -108,8 +111,8 @@ const InboxPage: React.FC = () => {
       ) : threads.length === 0 ? (
         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 p-16 text-center">
           <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Your inbox is empty</h3>
-          <p className="text-slate-500 dark:text-slate-400">You don't have any active messages or system alerts yet.</p>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('inbox.emptyTitle')}</h3>
+          <p className="text-slate-500 dark:text-slate-400">{t('inbox.emptyDesc')}</p>
         </div>
       ) : (
         <motion.div 
@@ -149,7 +152,7 @@ const InboxPage: React.FC = () => {
                 <div className="flex-grow">
                   <div className="flex justify-between items-start mb-1">
                     <h4 className="font-bold text-slate-900 dark:text-white text-lg">
-                      {thread.itemId ? thread.itemId.title : 'Deleted Item'}
+                      {thread.itemId ? thread.itemId.title : t('inbox.deletedItem')}
                     </h4>
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap ml-4">
                       {new Date(thread.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -157,7 +160,7 @@ const InboxPage: React.FC = () => {
                   </div>
                   
                   <div className="text-sm font-medium text-[#800000] dark:text-red-400 mb-1.5 flex items-center">
-                    {isAlert ? '🤖 SYSTEM_BOT' : `From: ${otherUser.username}`}
+                    {isAlert ? '🤖 SYSTEM_BOT' : `${t('inbox.from')}: ${otherUser.username}`}
                   </div>
 
                   <p className={`text-sm leading-relaxed pr-8 ${isAlert ? 'text-amber-900 dark:text-amber-400 font-medium' : 'text-slate-600 dark:text-slate-300 line-clamp-2'}`}>
