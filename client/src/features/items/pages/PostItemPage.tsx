@@ -861,7 +861,8 @@ const PostItemPage: React.FC = () => {
             </div>
           </div>
         </div>
-
+          </motion.div>
+        )}
 
         {currentStep > 1 && (
           <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-100">
@@ -907,8 +908,6 @@ const PostItemPage: React.FC = () => {
               </button>
             )}
           </div>
-        )}
-          </motion.div>
         )}
       </form>
 
