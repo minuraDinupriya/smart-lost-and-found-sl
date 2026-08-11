@@ -87,7 +87,7 @@ The JSON object MUST adhere to this exact format:
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error(\`[Voice Service API Error \${response.status}]:\`, errText);
+      console.error(`[Voice Service API Error ${response.status}]:`, errText);
       throw new Error('Failed to analyze voice report from AI provider.');
     }
 
