@@ -6,6 +6,7 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const { generateImageHash } = require('../utils/imageHash');
 const { identifyItemFromImage } = require('../services/itemIdentification.service');
+const { analyzeVoiceReport } = require('../services/voiceReporting.service');
 const { runAutonomousMatching } = require('../services/matching.service');
 
 cloudinary.config({
@@ -61,6 +62,7 @@ const createItem = async (req, res) => {
       ownershipProofs: ownershipProofsParsed,
       aiIdentified: itemData.aiIdentified === 'true' || itemData.aiIdentified === true,
       aiIdentification: aiIdentificationParsed || undefined,
+      ownershipProofs: ownershipProofsParsed,
       titleSi,
       titleTa,
       descriptionSi,
@@ -328,6 +330,14 @@ const updateItem = async (req, res) => {
       updateData.ownershipProofs = ownershipProofsParsed;
     }
     
+    if (updateData.ownershipProofs && typeof updateData.ownershipProofs === 'string') {
+      try {
+        updateData.ownershipProofs = JSON.parse(updateData.ownershipProofs);
+      } catch (e) {
+        delete updateData.ownershipProofs;
+      }
+    }
+
     if (req.file) {
       // Generate perceptual hash fingerprint locally for the newly uploaded image
       const hash = await generateImageHash(req.file.path);
@@ -426,25 +436,43 @@ const getNearestPolice = async (req, res) => {
     }
 
     const query = `[out:json];nwr["amenity"="police"](around:15000,${lat},${lng});out center;`;
-    const url = `https://overpass-api.de/api/interpreter`;
+    const endpoints = [
+      'https://overpass-api.de/api/interpreter',
+      'https://lz4.overpass-api.de/api/interpreter',
+      'https://z.overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter'
+    ];
 
-    // Using POST from the backend to bypass WAF and caching issues safely
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'LostAndFoundApp/1.0 Node.js'
-      },
-      body: `data=${encodeURIComponent(query)}`
-    });
+    let data = null;
+    let success = false;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Overpass API Error:", response.status, errorText);
-      return res.status(502).json({ message: 'Failed to fetch from Overpass API' });
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'LostAndFoundApp/1.0 Node.js'
+          },
+          body: `data=${encodeURIComponent(query)}`
+        });
+
+        if (response.ok) {
+          data = await response.json();
+          success = true;
+          break; // Stop trying if successful
+        } else {
+          console.error(`Overpass API Error at ${url}:`, response.status);
+        }
+      } catch (err) {
+        console.error(`Fetch failed for ${url}:`, err.message);
+      }
     }
 
-    const data = await response.json();
+    if (!success || !data) {
+      return res.status(502).json({ message: 'Failed to fetch from all Overpass API endpoints' });
+    }
+
     res.status(200).json(data);
   } catch (error) {
     console.error('getNearestPolice error:', error);
@@ -553,6 +581,35 @@ const identifyItem = async (req, res) => {
   }
 };
 
+const analyzeVoiceReportController = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No audio file uploaded.' });
+    }
+
+    const result = await analyzeVoiceReport(
+      req.file.path,
+      req.file.mimetype
+    );
+
+    // Clean up temporary upload file
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (cleanupErr) {
+      console.error('Failed to cleanup temp voice file:', cleanupErr);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Voice analyze controller error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process voice report. ' + error.message
+    });
+  }
+};
 const verifyOwnership = async (req, res) => {
   try {
     const { itemId } = req.params;
@@ -689,25 +746,24 @@ const verifyOwnership = async (req, res) => {
       }
     } catch (msgErr) {
       console.error('Failed to send verification system message:', msgErr);
+
     }
 
     res.status(200).json({
       success: true,
-      overallStatus,
-      scorePercentage,
-      verifiedCount,
-      totalProofs: storedProofs.length,
-      details
+      status: overallStatus,
+      scorePercentage
     });
   } catch (error) {
-    console.error('Verify ownership error:', error);
-    res.status(500).json({ message: 'Server error during ownership verification.', error: error.message });
+    console.error('Error verifying ownership:', error);
+    res.status(500).json({ success: false, message: 'Server error during verification' });
   }
 };
 
 module.exports = {
   createItem,
   getAllItems,
+  verifyOwnership,
   getItemById,
   updateItem,
   deleteItem,
@@ -719,5 +775,5 @@ module.exports = {
   resolvePoliceItem,
   getArchivedItems,
   identifyItem,
-  verifyOwnership,
+  analyzeVoiceReport: analyzeVoiceReportController
 };

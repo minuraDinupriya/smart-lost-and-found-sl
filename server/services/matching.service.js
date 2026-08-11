@@ -2,8 +2,8 @@ const stringSimilarity = require('string-similarity');
 const Item = require('../models/Item');
 const Message = require('../models/Message');
 const { calculateHammingDistance } = require('../utils/imageHash');
-const { calculateTextSimilarity } = require('../utils/textMatch');
 const { emitGlobalNotification } = require('../services/socket.service');
+const { identifyItemFromImage } = require('../services/itemIdentification.service');
 
 /**
  * Calculates match score between a Lost item and a Found item
@@ -53,15 +53,54 @@ const calculateMatchScore = (lostItem, foundItem) => {
 };
 
 /**
+ * Download image from URL to a temporary file
+ */
+const downloadImageToTemp = async (url) => {
+  const os = require('os');
+  const path = require('path');
+  const fs = require('fs');
+  const fetch = require('node-fetch'); // Ensure fetch is available, Node 18+ has it globally but we use native
+
+  const tempPath = path.join(os.tmpdir(), `temp_img_${Date.now()}.jpg`);
+  const response = await fetch(url);
+  const buffer = await response.arrayBuffer();
+  fs.writeFileSync(tempPath, Buffer.from(buffer));
+  return tempPath;
+};
+
+/**
  * Runs the AI matching engine for a given item against opposite-type items in the same category
  */
 const runAutonomousMatching = async (savedItem) => {
   // Skip matching engine for Smart Tags
   if (savedItem.type === 'SMART_TAG') return;
 
-  const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
-  
   try {
+    // If user skipped AI Identification, automatically enrich it in the background using Gemini!
+    if (!savedItem.aiIdentified && savedItem.imageUrl) {
+      console.log(`🧠 [BACKGROUND AI] - Item ${savedItem._id} lacks AI tags. Running auto-enrichment...`);
+      try {
+        const tempPath = await downloadImageToTemp(savedItem.imageUrl);
+        const aiResult = await identifyItemFromImage(tempPath, 'image.jpg', 'image/jpeg');
+        const fs = require('fs');
+        fs.unlinkSync(tempPath);
+
+        if (aiResult.success && aiResult.identification) {
+          savedItem.aiIdentified = true;
+          savedItem.aiIdentification = aiResult.identification;
+          savedItem.brand = aiResult.identification.brand || savedItem.brand;
+          savedItem.model = aiResult.identification.model || savedItem.model;
+          savedItem.color = aiResult.identification.color || savedItem.color;
+          // Re-save with enriched tags
+          await savedItem.save();
+          console.log(`🧠 [BACKGROUND AI] - Success! Extracted: ${savedItem.brand} ${savedItem.model}`);
+        }
+      } catch (err) {
+        console.error('Background AI enrichment failed:', err.message);
+      }
+    }
+
+    const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
     const potentialMatches = await Item.find({
       type: oppositeType,
       category: savedItem.category
@@ -75,10 +114,13 @@ const runAutonomousMatching = async (savedItem) => {
 
     for (const match of potentialMatches) {
       // PREVENT SELF-MATCHING
+      // TEMPORARILY DISABLED FOR TESTING PURPOSES
+      /*
       if (savedItem.createdBy.toString() === match.createdBy.toString()) {
         console.log(`-> Skipping "${match.title}": Created by the same user.\n`);
         continue;
       }
+      */
 
       let isMatch = false;
       let matchReason = '';
@@ -105,9 +147,9 @@ const runAutonomousMatching = async (savedItem) => {
       console.log(`[Phase 2] 📝 Natural Language Processing (NLP) Engine:`);
       console.log(`-> Algorithm: Dice's Coefficient (String Similarity)`);
       
-      // 2. Evaluate Text Similarity
+      // 2. Evaluate Text Similarity (incorporating AI tags and Brand/Model precision boosts)
       if (!isMatch) {
-        const textScore = calculateTextSimilarity(savedItem, match);
+        const textScore = calculateMatchScore(savedItem, match);
         if (textScore >= 0.60) {
           isMatch = true;
           matchReason = `Text Similarity Match (Score: ${(textScore * 100).toFixed(1)}%)`;

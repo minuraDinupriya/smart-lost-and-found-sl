@@ -5,6 +5,7 @@ import api from '../../../services/api';
 import Swal from 'sweetalert2';
 import { Camera, User, Award, Shield, ArrowLeft, Check, Loader2, History, Gift, Box } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 const ProfilePage: React.FC = () => {
   const { user, fetchMe } = useAuth();
@@ -151,14 +152,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto my-8">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-6 group"
-      >
-        <ArrowLeft className="w-5 h-5 mr-1.5 transition-transform group-hover:-translate-x-1" />
-        <span className="font-semibold text-sm">Back</span>
-      </button>
+      <PageNavigation />
 
       {/* Profile Header Card */}
       <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6">
@@ -206,7 +200,7 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto space-x-2 mb-6 hide-scrollbar">
+      <div className="flex overflow-x-auto space-x-2 mb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <button
           onClick={() => setActiveTab('profile')}
           className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
@@ -216,33 +210,37 @@ const ProfilePage: React.FC = () => {
           <User className="w-5 h-5" />
           <span>Personal Info</span>
         </button>
-        <button
-          onClick={() => setActiveTab('claimed')}
-          className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-            activeTab === 'claimed' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
-          }`}
-        >
-          <Box className="w-5 h-5" />
-          <span>Claimed Item History</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('returned')}
-          className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-            activeTab === 'returned' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
-          }`}
-        >
-          <Gift className="w-5 h-5" />
-          <span>Found & Returned History</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('bank')}
-          className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-            activeTab === 'bank' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
-          }`}
-        >
-          <Award className="w-5 h-5" />
-          <span>Bank Details (Payouts)</span>
-        </button>
+        {user.role !== 'police' && (
+          <>
+            <button
+              onClick={() => setActiveTab('claimed')}
+              className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
+                activeTab === 'claimed' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+              }`}
+            >
+              <Box className="w-5 h-5" />
+              <span>Claimed Item History</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('returned')}
+              className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
+                activeTab === 'returned' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+              }`}
+            >
+              <Gift className="w-5 h-5" />
+              <span>Found & Returned History</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('bank')}
+              className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
+                activeTab === 'bank' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+              }`}
+            >
+              <Award className="w-5 h-5" />
+              <span>Bank Details (Payouts)</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Tab Content */}

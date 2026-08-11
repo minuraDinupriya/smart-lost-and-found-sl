@@ -116,8 +116,28 @@ Rules:
 - Do NOT invent or fabricate details not visible in the image.
     `;
 
-    // Strategy 1: Try using @google/generative-ai SDK
-    const modelNames = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-pro'];
+    // Fetch available models dynamically
+    let modelNames = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-3.5-flash']; // Fallback defaults
+    try {
+      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listRes = await fetch(listUrl);
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        // Find ALL models that support generateContent and contain 'flash' but exclude 2.5
+        const models = listData.models || [];
+        const validModels = models
+          .filter(m => m.supportedGenerationMethods.includes('generateContent') && m.name.includes('flash') && !m.name.includes('gemini-2.5-flash'))
+          .map(m => m.name.replace('models/', ''));
+          
+        if (validModels.length > 0) {
+          modelNames = validModels;
+          console.log('[AI Service] Dynamically selected models to try:', modelNames);
+        }
+      }
+    } catch (err) {
+      console.warn('[AI Service] Failed to list models, using default array:', err.message);
+    }
+
     let lastError = null;
 
     for (const modelName of modelNames) {
@@ -187,60 +207,62 @@ Rules:
     }
 
     // Strategy 2: Direct REST fetch fallback if SDK calls failed
-    try {
-      const restUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-      const restRes = await fetch(restUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: promptText },
-                {
-                  inline_data: {
-                    mime_type: imageMimeType,
-                    data: base64Data
+    for (const modelName of modelNames) {
+      try {
+        const restUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const restRes = await fetch(restUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: promptText },
+                  {
+                    inline_data: {
+                      mime_type: imageMimeType,
+                      data: base64Data
+                    }
                   }
-                }
-              ]
-            }
-          ]
-        })
-      });
+                ]
+              }
+            ]
+          })
+        });
 
-      if (restRes.ok) {
-        const resData = await restRes.json();
-        const rawContent = resData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        if (rawContent) {
-          const cleanedText = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-          const parsed = JSON.parse(cleanedText);
+        if (restRes.ok) {
+          const resData = await restRes.json();
+          const rawContent = resData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (rawContent) {
+            const cleanedText = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanedText);
 
-          const finalCategory = normalizeCategory(parsed.category);
-          const finalItemName = parsed.itemName || 'Identified Item';
-          const finalColor = parsed.color || 'Could not identify';
+            const finalCategory = normalizeCategory(parsed.category);
+            const finalItemName = parsed.itemName || 'Identified Item';
+            const finalColor = parsed.color || 'Could not identify';
 
-          return {
-            success: true,
-            provider: 'gemini-vision-rest',
-            identification: {
-              category: finalCategory,
-              categoryConfidence: sanitizeConfidence(parsed.categoryConfidence) ?? 0.90,
-              itemName: finalItemName,
-              itemNameConfidence: sanitizeConfidence(parsed.itemNameConfidence) ?? 0.88,
-              color: finalColor,
-              colorConfidence: finalColor === 'Could not identify' ? null : (sanitizeConfidence(parsed.colorConfidence) ?? 0.85),
-              brand: parsed.brand || 'Could not identify',
-              brandConfidence: parsed.brand === 'Could not identify' ? null : (sanitizeConfidence(parsed.brandConfidence) ?? 0.80),
-              model: parsed.model || 'Could not identify',
-              modelConfidence: parsed.model === 'Could not identify' ? null : (sanitizeConfidence(parsed.modelConfidence) ?? 0.70),
-              description: parsed.description || `${finalColor !== 'Could not identify' ? finalColor : ''} ${finalItemName} identified from image.`.trim()
-            }
-          };
+            return {
+              success: true,
+              provider: 'gemini-vision-rest',
+              identification: {
+                category: finalCategory,
+                categoryConfidence: sanitizeConfidence(parsed.categoryConfidence) ?? 0.90,
+                itemName: finalItemName,
+                itemNameConfidence: sanitizeConfidence(parsed.itemNameConfidence) ?? 0.88,
+                color: finalColor,
+                colorConfidence: finalColor === 'Could not identify' ? null : (sanitizeConfidence(parsed.colorConfidence) ?? 0.85),
+                brand: parsed.brand || 'Could not identify',
+                brandConfidence: parsed.brand === 'Could not identify' ? null : (sanitizeConfidence(parsed.brandConfidence) ?? 0.80),
+                model: parsed.model || 'Could not identify',
+                modelConfidence: parsed.model === 'Could not identify' ? null : (sanitizeConfidence(parsed.modelConfidence) ?? 0.70),
+                description: parsed.description || `${finalColor !== 'Could not identify' ? finalColor : ''} ${finalItemName} identified from image.`.trim()
+              }
+            };
+          }
         }
+      } catch (restErr) {
+        console.warn(`[AI Service] REST fallback failed for ${modelName}:`, restErr.message);
       }
-    } catch (restErr) {
-      console.warn('[AI Service] REST fallback failed:', restErr.message);
     }
 
     console.error('[AI Service] All AI Vision attempts failed:', lastError?.message);

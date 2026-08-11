@@ -4,6 +4,7 @@ import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Gift, ArrowLeft, Heart, Coins, CheckCircle, ChevronRight, Ban } from 'lucide-react';
 import Swal from 'sweetalert2';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 const NewTipPage: React.FC = () => {
   const { returnRecordId } = useParams<{ returnRecordId: string }>();
@@ -175,6 +176,8 @@ const NewTipPage: React.FC = () => {
   };
 
   return (
+    <>
+    <PageNavigation />
     <div className="max-w-xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header Banner */}
       <div className="bg-[#800000] text-white p-8 relative overflow-hidden">
@@ -352,6 +355,7 @@ const NewTipPage: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

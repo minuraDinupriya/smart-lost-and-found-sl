@@ -12,6 +12,7 @@ import PostItemPage from './features/items/pages/PostItemPage';
 import EditItemPage from './features/items/pages/EditItemPage';
 import ItemDetailPage from './features/items/pages/ItemDetailPage';
 import AnalyticsPage from './features/items/pages/AnalyticsPage';
+import HotspotMapPage from './features/items/pages/HotspotMapPage';
 import ArchivedItemsPage from './features/items/pages/ArchivedItemsPage';
 import PoliceDashboardPage from './features/police/pages/PoliceDashboardPage';
 import AdminDashboardPage from './features/admin/pages/AdminDashboardPage';
@@ -26,7 +27,7 @@ import TipHistoryPage from './features/tips/pages/TipHistoryPage';
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50/50 text-gray-900 font-sans flex flex-col tracking-tight antialiased">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-sans flex flex-col tracking-tight antialiased transition-colors duration-200">
       {/* Global Hot Toast Configuration */}
       <Toaster
         position="top-right"
@@ -55,6 +56,9 @@ const App: React.FC = () => {
 
           {/* Analytics Route */}
           <Route path="/analytics" element={<AnalyticsPage />} />
+          
+          {/* Hotspots Route */}
+          <Route path="/hotspots" element={<HotspotMapPage />} />
 
           {/* Police Dashboard */}
           <Route path="/police-dashboard" element={<PoliceDashboardPage />} />

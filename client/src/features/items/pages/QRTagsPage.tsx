@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 import { Download, PlusCircle, ShieldCheck, Tag } from 'lucide-react';
 import Swal from 'sweetalert2';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 interface SmartTag {
   _id: string;
@@ -99,6 +100,7 @@ const QRTagsPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
+      <PageNavigation />
       {/* Header Section */}
       <div className="bg-[#800000] rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
