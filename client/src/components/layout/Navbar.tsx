@@ -94,24 +94,15 @@ const Navbar: React.FC = () => {
           
           {/* Navigation Controls & Logo */}
           <div className="flex items-center space-x-3 sm:space-x-5">
-            <div className="flex items-center space-x-2">
-              {location.pathname !== '/' && (
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
-                  title="Go Back"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-              )}
-              <Link
-                to="/"
-                className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
-                title="Go Home"
+            {location.pathname !== '/' && (
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm mr-2"
+                title="Go Back"
               >
-                <Home className="w-5 h-5" />
-              </Link>
-            </div>
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+            )}
             
             {/* Logo & Brand */}
             <a href="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
@@ -157,16 +148,15 @@ const Navbar: React.FC = () => {
                 onChange={(e) => changeLanguage(e.target.value)}
                 className="bg-transparent text-sm font-semibold text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer appearance-none pr-4"
               >
-                <option value="en" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">English</option>
-                <option value="si" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">සිංහල</option>
-                <option value="ta" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">தமிழ்</option>
+                <option value="en" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">EN</option>
+                <option value="si" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">SI</option>
+                <option value="ta" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">TA</option>
               </select>
             </div>
 
 
 
-            {/* Main Vertical Divider */}
-            <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
+
 
             {user ? (
               <div className="flex items-center space-x-3 sm:space-x-5">
@@ -176,14 +166,13 @@ const Navbar: React.FC = () => {
                   {/* Inbox Section */}
                   <Link
                     to="/inbox"
-                    className="relative flex items-center text-sm font-semibold text-slate-700 bg-white px-4 py-2 rounded-full hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 border border-slate-200 transition-all shadow-sm"
+                    className="relative flex items-center justify-center p-2 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full border border-gray-200 dark:border-slate-700 transition-colors shadow-sm"
                     title={t('nav.inbox')}
                     onClick={() => setUnreadCount(0)}
                   >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    <span>{t('nav.inbox')}</span>
+                    <MessageSquare className="w-5 h-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center">
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[9px] font-bold items-center justify-center ring-2 ring-white">
                           {unreadCount > 99 ? '99+' : unreadCount}
@@ -192,8 +181,7 @@ const Navbar: React.FC = () => {
                     )}
                   </Link>
 
-                  {/* Divider */}
-                  <div className="w-px h-6 bg-gray-200"></div>
+
 
                   {/* Post Item Section */}
                   {user.role !== 'police' && (
@@ -203,8 +191,6 @@ const Navbar: React.FC = () => {
                         {t('nav.postItem')}
                       </Link>
                       
-                      {/* Divider */}
-                      <div className="w-px h-6 bg-gray-200"></div>
                     </>
                   )}
                   
@@ -222,7 +208,7 @@ const Navbar: React.FC = () => {
                           {user.username.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="font-semibold text-gray-700 text-sm max-w-[120px] truncate">{user.username}</span>
+                      <span className="font-semibold text-gray-700 text-sm max-w-[120px] truncate hidden xl:block">{user.username}</span>
                     </button>
                     
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
@@ -278,8 +264,7 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Mobile/Hamburger Divider */}
-                <div className="hidden lg:block w-px h-8 bg-gray-200"></div>
+
 
                 {/* Universal Hamburger Menu Button */}
                 <button 
