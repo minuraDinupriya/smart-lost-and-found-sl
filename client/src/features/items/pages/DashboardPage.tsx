@@ -262,15 +262,15 @@ const DashboardPage: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col min-w-[200px]">
-                  <label className="text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                  <label className="text-sm font-semibold text-gray-700 mb-1.5">{t('dashboard.category')}</label>
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white text-gray-900 transition-all cursor-pointer shadow-sm"
                   >
-                    <option value="">All Categories</option>
+                    <option value="">{t('dashboard.categoryFilter')}</option>
                     {CATEGORIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c}>{t(`categories.${c}`)}</option>
                     ))}
                   </select>
                 </div>
@@ -278,10 +278,10 @@ const DashboardPage: React.FC = () => {
 
               <div className="flex flex-col sm:flex-row gap-4 items-end">
                 <div className="flex-grow flex flex-col">
-                  <label className="text-sm font-semibold text-gray-700 mb-1.5">Keyword</label>
+                  <label className="text-sm font-semibold text-gray-700 mb-1.5">{t('dashboard.keyword')}</label>
                   <input
                     type="text"
-                    placeholder="Refine search with keywords..."
+                    placeholder={t('dashboard.keywordPlaceholder')}
                     value={keywordFilter}
                     onChange={(e) => setKeywordFilter(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all shadow-inner bg-slate-50 focus:bg-white"
@@ -303,7 +303,7 @@ const DashboardPage: React.FC = () => {
       {/* Navigation Tabs */}
       <div className="flex justify-center border-b border-gray-200 pb-1 overflow-x-auto">
         <div className="flex space-x-2 sm:space-x-4 px-2">
-          {['ALL', 'LOST', 'FOUND', ...(user ? ['MY_POSTS'] : [])].map(type => (
+          {['ALL', 'LOST', 'FOUND', ...(user && user.role !== 'police' ? ['MY_POSTS'] : [])].map(type => (
             <button
               key={type}
               onClick={() => handleTabChange(type)}
@@ -313,7 +313,7 @@ const DashboardPage: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
               }`}
             >
-              {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : type === 'FOUND' ? t('dashboard.foundTab') : 'My Posts'}
+              {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : type === 'FOUND' ? t('dashboard.foundTab') : t('dashboard.myPostsTab')}
             </button>
           ))}
         </div>

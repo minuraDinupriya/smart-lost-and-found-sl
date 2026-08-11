@@ -37,7 +37,7 @@ const calculateMatchScore = (lostItem, foundItem) => {
     lostItem.brand !== 'Could not identify' &&
     lostItem.brand.toLowerCase() === foundItem.brand.toLowerCase()
   ) {
-    score = Math.min(1.0, score + 0.10);
+    score = Math.min(1.0, score + 0.15);
   }
 
   if (
@@ -46,7 +46,7 @@ const calculateMatchScore = (lostItem, foundItem) => {
     lostItem.model !== 'Could not identify' &&
     lostItem.model.toLowerCase() === foundItem.model.toLowerCase()
   ) {
-    score = Math.min(1.0, score + 0.10);
+    score = Math.min(1.0, score + 0.15);
   }
 
   return score;

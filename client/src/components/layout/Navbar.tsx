@@ -248,7 +248,7 @@ const Navbar: React.FC = () => {
                           className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                         >
                           <UserIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                          Profile
+                          {t('nav.profile')}
                         </Link>
                         <Link
                           to="/archived"
@@ -326,7 +326,7 @@ const Navbar: React.FC = () => {
         {user && (
           <>
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50 sticky top-0 z-10">
-              <span className="font-bold text-gray-900 dark:text-gray-100 text-lg">Menu</span>
+              <span className="font-bold text-gray-900 dark:text-gray-100 text-lg">{t('nav.menu')}</span>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors focus:outline-none"
@@ -370,7 +370,7 @@ const Navbar: React.FC = () => {
                 {user.role === 'police' && (
                   <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
                     <Building className="w-6 h-6 mb-2" />
-                    <span className="text-sm font-semibold text-center">Station Dashboard</span>
+                    <span className="text-sm font-semibold text-center">{t('nav.stationDashboard')}</span>
                   </Link>
                 )}
                 {user.role === 'admin' && (
@@ -405,7 +405,7 @@ const Navbar: React.FC = () => {
                 
                 <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                   <UserIcon className="w-6 h-6 mb-2" />
-                  <span className="text-sm font-semibold text-center">Profile</span>
+                  <span className="text-sm font-semibold text-center">{t('nav.profile')}</span>
                 </Link>
                 <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50/50 dark:bg-red-900/20 text-[#800000] dark:text-red-400 rounded-xl border border-red-100 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors">
                   <Archive className="w-6 h-6 mb-2" />
