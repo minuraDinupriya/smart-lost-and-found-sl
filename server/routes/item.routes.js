@@ -13,7 +13,6 @@ router.get('/debug-ai', async (req, res) => {
   const apiKey = process.env.ITEM_IDENTIFICATION_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) return res.json({ error: 'No API key' });
   try {
-    const fetch = require('node-fetch') || global.fetch;
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
     const data = await response.json();
     res.json(data);
