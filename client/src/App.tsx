@@ -27,7 +27,7 @@ import TipHistoryPage from './features/tips/pages/TipHistoryPage';
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50/50 text-gray-900 font-sans flex flex-col tracking-tight antialiased">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-sans flex flex-col tracking-tight antialiased transition-colors duration-200">
       {/* Global Hot Toast Configuration */}
       <Toaster
         position="top-right"

@@ -3,7 +3,8 @@ import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-do
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon, Filter, ChevronLeft, Home } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon, Filter, ChevronLeft, Home, Sun, Moon, Monitor } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
@@ -11,6 +12,7 @@ const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { socket } = useSocket();
   const { t, i18n } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -86,7 +88,7 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav className="backdrop-blur-md bg-white/90 border-b border-slate-100 sticky top-0 z-50">
+      <nav className="backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
@@ -148,17 +150,37 @@ const Navbar: React.FC = () => {
           <div className="flex items-center space-x-3 sm:space-x-5">
             
             {/* Language Switcher */}
-            <div className="relative flex items-center bg-gray-50 hover:bg-gray-100 rounded-full px-3 py-1.5 border border-gray-200 transition-colors shadow-sm">
-              <Globe className="w-4 h-4 text-gray-500 mr-1.5" />
+            <div className="relative flex items-center bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full px-3 py-1.5 border border-gray-200 dark:border-slate-700 transition-colors shadow-sm">
+              <Globe className="w-4 h-4 text-gray-500 dark:text-gray-400 mr-1.5" />
               <select 
                 value={i18n.language} 
                 onChange={(e) => changeLanguage(e.target.value)}
-                className="bg-transparent text-sm font-semibold text-gray-700 focus:outline-none cursor-pointer appearance-none pr-4"
+                className="bg-transparent text-sm font-semibold text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer appearance-none pr-4"
               >
-                <option value="en">English</option>
-                <option value="si">සිංහල</option>
-                <option value="ta">தமிழ்</option>
+                <option value="en" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">English</option>
+                <option value="si" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">සිංහල</option>
+                <option value="ta" className="dark:bg-slate-800 text-gray-900 dark:text-gray-100">தமிழ்</option>
               </select>
+            </div>
+
+            {/* Theme Switcher */}
+            <div className="relative group">
+              <button className="flex items-center justify-center p-2 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 transition-colors shadow-sm">
+                {theme === 'light' ? <Sun className="w-4 h-4 text-gray-600 dark:text-gray-300" /> : theme === 'dark' ? <Moon className="w-4 h-4 text-gray-600 dark:text-gray-300" /> : <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-300" />}
+              </button>
+              <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
+                <div className="p-1.5 space-y-0.5">
+                  <button onClick={() => setTheme('light')} className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors ${theme === 'light' ? 'bg-gray-100 dark:bg-slate-700 text-[#800000] dark:text-red-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
+                    <Sun className="w-4 h-4 mr-2" /> Light
+                  </button>
+                  <button onClick={() => setTheme('dark')} className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors ${theme === 'dark' ? 'bg-gray-100 dark:bg-slate-700 text-[#800000] dark:text-red-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
+                    <Moon className="w-4 h-4 mr-2" /> Dark
+                  </button>
+                  <button onClick={() => setTheme('system')} className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors ${theme === 'system' ? 'bg-gray-100 dark:bg-slate-700 text-[#800000] dark:text-red-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
+                    <Monitor className="w-4 h-4 mr-2" /> System
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Main Vertical Divider */}
