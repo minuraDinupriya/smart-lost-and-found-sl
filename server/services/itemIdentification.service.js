@@ -117,7 +117,7 @@ Rules:
     `;
 
     // Strategy 1: Try using @google/generative-ai SDK
-    const modelNames = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-pro'];
+    const modelNames = ['gemini-1.5-flash'];
     let lastError = null;
 
     for (const modelName of modelNames) {
