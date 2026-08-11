@@ -29,6 +29,7 @@ export interface ItemProps {
   createdBy: any;
   archiveStatus?: 'active' | 'archived';
   expiresAt?: string;
+  createdAt?: string;
 }
 
 const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
@@ -210,12 +211,11 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
               Available to pick up at {item.policeStationName}
             </div>
           )}
-          {item.expiresAt && (
+          {item.createdAt && (
             <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 border-t border-gray-200/50 dark:border-slate-600/50 pt-2.5 mt-2.5">
               <Calendar className="w-4 h-4 mr-2.5 text-gray-500" />
               <span>
-                {item.archiveStatus === 'archived' ? 'Archived on: ' : 'Expires on: '}
-                {new Date(item.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                Uploaded on: {new Date(item.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
               </span>
             </div>
           )}

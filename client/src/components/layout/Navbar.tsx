@@ -158,11 +158,15 @@ const Navbar: React.FC = () => {
 
             {/* Quick Theme Toggle */}
             <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => {
+                if (theme === 'light') setTheme('dark');
+                else if (theme === 'dark') setTheme('system');
+                else setTheme('light');
+              }}
               className="p-2 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:text-[#800000] dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors border border-gray-200 dark:border-slate-700 shadow-sm"
-              title="Toggle Theme"
+              title={`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)} (Click to switch)`}
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'light' ? <Sun className="w-4 h-4" /> : theme === 'dark' ? <Moon className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
             </button>
 
 
@@ -353,19 +357,7 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
 
-              {/* Theme Selection */}
-              <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700">
-                <div className="flex items-center justify-between mb-2 px-1">
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center">
-                    <Moon className="w-4 h-4 mr-2" /> {t('nav.theme')}
-                  </span>
-                </div>
-                <div className="flex space-x-2">
-                  <button onClick={() => setTheme('light')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex justify-center items-center transition-colors ${theme === 'light' ? 'bg-white dark:bg-slate-700 text-[#800000] dark:text-red-400 shadow-sm border border-gray-200 dark:border-slate-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>{t('nav.light')}</button>
-                  <button onClick={() => setTheme('dark')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex justify-center items-center transition-colors ${theme === 'dark' ? 'bg-white dark:bg-slate-700 text-[#800000] dark:text-red-400 shadow-sm border border-gray-200 dark:border-slate-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>{t('nav.dark')}</button>
-                  <button onClick={() => setTheme('system')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex justify-center items-center transition-colors ${theme === 'system' ? 'bg-white dark:bg-slate-700 text-[#800000] dark:text-red-400 shadow-sm border border-gray-200 dark:border-slate-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>{t('nav.system')}</button>
-                </div>
-              </div>
+
 
               {/* Navigation Grid */}
               <div className="grid grid-cols-2 gap-3">
