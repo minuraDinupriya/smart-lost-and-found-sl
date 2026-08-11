@@ -126,7 +126,6 @@ const Navbar: React.FC = () => {
                           {user.username.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="font-semibold text-gray-700 text-sm max-w-[100px] truncate">{user.username}</span>
                     </button>
                     
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
