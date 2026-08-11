@@ -19,11 +19,30 @@ const Navbar: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/?q=${encodeURIComponent(navSearch)}`);
+    const newParams = new URLSearchParams(searchParams);
+    if (navSearch) {
+      newParams.set('q', navSearch);
+    } else {
+      newParams.delete('q');
+    }
+    navigate(`/?${newParams.toString()}`);
   };
 
   const handleFilterClick = () => {
-    navigate(`/?q=${encodeURIComponent(navSearch)}&openFilter=true`);
+    const newParams = new URLSearchParams(searchParams);
+    if (navSearch) {
+      newParams.set('q', navSearch);
+    } else {
+      newParams.delete('q');
+    }
+    
+    if (newParams.get('openFilter') === 'true') {
+      newParams.delete('openFilter');
+    } else {
+      newParams.set('openFilter', 'true');
+    }
+    
+    navigate(`/?${newParams.toString()}`);
   };
 
   const changeLanguage = (lng: string) => {
