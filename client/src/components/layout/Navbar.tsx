@@ -225,7 +225,7 @@ const Navbar: React.FC = () => {
                             className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                           >
                             <Wallet className="w-4 h-4 mr-2 text-amber-500" />
-                            {t('nav.tipHistory')}
+                            Tip History
                           </Link>
                         )}
                         <Link
@@ -248,7 +248,7 @@ const Navbar: React.FC = () => {
                             className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                           >
                             <MapIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                            {t('nav.hotspotsMap')}
+                            Hotspots Map
                           </Link>
                         )}
                         <div className="h-px bg-gray-100 dark:bg-slate-700 my-1"></div>
@@ -373,7 +373,7 @@ const Navbar: React.FC = () => {
                 {user.role === 'admin' && (
                   <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
                     <ShieldAlert className="w-6 h-6 mb-2" />
-                    <span className="text-sm font-bold text-center">{t('nav.adminPanel')}</span>
+                    <span className="text-sm font-bold text-center">Admin Panel</span>
                   </Link>
                 )}
                 {user.role !== 'police' && (
@@ -385,7 +385,7 @@ const Navbar: React.FC = () => {
                 {user.role !== 'police' && (
                   <Link to="/hotspots" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
                     <MapIcon className="w-6 h-6 mb-2" />
-                    <span className="text-sm font-semibold text-center">{t('nav.hotspotsMap')}</span>
+                    <span className="text-sm font-semibold text-center">Hotspots Map</span>
                   </Link>
                 )}
                 
@@ -418,7 +418,7 @@ const Navbar: React.FC = () => {
                 {user.role !== 'police' && (
                   <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">
                     <Wallet className="w-6 h-6 mb-2" />
-                    <span className="text-sm font-semibold text-center">{t('nav.tipHistory')}</span>
+                    <span className="text-sm font-semibold text-center">Tip History</span>
                   </Link>
                 )}
               </div>

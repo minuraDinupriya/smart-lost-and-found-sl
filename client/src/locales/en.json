@@ -1,4 +1,4 @@
-﻿{
+{
     "nav":  {
                 "search":  "Search",
                 "smartTags":  "Smart Tags",
@@ -16,13 +16,10 @@
                 "system":  "System",
                 "stationDashboard":  "Station Dashboard",
                 "profile":  "Profile",
-                "menu":  "Menu",
-                "tipHistory":  "Tip History",
-                "hotspotsMap":  "Hotspots Map",
-                "adminPanel":  "Admin Panel"
+                "menu":  "Menu"
             },
     "dashboard":  {
-                      "title":  "Welcome to Smart Lost \u0026 Found ðŸ‡±ðŸ‡°",
+                      "title":  "Welcome to Smart Lost \u0026 Found 🇱🇰",
                       "subtitle":  "The smartest way to recover your lost belongings across Sri Lanka.",
                       "searchPlaceholder":  "Search by item name...",
                       "categoryFilter":  "All Categories",
@@ -30,7 +27,7 @@
                       "districtFilter":  "All Districts",
                       "cityFilter":  "City",
                       "noItems":  "No items found",
-                      "topSamaritans":  "Top Samaritans ðŸ‡±ðŸ‡°",
+                      "topSamaritans":  "Top Samaritans 🇱🇰",
                       "mapView":  "Map View",
                       "gridView":  "Grid View",
                       "resetFilters":  "Reset Filters",
@@ -38,7 +35,7 @@
                       "reviewMatch":  "Review Match",
                       "lost":  "LOST",
                       "helpFind":  "Help Find This",
-                      "localHeroes":  "Local Heroes ðŸ‡±ðŸ‡°",
+                      "localHeroes":  "Local Heroes 🇱🇰",
                       "noHeroesYet":  "No heroes yet...",
                       "noItemsFound":  "No items found",
                       "adjustFilters":  "Try adjusting your search keywords, switching categories, or clearing the location filters.",
