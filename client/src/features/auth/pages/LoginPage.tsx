@@ -36,19 +36,19 @@ const LoginPage: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-md bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 sm:p-10"
+        className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-slate-700 p-8 sm:p-10"
       >
         <div className="text-center mb-8">
           <div className="w-14 h-14 bg-[#800000]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 rotate-3 hover:rotate-0 transition-transform">
             <LogIn className="w-7 h-7 text-[#800000]" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome Back</h2>
-          <p className="text-gray-500 mt-2 text-sm font-medium">Sign in to access your portal</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Welcome Back</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium">Sign in to access your portal</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5" htmlFor="username">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5" htmlFor="username">
               Username
             </label>
             <input
@@ -56,13 +56,13 @@ const LoginPage: React.FC = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#800000]/10 focus:border-[#800000] transition-all outline-none text-gray-900 bg-gray-50 focus:bg-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-4 focus:ring-[#800000]/10 focus:border-[#800000] transition-all outline-none text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-slate-900 focus:bg-white dark:bg-slate-800"
               placeholder="Enter your username"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5" htmlFor="password">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5" htmlFor="password">
               Password
             </label>
             <input
@@ -70,10 +70,10 @@ const LoginPage: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#800000]/10 focus:border-[#800000] transition-all outline-none text-gray-900 bg-gray-50 focus:bg-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-4 focus:ring-[#800000]/10 focus:border-[#800000] transition-all outline-none text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-slate-900 focus:bg-white dark:bg-slate-800"
               placeholder="••••••••"
             />
-            <label className="mt-2 flex items-center gap-2 text-sm text-gray-600" htmlFor="showPassword">
+            <label className="mt-2 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400" htmlFor="showPassword">
               <input
                 id="showPassword"
                 type="checkbox"
@@ -96,10 +96,10 @@ const LoginPage: React.FC = () => {
 
         <div className="relative mt-8 mb-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
+            <div className="w-full border-t border-gray-200 dark:border-slate-600"></div>
           </div>
           <div className="relative flex justify-center text-sm font-medium">
-            <span className="px-4 bg-white text-gray-500">Or continue with</span>
+            <span className="px-4 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400">Or continue with</span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@ const LoginPage: React.FC = () => {
           />
         </div>
 
-        <p className="text-center mt-8 text-sm font-medium text-gray-500">
+        <p className="text-center mt-8 text-sm font-medium text-gray-500 dark:text-gray-400">
           Don't have an account?{' '}
           <Link to="/register" className="text-[#800000] hover:text-[#600000] hover:underline transition-colors">
             Register here
