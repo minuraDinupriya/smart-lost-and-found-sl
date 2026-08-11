@@ -10,7 +10,7 @@ import LocationSelector, {
 } from "../components/LocationSelector";
 import AIItemIdentifier from "../components/AIItemIdentifier";
 import VoiceReporter from "../components/VoiceReporter";
-import { ShieldCheck, Navigation } from "lucide-react";
+import { ShieldCheck, Navigation, Search, CheckCircle2, ChevronRight, ChevronLeft, Sparkles, MapPin, FileCheck } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import PageNavigation from "../../../components/common/PageNavigation";
 
@@ -60,6 +60,7 @@ const getDistanceFromLatLonInKm = (
 
 const PostItemPage: React.FC = () => {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<LocationState>({
     province: "",
@@ -390,37 +391,84 @@ const PostItemPage: React.FC = () => {
         </p>
       </div>
 
+      
+      {/* Stepper Progress */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between relative">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 rounded-full z-0"></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#800000] rounded-full z-0 transition-all duration-500" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
+          
+          {[1, 2, 3, 4].map((step) => (
+            <div key={step} className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all duration-300 ${currentStep === step ? "bg-[#800000] text-white shadow-lg shadow-[#800000]/30 scale-110" : currentStep > step ? "bg-[#800000] text-white" : "bg-white border-2 border-gray-200 text-gray-400"}`}>
+              {step}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between mt-3 text-xs font-semibold text-gray-500">
+          <span className={currentStep === 1 ? "text-[#800000]" : ""}>Intent</span>
+          <span className={currentStep === 2 ? "text-[#800000]" : ""}>Details (AI)</span>
+          <span className={currentStep === 3 ? "text-[#800000]" : ""}>Location</span>
+          <span className={currentStep === 4 ? "text-[#800000]" : ""}>Security</span>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Smart Voice Reporting Section */}
-        <VoiceReporter onApplyResults={handleApplyVoiceResults} />
+        {/* Step 1: Core Intent */}
+        {currentStep === 1 && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, type: "LOST" });
+                setCurrentStep(2);
+              }}
+              className="group relative flex flex-col items-center justify-center p-12 bg-gradient-to-br from-red-50 to-red-100/50 border-2 border-red-100 rounded-3xl hover:border-red-400 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="bg-red-500 text-white p-6 rounded-full mb-6 shadow-lg shadow-red-500/30 group-hover:scale-110 transition-transform duration-300">
+                <Search className="w-12 h-12" />
+              </div>
+              <h3 className="text-3xl font-extrabold text-red-900 mb-3">I Lost Something</h3>
+              <p className="text-red-700/80 text-center font-medium px-4">Create an alert to notify finders and police in your area.</p>
+            </button>
 
-        {/* Smart Item Identification Section */}
-        <AIItemIdentifier
-          imageFile={imageFile}
-          onImageChange={(file) => setImageFile(file)}
-          onApplyResults={handleApplyAIResults}
-        />
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, type: "FOUND" });
+                setCurrentStep(2);
+              }}
+              className="group relative flex flex-col items-center justify-center p-12 bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-100 rounded-3xl hover:border-emerald-400 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="bg-emerald-500 text-white p-6 rounded-full mb-6 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+                <CheckCircle2 className="w-12 h-12" />
+              </div>
+              <h3 className="text-3xl font-extrabold text-emerald-900 mb-3">I Found Something</h3>
+              <p className="text-emerald-700/80 text-center font-medium px-4">Report an item you found to help return it to its owner.</p>
+            </button>
+          </motion.div>
+        )}
 
-        {/* Core Details */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
+        {currentStep === 2 && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Smart Voice Reporting Section */}
+              <VoiceReporter onApplyResults={handleApplyVoiceResults} />
+      
+              {/* Smart Item Identification Section */}
+              <AIItemIdentifier
+                imageFile={imageFile}
+                onImageChange={(file) => setImageFile(file)}
+                onApplyResults={handleApplyAIResults}
+              />
+            </div>
+            
+            {/* Core Details */}
+            <div className="space-y-4 pt-6 border-t border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
             Core Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Report Type
-              </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
-              >
-                <option value="LOST">I Lost Something</option>
-                <option value="FOUND">I Found Something</option>
-              </select>
-            </div>
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Category
@@ -531,7 +579,12 @@ const PostItemPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Location & Interactive Map */}
+          </motion.div>
+        )}
+
+        {currentStep === 3 && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+          {/* Location & Interactive Map */}
         <div className="space-y-4 pt-6 border-t border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
             Geographic Registration
@@ -636,7 +689,12 @@ const PostItemPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Digital Proof of Ownership */}
+          </motion.div>
+        )}
+
+        {currentStep === 4 && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+          {/* Digital Proof of Ownership */}
         <div className="space-y-4 pt-6 border-t border-gray-100">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
@@ -794,15 +852,56 @@ const PostItemPage: React.FC = () => {
             </div>
           </div>
         </div>
+          </motion.div>
+        )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-[#800000] text-white font-bold py-4 rounded-xl hover:bg-[#600000] transition-all shadow-lg shadow-[#800000]/20 active:scale-[0.99] disabled:opacity-70 mt-8 text-lg"
-        >
-          {isSubmitting ? "Publishing Report..." : "Publish Item Record"}
-        </button>
+        {currentStep > 1 && (
+          <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setCurrentStep(prev => prev - 1)}
+              className="flex items-center px-6 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 mr-2" />
+              Back
+            </button>
+
+            {currentStep < 4 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (currentStep === 2) {
+                    if (!formData.title || !formData.description || !formData.date) {
+                      Swal.fire({icon: "error", title: "Missing Fields", text: "Please fill out Title, Description, and Date."});
+                      return;
+                    }
+                  }
+                  if (currentStep === 3) {
+                    if (!location.province || !location.district || !location.city) {
+                      Swal.fire({icon: "error", title: "Location Required", text: "Please select Province, District, and City."});
+                      return;
+                    }
+                  }
+                  setCurrentStep(prev => prev + 1);
+                }}
+                className="flex items-center px-8 py-3 bg-gray-900 text-white hover:bg-gray-800 rounded-xl font-bold transition-all shadow-md shadow-gray-900/20"
+              >
+                Next Step
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center px-8 py-3 bg-[#800000] text-white font-bold rounded-xl hover:bg-[#600000] transition-all shadow-lg shadow-[#800000]/20 disabled:opacity-70"
+              >
+                {isSubmitting ? "Publishing..." : "Publish Item Record"}
+              </button>
+            )}
+          </div>
+        )}
       </form>
+
     </motion.div>
     </>
   );

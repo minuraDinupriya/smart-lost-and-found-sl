@@ -170,24 +170,14 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-amber-50/30 rounded-2xl p-6 border border-amber-200/60 shadow-sm space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-bold text-gray-900 flex items-center">
-            <Sparkles className="w-5 h-5 text-amber-500 mr-2 animate-pulse" />
-            Smart Item Identification
-          </h3>
-          <p className="text-xs text-gray-600 mt-1">
-            Upload a clear photo to automatically identify the item. AI suggestions can be edited before submission.
-          </p>
-        </div>
-        <span className="px-2.5 py-1 text-[10px] font-extrabold tracking-wider bg-amber-100 text-amber-800 rounded-full border border-amber-300 uppercase">
-          AI Vision Powered
-        </span>
-      </div>
+    <div className="bg-white rounded-2xl shadow-sm border border-amber-200/60 p-5 mb-6 space-y-4">
+      <h3 className="text-base font-bold text-gray-800 flex items-center">
+        <Sparkles className="w-5 h-5 text-amber-500 mr-2" />
+        Smart Item Identification
+      </h3>
 
       {/* Image Upload & Preview Container */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <div className="flex flex-col gap-4">
         <div className="relative">
           {previewUrl ? (
             <div className="relative rounded-2xl overflow-hidden border-2 border-amber-200 shadow-md group h-56 bg-gray-900 flex items-center justify-center">
@@ -255,9 +245,6 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
             )}
           </button>
 
-          <p className="text-xs text-gray-500 leading-relaxed bg-white/70 p-3.5 rounded-xl border border-gray-200/80">
-            💡 <strong>Pro-tip:</strong> AI detection automatically identifies Category, Title, Color, Brand, Model, and Description to accelerate report filing.
-          </p>
 
           {error && (
             <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-xs text-rose-700 flex items-start space-x-2.5">

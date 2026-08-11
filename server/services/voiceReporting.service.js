@@ -63,7 +63,7 @@ The JSON object MUST adhere to this exact format:
 }
     `;
     // Fetch available models dynamically
-    let modelNames = ['gemini-2.0-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-flash']; // Fallback defaults
+    let modelNames = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-3.5-flash']; // Fallback defaults
     try {
       const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
       const listRes = await fetch(listUrl);

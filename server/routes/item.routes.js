@@ -6,6 +6,21 @@ const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem,
 const { getHotspots } = require('../controllers/hotspot.controller');
 
 
+// @route   GET /api/items/debug-ai
+// @desc    Debug AI models available to the API key
+// @access  Public
+router.get('/debug-ai', async (req, res) => {
+  const apiKey = process.env.ITEM_IDENTIFICATION_API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) return res.json({ error: 'No API key' });
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+});
+
 // @route   POST /api/items/identify
 // @desc    Analyze uploaded item image with AI and suggest attributes
 // @access  Private
