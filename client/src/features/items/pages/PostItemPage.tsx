@@ -467,7 +467,7 @@ const PostItemPage: React.FC = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               >
                 <option value="Electronics">
                   Electronics (Phones, Laptops)
@@ -494,7 +494,7 @@ const PostItemPage: React.FC = () => {
               value={formData.title}
               onChange={handleInputChange}
               placeholder="e.g., iPhone 13 Pro Max - Black"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
             />
           </div>
 
@@ -509,7 +509,7 @@ const PostItemPage: React.FC = () => {
                 value={formData.color}
                 onChange={handleInputChange}
                 placeholder="e.g., Black, Navy Blue"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
             <div>
@@ -522,7 +522,7 @@ const PostItemPage: React.FC = () => {
                 value={formData.brand}
                 onChange={handleInputChange}
                 placeholder="e.g., Samsung, Apple"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
             <div>
@@ -535,7 +535,7 @@ const PostItemPage: React.FC = () => {
                 value={formData.model}
                 onChange={handleInputChange}
                 placeholder="e.g., Galaxy A52"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
           </div>
@@ -551,7 +551,7 @@ const PostItemPage: React.FC = () => {
               value={formData.description}
               onChange={handleInputChange}
               placeholder="Provide details like colors, specific marks, or brands..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
             ></textarea>
           </div>
           <div>
@@ -564,7 +564,7 @@ const PostItemPage: React.FC = () => {
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
             />
           </div>
         </div>
@@ -748,7 +748,7 @@ const PostItemPage: React.FC = () => {
                     setNewProofType(e.target.value);
                     if (e.target.value !== "custom") setNewCustomLabel("");
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
                 >
                   <option value="serialNumber">Serial Number</option>
                   <option value="imei">IMEI Number</option>
@@ -776,7 +776,7 @@ const PostItemPage: React.FC = () => {
                     value={newCustomLabel}
                     onChange={(e) => setNewCustomLabel(e.target.value)}
                     placeholder="e.g. Frame Number, Keyring details"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
                   />
                 </div>
               )}
@@ -790,7 +790,7 @@ const PostItemPage: React.FC = () => {
                 value={newProofValue}
                 onChange={(e) => setNewProofValue(e.target.value)}
                 placeholder="Enter exact serial/code value, or a detailed description of the mark..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
               />
             </div>
             <button
@@ -820,7 +820,7 @@ const PostItemPage: React.FC = () => {
                 value={formData.contactNumber}
                 onChange={handleInputChange}
                 placeholder="07XXXXXXXX"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
             <div>
@@ -833,7 +833,7 @@ const PostItemPage: React.FC = () => {
                 value={formData.securityQuestion}
                 onChange={handleInputChange}
                 placeholder="e.g., What is the lock screen wallpaper?"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                 If posted as FOUND, claimants must answer this to verify
