@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
   return (
     <>
       <nav className="backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
           {/* Navigation Controls & Logo */}
@@ -124,7 +124,7 @@ const Navbar: React.FC = () => {
                 placeholder="Search by item name or description..."
                 value={navSearch}
                 onChange={(e) => setNavSearch(e.target.value)}
-                className="w-full pl-12 pr-14 py-2.5 rounded-full border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all bg-gray-50/50 hover:bg-gray-50 focus:bg-white text-sm shadow-sm"
+                className="w-full pl-12 pr-14 py-2.5 rounded-full border border-gray-200 dark:border-slate-700 focus:ring-2 focus:ring-[#800000]/20 dark:focus:ring-red-400/20 focus:border-[#800000] dark:focus:border-red-400 outline-none transition-all bg-gray-50/50 dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 focus:bg-white dark:focus:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-sm shadow-sm"
               />
               <button
                 type="button"
@@ -196,33 +196,33 @@ const Navbar: React.FC = () => {
                   
                   {/* Profile Section */}
                   <div className="relative group">
-                    <button className="flex items-center space-x-2.5 bg-white border border-gray-200 rounded-full py-1.5 pl-1.5 pr-4 hover:bg-gray-50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
+                    <button className="flex items-center space-x-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full py-1.5 pl-1.5 pr-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
                       {user.profilePicture ? (
                         <img 
                           src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
                           alt="Profile" 
-                          className="w-7 h-7 rounded-full object-cover border border-gray-200" 
+                          className="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-slate-600" 
                         />
                       ) : (
                         <div className="w-7 h-7 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
                           {user.username.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="font-semibold text-gray-700 text-sm max-w-[120px] truncate hidden xl:block">{user.username}</span>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300 text-sm max-w-[120px] truncate hidden xl:block">{user.username}</span>
                     </button>
                     
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
-                      <div className="p-3 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
-                        <p className="text-sm font-bold text-gray-900 truncate">{user.username}</p>
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
+                      <div className="p-3 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 rounded-t-xl">
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{user.username}</p>
                         {user.role !== 'police' && (
-                          <p className="text-xs text-amber-600 font-bold mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                          <p className="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
                         )}
                       </div>
                       <div className="p-1.5 space-y-0.5">
                         {user.role !== 'police' && (
                           <Link 
                             to="/tips/history" 
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                           >
                             <Wallet className="w-4 h-4 mr-2 text-amber-500" />
                             Tip History
@@ -230,31 +230,31 @@ const Navbar: React.FC = () => {
                         )}
                         <Link
                           to="/profile"
-                          className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                         >
-                          <UserIcon className="w-4 h-4 mr-2 text-gray-500" />
+                          <UserIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                           {t('nav.profile')}
                         </Link>
                         <Link
                           to="/archived"
-                          className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                         >
-                          <Archive className="w-4 h-4 mr-2 text-gray-500" />
+                          <Archive className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                           {t('nav.archivedItems')}
                         </Link>
                         {user.role !== 'police' && (
                           <Link
                             to="/hotspots"
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
                           >
-                            <MapIcon className="w-4 h-4 mr-2 text-gray-500" />
+                            <MapIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                             Hotspots Map
                           </Link>
                         )}
-                        <div className="h-px bg-gray-100 my-1"></div>
+                        <div className="h-px bg-gray-100 dark:bg-slate-700 my-1"></div>
                         <button 
                           onClick={logout}
-                          className="w-full text-left px-3 py-2 text-sm text-red-600 font-bold hover:bg-red-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 font-bold hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg flex items-center transition-colors"
                         >
                           <LogOut className="w-4 h-4 mr-2" />
                           {t('nav.logout')}
@@ -359,38 +359,38 @@ const Navbar: React.FC = () => {
               {/* Navigation Grid */}
               <div className="grid grid-cols-2 gap-3">
                 {user.role !== 'police' && (
-                  <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-colors">
+                  <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
                     <ShieldCheck className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">{t('nav.smartTags')}</span>
                   </Link>
                 )}
                 {user.role === 'police' && (
-                  <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors">
+                  <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
                     <Building className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">{t('nav.stationDashboard')}</span>
                   </Link>
                 )}
                 {user.role === 'admin' && (
-                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 hover:bg-red-100 transition-colors">
-                    <ShieldAlert className="w-6 h-6 mb-2 text-red-600" />
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                    <ShieldAlert className="w-6 h-6 mb-2" />
                     <span className="text-sm font-bold text-center">Admin Panel</span>
                   </Link>
                 )}
                 {user.role !== 'police' && (
-                  <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                  <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
                     <BarChart3 className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">{t('nav.analytics')}</span>
                   </Link>
                 )}
                 {user.role !== 'police' && (
-                  <Link to="/hotspots" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-colors">
+                  <Link to="/hotspots" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
                     <MapIcon className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">Hotspots Map</span>
                   </Link>
                 )}
                 
                 {/* On mobile devices, we show inbox & post item in the drawer since they are hidden in the nav. On desktop they are redundant but harmless. */}
-                <Link to="/inbox" onClick={() => { setIsMobileMenuOpen(false); setUnreadCount(0); }} className="relative flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors lg:hidden">
+                <Link to="/inbox" onClick={() => { setIsMobileMenuOpen(false); setUnreadCount(0); }} className="relative flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors lg:hidden">
                   <MessageSquare className="w-6 h-6 mb-2" />
                   <span className="text-sm font-semibold text-center">{t('nav.inbox')}</span>
                   {unreadCount > 0 && (
@@ -400,23 +400,23 @@ const Navbar: React.FC = () => {
                   )}
                 </Link>
                 
-                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
-                  <UserIcon className="w-6 h-6 mb-2 text-slate-500" />
+                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  <UserIcon className="w-6 h-6 mb-2" />
                   <span className="text-sm font-semibold text-center">{t('nav.profile')}</span>
                 </Link>
-                <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50/50 text-[#800000] rounded-xl border border-red-100 hover:bg-red-50 transition-colors">
+                <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50/50 dark:bg-red-900/20 text-[#800000] dark:text-red-400 rounded-xl border border-red-100 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors">
                   <Archive className="w-6 h-6 mb-2" />
                   <span className="text-sm font-semibold text-center">{t('nav.archivedItems')}</span>
                 </Link>
                 
                 {user.role !== 'police' && (
-                  <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20 hover:bg-[#800000]/20 transition-colors lg:hidden">
+                  <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-[#800000]/10 dark:bg-[#800000]/20 text-[#800000] dark:text-red-400 rounded-xl border border-[#800000]/20 dark:border-[#800000]/40 hover:bg-[#800000]/20 dark:hover:bg-[#800000]/30 transition-colors lg:hidden">
                     <PlusCircle className="w-6 h-6 mb-2" />
                     <span className="text-sm font-bold text-center">{t('nav.postItem')}</span>
                   </Link>
                 )}
                 {user.role !== 'police' && (
-                  <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 hover:bg-amber-100 transition-colors col-span-2">
+                  <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">
                     <Wallet className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">Tip History</span>
                   </Link>
