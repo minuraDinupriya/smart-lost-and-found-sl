@@ -92,8 +92,8 @@ const Navbar: React.FC = () => {
           
           {/* Navigation Controls & Logo */}
           <div className="flex items-center">
-            {location.pathname !== '/' && (
-              <div className="flex items-center space-x-2 mr-4">
+            <div className="flex items-center space-x-2 mr-4">
+              {location.pathname !== '/' && (
                 <button
                   onClick={() => navigate(-1)}
                   className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
@@ -101,15 +101,15 @@ const Navbar: React.FC = () => {
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <Link
-                  to="/"
-                  className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
-                  title="Go Home"
-                >
-                  <Home className="w-5 h-5" />
-                </Link>
-              </div>
-            )}
+              )}
+              <Link
+                to="/"
+                className="p-2 bg-gray-50 text-gray-600 hover:text-[#800000] hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                title="Go Home"
+              >
+                <Home className="w-5 h-5" />
+              </Link>
+            </div>
             
             {/* Logo & Brand */}
             <a href="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
