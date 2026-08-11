@@ -47,6 +47,18 @@ const InboxPage: React.FC = () => {
     fetchInbox();
   }, []);
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.put('/messages/mark-all-read');
+      setThreads(threads.map(thread => ({
+        ...thread,
+        isRead: true
+      })));
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+    }
+  };
+
   // Helper function to detect AI System Alerts
   const isSystemAlert = (text: string) => text.includes('🤖 AI VISUAL MATCH') || text.includes('🤖 AI NLP MATCH') || text.includes('🤖 AUTOMATIC SMART MATCH DETECTED');
 
@@ -83,14 +95,24 @@ const InboxPage: React.FC = () => {
     <>
     <PageNavigation />
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="p-3 bg-[#800000]/10 rounded-2xl">
-          <MessageSquare className="w-8 h-8 text-[#800000]" />
+      <div className="flex justify-between items-start sm:items-center flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-[#800000]/10 rounded-2xl">
+            <MessageSquare className="w-8 h-8 text-[#800000]" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Active Inquiries</h1>
+            <p className="text-slate-500 dark:text-slate-400">Manage your private negotiations and system alerts.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Active Inquiries</h1>
-          <p className="text-slate-500 dark:text-slate-400">Manage your private negotiations and system alerts.</p>
-        </div>
+        {threads.some(t => !t.isRead && t.receiverId._id === user?._id) && (
+          <button 
+            onClick={handleMarkAllAsRead}
+            className="text-sm font-semibold text-[#800000] bg-[#800000]/10 hover:bg-[#800000]/20 dark:text-red-400 dark:bg-red-400/10 dark:hover:bg-red-400/20 px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+          >
+            Mark all as read
+          </button>
+        )}
       </div>
 
       {loading ? (

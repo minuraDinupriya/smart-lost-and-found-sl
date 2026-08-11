@@ -370,13 +370,13 @@ const PostItemPage: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8"
+      className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 sm:p-8"
     >
-      <div className="mb-8 border-b border-gray-100 pb-6">
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+      <div className="mb-8 border-b border-gray-100 dark:border-slate-700 pb-6">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
           Report an Item
         </h2>
-        <p className="text-gray-500 mt-2">
+        <p className="text-gray-500 dark:text-gray-400 mt-2">
           Help reunite lost assets with their rightful owners across Sri Lanka.
         </p>
       </div>
@@ -385,16 +385,16 @@ const PostItemPage: React.FC = () => {
       {/* Stepper Progress */}
       <div className="mb-8">
         <div className="flex items-center justify-between relative">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 rounded-full z-0"></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 dark:bg-slate-800 rounded-full z-0"></div>
           <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#800000] rounded-full z-0 transition-all duration-500" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
           
           {[1, 2, 3, 4].map((step) => (
-            <div key={step} className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all duration-300 ${currentStep === step ? "bg-[#800000] text-white shadow-lg shadow-[#800000]/30 scale-110" : currentStep > step ? "bg-[#800000] text-white" : "bg-white border-2 border-gray-200 text-gray-400"}`}>
+            <div key={step} className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all duration-300 ${currentStep === step ? "bg-[#800000] text-white shadow-lg shadow-[#800000]/30 scale-110" : currentStep > step ? "bg-[#800000] text-white" : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-600 text-gray-400"}`}>
               {step}
             </div>
           ))}
         </div>
-        <div className="flex justify-between mt-3 text-xs font-semibold text-gray-500">
+        <div className="flex justify-between mt-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
           <span className={currentStep === 1 ? "text-[#800000]" : ""}>Intent</span>
           <span className={currentStep === 2 ? "text-[#800000]" : ""}>Details (AI)</span>
           <span className={currentStep === 3 ? "text-[#800000]" : ""}>Location</span>
@@ -453,21 +453,21 @@ const PostItemPage: React.FC = () => {
             </div>
             
             {/* Core Details */}
-            <div className="space-y-4 pt-6 border-t border-gray-100">
-              <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
+            <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">
             Core Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Category
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               >
                 <option value="Electronics">
                   Electronics (Phones, Laptops)
@@ -484,7 +484,7 @@ const PostItemPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Title
             </label>
             <input
@@ -494,13 +494,13 @@ const PostItemPage: React.FC = () => {
               value={formData.title}
               onChange={handleInputChange}
               placeholder="e.g., iPhone 13 Pro Max - Black"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Color (Optional)
               </label>
               <input
@@ -509,11 +509,11 @@ const PostItemPage: React.FC = () => {
                 value={formData.color}
                 onChange={handleInputChange}
                 placeholder="e.g., Black, Navy Blue"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Brand (Optional)
               </label>
               <input
@@ -522,11 +522,11 @@ const PostItemPage: React.FC = () => {
                 value={formData.brand}
                 onChange={handleInputChange}
                 placeholder="e.g., Samsung, Apple"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Model (Optional)
               </label>
               <input
@@ -535,13 +535,13 @@ const PostItemPage: React.FC = () => {
                 value={formData.model}
                 onChange={handleInputChange}
                 placeholder="e.g., Galaxy A52"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Description
             </label>
             <textarea
@@ -551,11 +551,11 @@ const PostItemPage: React.FC = () => {
               value={formData.description}
               onChange={handleInputChange}
               placeholder="Provide details like colors, specific marks, or brands..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
             ></textarea>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Date
             </label>
             <input
@@ -564,7 +564,7 @@ const PostItemPage: React.FC = () => {
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
             />
           </div>
         </div>
@@ -575,8 +575,8 @@ const PostItemPage: React.FC = () => {
         {currentStep === 3 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
           {/* Location & Interactive Map */}
-        <div className="space-y-4 pt-6 border-t border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
+        <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">
             Geographic Registration
           </h3>
           <LocationSelector
@@ -585,10 +585,10 @@ const PostItemPage: React.FC = () => {
           />
 
           <div className="mt-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Pinpoint Exact Location (Optional)
             </label>
-            <div className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 z-0 relative shadow-inner mb-2">
+            <div className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-600 z-0 relative shadow-inner mb-2">
               <MapContainer
                 center={[7.8731, 80.7718]}
                 zoom={7}
@@ -606,7 +606,7 @@ const PostItemPage: React.FC = () => {
 
             {/* Police Station Suggestion Widget */}
             {formData.type === "FOUND" && isSearchingPolice && (
-              <div className="flex items-center text-sm text-gray-500 animate-pulse bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 animate-pulse bg-gray-50 dark:bg-slate-900 p-3 rounded-xl border border-gray-100 dark:border-slate-700 mt-2">
                 <div className="w-4 h-4 border-2 border-[#800000] border-t-transparent rounded-full animate-spin mr-3"></div>
                 Scanning for nearest police stations...
               </div>
@@ -616,7 +616,7 @@ const PostItemPage: React.FC = () => {
               !isSearchingPolice &&
               hasSearchedPolice &&
               !nearestPolice && (
-                <div className="flex items-center text-sm text-gray-500 bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-900 p-3 rounded-xl border border-gray-100 dark:border-slate-700 mt-2">
                   <ShieldCheck className="w-5 h-5 text-gray-400 mr-2" />
                   No police stations detected within a 15km radius.
                 </div>
@@ -655,7 +655,7 @@ const PostItemPage: React.FC = () => {
                           Get Directions
                         </a>
 
-                        <label className="flex items-center space-x-2 cursor-pointer bg-white/60 px-3 py-2 rounded-lg border border-blue-200 hover:bg-white transition-colors">
+                        <label className="flex items-center space-x-2 cursor-pointer bg-white dark:bg-slate-800/60 px-3 py-2 rounded-lg border border-blue-200 hover:bg-white dark:bg-slate-800 transition-colors">
                           <input
                             type="checkbox"
                             checked={formData.handedToPolice}
@@ -685,16 +685,16 @@ const PostItemPage: React.FC = () => {
         {currentStep === 4 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
           {/* Digital Proof of Ownership */}
-        <div className="space-y-4 pt-6 border-t border-gray-100">
+        <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">
               Digital Proof of Ownership
             </h3>
-            <span className="text-xs text-gray-400 font-semibold bg-gray-100 px-2 py-1 rounded-md">
+            <span className="text-xs text-gray-400 font-semibold bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">
               Confidential Layer
             </span>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Add private ownership details (e.g. serial numbers, IMEIs, receipts,
             or unique physical marks). These details are stored securely and{" "}
             <strong>never shown to the public or finder</strong>. They are only
@@ -707,7 +707,7 @@ const PostItemPage: React.FC = () => {
               {ownershipProofs.map((proof, index) => (
                 <div
                   key={index}
-                  className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-xl"
+                  className="flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-xl"
                 >
                   <div>
                     <div className="text-[10px] uppercase font-bold text-gray-400">
@@ -715,7 +715,7 @@ const PostItemPage: React.FC = () => {
                         ? `Custom: ${proof.customLabel}`
                         : proof.proofType}
                     </div>
-                    <div className="text-sm font-semibold text-gray-700 truncate max-w-[200px]">
+                    <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
                       {proof.proofValue}
                     </div>
                   </div>
@@ -736,10 +736,10 @@ const PostItemPage: React.FC = () => {
           )}
 
           {/* Form to add a new proof */}
-          <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl p-4 space-y-4">
+          <div className="bg-gray-50 dark:bg-slate-900/50 border border-dashed border-gray-200 dark:border-slate-600 rounded-2xl p-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
                   Proof Type
                 </label>
                 <select
@@ -748,7 +748,7 @@ const PostItemPage: React.FC = () => {
                     setNewProofType(e.target.value);
                     if (e.target.value !== "custom") setNewCustomLabel("");
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
                 >
                   <option value="serialNumber">Serial Number</option>
                   <option value="imei">IMEI Number</option>
@@ -768,7 +768,7 @@ const PostItemPage: React.FC = () => {
               </div>
               {newProofType === "custom" && (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
                     Custom Label Name
                   </label>
                   <input
@@ -776,13 +776,13 @@ const PostItemPage: React.FC = () => {
                     value={newCustomLabel}
                     onChange={(e) => setNewCustomLabel(e.target.value)}
                     placeholder="e.g. Frame Number, Keyring details"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
                   />
                 </div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
                 Proof Description/Value
               </label>
               <textarea
@@ -790,7 +790,7 @@ const PostItemPage: React.FC = () => {
                 value={newProofValue}
                 onChange={(e) => setNewProofValue(e.target.value)}
                 placeholder="Enter exact serial/code value, or a detailed description of the mark..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
               />
             </div>
             <button
@@ -804,13 +804,13 @@ const PostItemPage: React.FC = () => {
         </div>
 
         {/* Security / Blind Claim */}
-        <div className="space-y-4 pt-6 border-t border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">
+        <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">
             Verification & Contact
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Contact Number
               </label>
               <input
@@ -820,11 +820,11 @@ const PostItemPage: React.FC = () => {
                 value={formData.contactNumber}
                 onChange={handleInputChange}
                 placeholder="07XXXXXXXX"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Security Question (Blind Claim Protocol)
               </label>
               <input
@@ -833,9 +833,9 @@ const PostItemPage: React.FC = () => {
                 value={formData.securityQuestion}
                 onChange={handleInputChange}
                 placeholder="e.g., What is the lock screen wallpaper?"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
-              <p className="text-xs text-gray-500 mt-1.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                 If posted as FOUND, claimants must answer this to verify
                 ownership.
               </p>
@@ -846,11 +846,11 @@ const PostItemPage: React.FC = () => {
         )}
 
         {currentStep > 1 && (
-          <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-100">
+          <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-100 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setCurrentStep(prev => prev - 1)}
-              className="flex items-center px-6 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold transition-colors"
+              className="flex items-center px-6 py-3 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 rounded-xl font-semibold transition-colors"
             >
               <ChevronLeft className="w-5 h-5 mr-2" />
               Back
