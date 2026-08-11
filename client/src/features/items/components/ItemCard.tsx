@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Calendar, Phone, Image as ImageIcon, CheckCircle, ShieldCheck, ImageOff, ShieldQuestion } from 'lucide-react';
+import { MapPin, Calendar, Phone, Image as ImageIcon, CheckCircle, ShieldCheck, ImageOff, ShieldQuestion, User } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
@@ -188,6 +188,10 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
 
         {/* Structured Metadata block */}
         <div className="space-y-2.5 mb-5 bg-gray-50 dark:bg-slate-700/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+            <User className="w-4 h-4 mr-2.5 text-[#800000]" />
+            <span>{typeof item.createdBy === 'object' && item.createdBy?.username ? `@${item.createdBy.username}` : 'Unknown User'}</span>
+          </div>
           <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             <MapPin className="w-4 h-4 mr-2.5 text-[#800000]" />
             <span className="truncate">{item.city}, {item.district}</span>
