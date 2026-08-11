@@ -1,8 +1,8 @@
 const fs = require('fs');
 
 const files = [
-  'client/src/features/admin/pages/AdminDashboardPage.tsx',
-  'client/src/features/police/pages/PoliceDashboardPage.tsx'
+  'client/src/features/items/pages/PostItemPage.tsx',
+  'client/src/features/items/pages/EditItemPage.tsx'
 ];
 
 const replacements = [

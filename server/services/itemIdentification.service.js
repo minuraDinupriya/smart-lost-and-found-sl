@@ -106,7 +106,7 @@ The JSON object MUST strictly follow this exact format:
   "brandConfidence": 0.84,
   "model": "Specific model if confidently identifiable (e.g. HB #2, Galaxy S21, MacBook Pro) or 'Could not identify'",
   "modelConfidence": 0.65,
-  "description": "A detailed 1-2 sentence description of the item including visible colors, shape, markings, and condition."
+  "description": "A detailed 1-2 sentence description of ONLY the item itself, including visible colors, shape, markings, and condition. DO NOT describe the background, environment, or the surface the item is resting on."
 }
 
 Rules:
@@ -114,6 +114,7 @@ Rules:
 - Analyze the ACTUAL image provided. Do NOT return generic placeholder text.
 - If a detail (color, brand, model) cannot be identified from the image, set its value to "Could not identify" and its confidence score to null.
 - Do NOT invent or fabricate details not visible in the image.
+- CRITICAL: Describe ONLY the object. Completely ignore and do not mention the background, environment, hands holding the object, tables, outdoors, etc.
     `;
 
     // Fetch available models dynamically
