@@ -757,9 +757,5 @@ module.exports = {
   resolvePoliceItem,
   getArchivedItems,
   identifyItem,
-<<<<<<< HEAD
   analyzeVoiceReport: analyzeVoiceReportController
-=======
-  verifyOwnership,
->>>>>>> 1574f35b4a3d9a5927d1ab4c820eeb51367fe785
 };
