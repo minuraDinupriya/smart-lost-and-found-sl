@@ -11,6 +11,7 @@ const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,7 +74,7 @@ const RegisterPage: React.FC = () => {
             </label>
             <input
               id="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#800000]/10 focus:border-[#800000] transition-all outline-none text-gray-900 bg-gray-50 focus:bg-white"
@@ -87,13 +88,24 @@ const RegisterPage: React.FC = () => {
             </label>
             <input
               id="confirmPassword"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-[#800000]/10 focus:border-[#800000] transition-all outline-none text-gray-900 bg-gray-50 focus:bg-white"
               placeholder="Confirm your password"
             />
           </div>
+
+          <label className="flex items-center gap-2 text-sm text-gray-600" htmlFor="showPassword">
+            <input
+              id="showPassword"
+              type="checkbox"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+              className="h-4 w-4 accent-[#800000]"
+            />
+            Show password
+          </label>
 
           <button
             type="submit"
