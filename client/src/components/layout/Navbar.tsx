@@ -156,6 +156,15 @@ const Navbar: React.FC = () => {
               </select>
             </div>
 
+            {/* Quick Theme Toggle */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:text-[#800000] dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors border border-gray-200 dark:border-slate-700 shadow-sm"
+              title="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
 
 
 
