@@ -112,7 +112,7 @@ const createTip = async (req, res) => {
 
     await tip.save();
 
-    // 5. Initiate Payment Checkout Session
+    // 5. Initiate Payment Checkout Session (Returns PayHere Config)
     const hostUrl = req.headers.origin || process.env.CLIENT_URL || 'http://localhost:5173';
     const paymentSession = await paymentService.createCheckoutSession(tip, hostUrl);
 
@@ -124,6 +124,7 @@ const createTip = async (req, res) => {
       message: 'Payment session created successfully.',
       tip,
       checkoutUrl: paymentSession.url,
+      payhereConfig: paymentSession.payhereConfig,
       isMock: paymentSession.isMock,
     });
   } catch (error) {
@@ -220,7 +221,7 @@ const updateTipPaymentStatus = async (req, res) => {
     }
 
     // Call payment service to check status
-    const verification = await paymentService.verifyPayment(paymentReference);
+    const verification = await paymentService.verifyPayment(paymentReference, tip);
 
     if (verification.status === 'paid') {
       tip.paymentStatus = 'paid';
@@ -370,6 +371,92 @@ const skipTip = async (req, res) => {
   }
 };
 
+/**
+ * PayHere IPN Webhook
+ * This is called asynchronously by PayHere servers when a payment completes
+ */
+const payhereNotify = async (req, res) => {
+  try {
+    const isValid = paymentService.verifyPayHereIPN(req.body);
+    if (!isValid) {
+      console.warn('Invalid PayHere IPN signature');
+      return res.status(400).send('Invalid Signature');
+    }
+
+    const { order_id, status_code } = req.body;
+    
+    // Status Code 2 means success
+    if (status_code !== '2') {
+      return res.status(200).send('Status not successful, ignored.');
+    }
+
+    const tip = await Tip.findOne({ paymentReference: order_id });
+    if (!tip) {
+      console.warn(`PayHere IPN tip not found for order: ${order_id}`);
+      return res.status(404).send('Tip not found');
+    }
+
+    if (tip.paymentStatus === 'paid') {
+      return res.status(200).send('Already processed');
+    }
+
+    tip.paymentStatus = 'paid';
+    await tip.save();
+
+    // Trigger Payout Escrow logic (same as old verify logic)
+    const owner = await User.findById(tip.ownerId);
+    const finder = await User.findById(tip.finderId);
+    const returnRec = await ReturnRecord.findById(tip.returnRecordId).populate('itemId');
+    const itemTitle = returnRec?.itemId?.title || 'Returned Item';
+
+    let finderMessage = '';
+    if (finder.bankDetails && finder.bankDetails.accountNumber) {
+      const payoutResult = await paymentService.initiatePayout(tip, finder);
+      if (payoutResult.status === 'completed') {
+        tip.payoutStatus = 'completed';
+        finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! The money has been transferred to your bank account.`;
+      } else {
+        tip.payoutStatus = 'pending';
+        finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'}! We had trouble transferring it to your bank. Please check your bank details in your profile.`;
+      }
+    } else {
+      tip.payoutStatus = 'pending';
+      finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! Please add your bank details in your Profile to receive the money.`;
+    }
+    await tip.save();
+
+    const finderNotification = await Notification.create({
+      userId: tip.finderId,
+      message: finderMessage,
+      type: 'TIP_RECEIVED',
+    });
+    emitGlobalNotification(tip.finderId, {
+      _id: finderNotification._id,
+      text: finderMessage,
+      type: 'TIP_RECEIVED',
+      createdAt: finderNotification.createdAt,
+    });
+
+    const ownerMessage = `Your reward tip of Rs. ${tip.amount} to @${finder?.username || 'Finder'} for "${itemTitle}" was sent successfully.`;
+    const ownerNotification = await Notification.create({
+      userId: tip.ownerId,
+      message: ownerMessage,
+      type: 'TIP_SENT',
+    });
+    emitGlobalNotification(tip.ownerId, {
+      _id: ownerNotification._id,
+      text: ownerMessage,
+      type: 'TIP_SENT',
+      createdAt: ownerNotification.createdAt,
+    });
+
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('PayHere Notify Error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
 module.exports = {
   createTip,
   getTipById,
@@ -377,4 +464,5 @@ module.exports = {
   updateTipPaymentStatus,
   getReturnRecordById,
   skipTip,
+  payhereNotify,
 };
