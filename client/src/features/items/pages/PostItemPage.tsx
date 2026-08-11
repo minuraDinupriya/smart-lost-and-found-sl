@@ -9,6 +9,7 @@ import LocationSelector, {
   LocationState,
 } from "../components/LocationSelector";
 import AIItemIdentifier from "../components/AIItemIdentifier";
+import policeStationsData from "../../data/policeStations.json";
 import VoiceReporter from "../components/VoiceReporter";
 import { ShieldCheck, Navigation, Search, CheckCircle2, ChevronRight, ChevronLeft, Sparkles, MapPin, FileCheck } from "lucide-react";
 import "leaflet/dist/leaflet.css";
@@ -183,65 +184,54 @@ const PostItemPage: React.FC = () => {
         }
       };
 
-      const fetchPolice = async () => {
+      const fetchPolice = () => {
         if (formData.type !== "FOUND") return;
         setIsSearchingPolice(true);
         setNearestPolice(null);
-        try {
-          // Use our reliable backend proxy to query Overpass API to bypass Browser CORS/WAF blocks
-          const baseUrl =
-            import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-          const url = `${baseUrl}/items/nearest-police?lat=${mapPosition[0]}&lng=${mapPosition[1]}`;
-          const response = await fetch(url);
-          const data = await response.json();
+        
+        let closest: {
+          name: string;
+          lat: number;
+          lon: number;
+          distance: number;
+        } | null = null;
+        let minDistance = Infinity;
 
-          if (data.elements && data.elements.length > 0) {
-            let closest: {
-              name: string;
-              lat: number;
-              lon: number;
-              distance: number;
-            } | null = null;
-            let minDistance = Infinity;
+        // Fast local search: O(N) where N=491 takes < 1ms
+        policeStationsData.forEach((el: any) => {
+          const elLat = el.lat;
+          const elLon = el.lon;
 
-            data.elements.forEach((el: any) => {
-              const elLat = el.lat || (el.center && el.center.lat);
-              const elLon = el.lon || (el.center && el.center.lon);
-
-              if (elLat && elLon) {
-                const dist = getDistanceFromLatLonInKm(
-                  mapPosition[0],
-                  mapPosition[1],
-                  elLat,
-                  elLon,
-                );
-                if (dist < minDistance) {
-                  minDistance = dist;
-                  closest = {
-                    name: el.tags?.name || "Local Police Station",
-                    lat: elLat,
-                    lon: elLon,
-                    distance: dist,
-                  };
-                }
-              }
-            });
-
-            if (closest) {
-              const stationName = (closest as any).name;
-              setNearestPolice(closest);
-              setFormData((prev) => ({
-                ...prev,
-                policeStationName: stationName,
-              }));
+          if (elLat && elLon) {
+            const dist = getDistanceFromLatLonInKm(
+              mapPosition[0],
+              mapPosition[1],
+              elLat,
+              elLon,
+            );
+            if (dist < 15 && dist < minDistance) {
+              minDistance = dist;
+              closest = {
+                name: el.name || "Local Police Station",
+                lat: elLat,
+                lon: elLon,
+                distance: dist,
+              };
             }
           }
-        } catch (error) {
-          console.error("Failed to find police station", error);
-        } finally {
-          setIsSearchingPolice(false);
-          setHasSearchedPolice(true);
+        });
+
+        if (closest) {
+          const stationName = (closest as any).name;
+          setNearestPolice(closest);
+          setFormData((prev) => ({
+            ...prev,
+            policeStationName: stationName,
+          }));
         }
+
+        setIsSearchingPolice(false);
+        setHasSearchedPolice(true);
       };
 
       // 500ms debounce
