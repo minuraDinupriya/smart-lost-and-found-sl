@@ -116,26 +116,28 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-6 lg:mx-10">
-            <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
-              <Search className="absolute left-4 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by item name or description..."
-                value={navSearch}
-                onChange={(e) => setNavSearch(e.target.value)}
-                className="w-full pl-12 pr-14 py-2.5 rounded-full border border-gray-200 dark:border-slate-700 focus:ring-2 focus:ring-[#800000]/20 dark:focus:ring-red-400/20 focus:border-[#800000] dark:focus:border-red-400 outline-none transition-all bg-gray-50/50 dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 focus:bg-white dark:focus:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-sm shadow-sm"
-              />
-              <button
-                type="button"
-                onClick={handleFilterClick}
-                className="absolute right-2 p-1.5 text-gray-400 hover:text-[#800000] hover:bg-red-50 rounded-full transition-colors"
-                title="Search & Filter"
-              >
-                <Filter className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
+          {!['/login', '/register'].includes(location.pathname) && (
+            <div className="hidden md:flex flex-1 max-w-xl mx-6 lg:mx-10">
+              <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
+                <Search className="absolute left-4 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by item name or description..."
+                  value={navSearch}
+                  onChange={(e) => setNavSearch(e.target.value)}
+                  className="w-full pl-12 pr-14 py-2.5 rounded-full border border-gray-200 dark:border-slate-700 focus:ring-2 focus:ring-[#800000]/20 dark:focus:ring-red-400/20 focus:border-[#800000] dark:focus:border-red-400 outline-none transition-all bg-gray-50/50 dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 focus:bg-white dark:focus:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-sm shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={handleFilterClick}
+                  className="absolute right-2 p-1.5 text-gray-400 hover:text-[#800000] hover:bg-red-50 rounded-full transition-colors"
+                  title="Search & Filter"
+                >
+                  <Filter className="w-5 h-5" />
+                </button>
+              </form>
+            </div>
+          )}
 
           {/* Right Side: Lang + Auth + Desktop Links + Hamburger */}
           <div className="flex items-center space-x-3 sm:space-x-5">
