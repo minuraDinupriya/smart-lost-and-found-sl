@@ -62,8 +62,27 @@ The JSON object MUST adhere to this exact format:
   }
 }
     `;
+    // Fetch available models dynamically
+    let availableModel = 'gemini-2.5-flash'; // Fallback default
+    try {
+      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listRes = await fetch(listUrl);
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        const models = listData.models || [];
+        const validModel = models.find(m => 
+          m.supportedGenerationMethods.includes('generateContent') && 
+          m.name.includes('flash')
+        );
+        if (validModel) {
+          availableModel = validModel.name.replace('models/', '');
+        }
+      }
+    } catch (err) {
+      console.warn('[AI Service] Failed to list models in voice report, using default:', err.message);
+    }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${availableModel}:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',

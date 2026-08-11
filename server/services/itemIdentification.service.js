@@ -116,8 +116,29 @@ Rules:
 - Do NOT invent or fabricate details not visible in the image.
     `;
 
-    // Strategy 1: Try using @google/generative-ai SDK
-    const modelNames = ['gemini-1.5-flash'];
+    // Fetch available models dynamically
+    let availableModel = 'gemini-2.5-flash'; // Fallback default
+    try {
+      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listRes = await fetch(listUrl);
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        // Find a model that supports generateContent and contains 'flash'
+        const models = listData.models || [];
+        const validModel = models.find(m => 
+          m.supportedGenerationMethods.includes('generateContent') && 
+          m.name.includes('flash')
+        );
+        if (validModel) {
+          availableModel = validModel.name.replace('models/', '');
+          console.log('[AI Service] Dynamically selected model:', availableModel);
+        }
+      }
+    } catch (err) {
+      console.warn('[AI Service] Failed to list models, using default:', err.message);
+    }
+
+    const modelNames = [availableModel];
     let lastError = null;
 
     for (const modelName of modelNames) {
@@ -188,7 +209,7 @@ Rules:
 
     // Strategy 2: Direct REST fetch fallback if SDK calls failed
     try {
-      const restUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const restUrl = `https://generativelanguage.googleapis.com/v1beta/models/${availableModel}:generateContent?key=${apiKey}`;
       const restRes = await fetch(restUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
