@@ -11,8 +11,8 @@ import HandoverBanner from '../components/HandoverBanner';
 import PageNavigation from '../../../components/common/PageNavigation';
 interface Message {
   _id: string;
-  senderId: string;
-  receiverId: string;
+  senderId: any;
+  receiverId: any;
   text: string;
   createdAt: string;
 }
@@ -25,6 +25,7 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [receiverId, setReceiverId] = useState<string | null>(null);
+  const [receiverName, setReceiverName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   
   // Digital Proof of Ownership Claim States
@@ -54,6 +55,28 @@ const ChatPage: React.FC = () => {
         setMessages(fetchedMessages);
 
         setReceiverId(otherUserId || null);
+        
+        // Dynamically determine the correct receiverName
+        let computedReceiverName = itemRes.data.createdBy.username || 'User';
+        if (user && fetchedMessages.length > 0) {
+           const relevantMsg = fetchedMessages.find((m: any) => 
+               (m.senderId && (m.senderId._id || m.senderId) === user._id) || 
+               (m.receiverId && (m.receiverId._id || m.receiverId) === user._id)
+           );
+           if (relevantMsg) {
+             const sender = relevantMsg.senderId;
+             const receiver = relevantMsg.receiverId;
+             const senderIdStr = sender._id || sender;
+             const receiverIdStr = receiver._id || receiver;
+             
+             if (senderIdStr === user._id) {
+               computedReceiverName = receiver.username || computedReceiverName;
+             } else {
+               computedReceiverName = sender.username || computedReceiverName;
+             }
+           }
+        }
+        setReceiverName(computedReceiverName);
       } catch (error) {
         console.error("Failed to load chat data", error);
       } finally {
@@ -182,12 +205,15 @@ const ChatPage: React.FC = () => {
       {/* Header & Warning Context */}
       <div className="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center border border-emerald-200">
-             <AlertCircle className="w-5 h-5 text-emerald-600" />
+          <div className="w-10 h-10 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-lg shadow-sm">
+             {receiverName ? receiverName.charAt(0).toUpperCase() : '?'}
           </div>
           <div>
-            <h2 className="font-bold text-gray-900 leading-tight">Secure Negotiation Room</h2>
-            <p className="text-xs text-gray-500 font-medium">Blind Claim Protocol Active - Verify ownership proof.</p>
+            <h2 className="font-bold text-gray-900 leading-tight">{receiverName || 'Secure Room'}</h2>
+            <p className="text-xs text-emerald-600 font-medium flex items-center mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+              Online
+            </p>
           </div>
         </div>
 
@@ -238,39 +264,70 @@ const ChatPage: React.FC = () => {
           </div>
         ) : (
           messages.map((msg, index) => {
+            const senderIdStr = msg.senderId?._id || msg.senderId;
             // Correct alignment logic mapping for UI
-            const alignRight = msg.senderId === user?._id; 
+            const alignRight = senderIdStr === user?._id; 
             
             // Detect Item Links (e.g., /items/6a1409a94e364baf912eb68b)
             const itemRegex = /\/items\/([a-fA-F0-9]{24})/;
             const match = msg.text.match(itemRegex);
             const extractedItemId = match ? match[1] : null;
 
-            return (
-              <motion.div 
-                key={msg._id || index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${alignRight ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 shadow-sm text-sm ${
-                  alignRight 
-                    ? 'bg-[#800000] text-white rounded-2xl rounded-br-sm' 
-                    : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
-                }`}>
-                  {/* Render Text */}
-                  <span className="whitespace-pre-wrap">{msg.text}</span>
-                  
-                  {/* WhatsApp-style Rich Link Preview */}
-                  {extractedItemId && (
-                    <ItemLinkPreview itemId={extractedItemId} alignRight={alignRight} />
-                  )}
+            // Date separator logic
+            const msgDate = new Date(msg.createdAt || Date.now());
+            const prevMsgDate = index > 0 ? new Date(messages[index - 1].createdAt || Date.now()) : null;
+            
+            let showDateHeader = false;
+            let dateHeaderText = '';
+            
+            if (!prevMsgDate || msgDate.toDateString() !== prevMsgDate.toDateString()) {
+              showDateHeader = true;
+              const today = new Date();
+              const yesterday = new Date(today);
+              yesterday.setDate(yesterday.getDate() - 1);
+              
+              if (msgDate.toDateString() === today.toDateString()) {
+                dateHeaderText = 'Today';
+              } else if (msgDate.toDateString() === yesterday.toDateString()) {
+                dateHeaderText = 'Yesterday';
+              } else {
+                dateHeaderText = msgDate.toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+              }
+            }
 
-                  <div className={`text-[10px] mt-1.5 text-right font-medium ${alignRight ? 'text-white/60' : 'text-gray-400'}`}>
-                    {new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            return (
+              <React.Fragment key={msg._id || index}>
+                {showDateHeader && (
+                  <div className="flex justify-center my-4">
+                    <span className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full font-medium shadow-sm">
+                      {dateHeaderText}
+                    </span>
                   </div>
-                </div>
-              </motion.div>
+                )}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${alignRight ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 shadow-sm text-sm ${
+                    alignRight 
+                      ? 'bg-[#800000] text-white rounded-2xl rounded-br-sm' 
+                      : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
+                  }`}>
+                    {/* Render Text */}
+                    <span className="whitespace-pre-wrap">{msg.text}</span>
+                    
+                    {/* WhatsApp-style Rich Link Preview */}
+                    {extractedItemId && (
+                      <ItemLinkPreview itemId={extractedItemId} alignRight={alignRight} />
+                    )}
+
+                    <div className={`text-[10px] mt-1.5 text-right font-medium ${alignRight ? 'text-white/60' : 'text-gray-400'}`}>
+                      {msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </motion.div>
+              </React.Fragment>
             )
           })
         )}

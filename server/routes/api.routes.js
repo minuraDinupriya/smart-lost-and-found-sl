@@ -66,7 +66,9 @@ router.get('/messages/:itemId/:otherUserId', verifyToken, async (req, res) => {
         { senderId: req.userId, receiverId: req.params.otherUserId },
         { senderId: req.params.otherUserId, receiverId: req.userId }
       ]
-    }).sort({ createdAt: 1 });
+    }).sort({ createdAt: 1 })
+      .populate('senderId', 'username profilePicture')
+      .populate('receiverId', 'username profilePicture');
     res.status(200).json(messages);
   } catch (error) {
     console.error('Database message retrieval error:', error);
