@@ -75,10 +75,13 @@ const runAutonomousMatching = async (savedItem) => {
 
     for (const match of potentialMatches) {
       // PREVENT SELF-MATCHING
+      // TEMPORARILY DISABLED FOR TESTING PURPOSES
+      /*
       if (savedItem.createdBy.toString() === match.createdBy.toString()) {
         console.log(`-> Skipping "${match.title}": Created by the same user.\n`);
         continue;
       }
+      */
 
       let isMatch = false;
       let matchReason = '';
