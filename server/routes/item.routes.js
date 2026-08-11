@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyPolice } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems, identifyItem } = require('../controllers/item.controller');
+const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems, identifyItem, verifyOwnership } = require('../controllers/item.controller');
 
 // @route   POST /api/items/identify
 // @desc    Analyze uploaded item image with AI and suggest attributes
@@ -68,5 +68,10 @@ router.delete('/:itemId', verifyToken, deleteItem);
 // @desc    Mark an item as Claimed (Awards Karma Points)
 // @access  Private (Creator only)
 router.put('/:itemId/claim', verifyToken, claimItem);
+
+// @route   POST /api/items/:itemId/verify-ownership
+// @desc    Verify ownership proof fields
+// @access  Private (Authenticated users only)
+router.post('/:itemId/verify-ownership', verifyToken, verifyOwnership);
 
 module.exports = router;

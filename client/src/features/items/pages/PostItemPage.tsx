@@ -57,6 +57,36 @@ const PostItemPage: React.FC = () => {
   const [isSearchingPolice, setIsSearchingPolice] = useState(false);
   const [hasSearchedPolice, setHasSearchedPolice] = useState(false);
 
+  // Digital Proof of Ownership Composition State
+  const [ownershipProofs, setOwnershipProofs] = useState<{ proofType: string; customLabel: string; proofValue: string }[]>([]);
+  const [newProofType, setNewProofType] = useState('serialNumber');
+  const [newCustomLabel, setNewCustomLabel] = useState('');
+  const [newProofValue, setNewProofValue] = useState('');
+
+  const handleAddProof = () => {
+    if (!newProofValue.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Value required', text: 'Please enter a value or description for this proof.', confirmButtonColor: '#800000' });
+      return;
+    }
+    if (newProofType === 'custom' && !newCustomLabel.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Label required', text: 'Please enter a custom label name.', confirmButtonColor: '#800000' });
+      return;
+    }
+
+    setOwnershipProofs((prev) => [
+      ...prev,
+      {
+        proofType: newProofType,
+        customLabel: newProofType === 'custom' ? newCustomLabel.trim() : '',
+        proofValue: newProofValue.trim()
+      }
+    ]);
+
+    // reset composition states
+    setNewProofValue('');
+    setNewCustomLabel('');
+  };
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -220,6 +250,10 @@ const PostItemPage: React.FC = () => {
       }
       
       if (imageFile) data.append('image', imageFile);
+
+      if (ownershipProofs && ownershipProofs.length > 0) {
+        data.append('ownershipProofs', JSON.stringify(ownershipProofs));
+      }
 
       if (aiMetadata) {
         data.append('aiIdentified', 'true');
@@ -392,6 +426,97 @@ const PostItemPage: React.FC = () => {
                 </div>
               </motion.div>
             )}
+          </div>
+        </div>
+
+        {/* Digital Proof of Ownership */}
+        <div className="space-y-4 pt-6 border-t border-gray-100">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">Digital Proof of Ownership</h3>
+            <span className="text-xs text-gray-400 font-semibold bg-gray-100 px-2 py-1 rounded-md">Confidential Layer</span>
+          </div>
+          <p className="text-xs text-gray-500">
+            Add private ownership details (e.g. serial numbers, IMEIs, receipts, or unique physical marks). These details are stored securely and <strong>never shown to the public or finder</strong>. They are only used to verify your ownership when claiming.
+          </p>
+
+          {/* List of currently added proofs */}
+          {ownershipProofs.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              {ownershipProofs.map((proof, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-gray-400">
+                      {proof.proofType === 'custom' ? `Custom: ${proof.customLabel}` : proof.proofType}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700 truncate max-w-[200px]">
+                      {proof.proofValue}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOwnershipProofs(prev => prev.filter((_, i) => i !== index))}
+                    className="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Form to add a new proof */}
+          <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl p-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Proof Type</label>
+                <select
+                  value={newProofType}
+                  onChange={(e) => {
+                    setNewProofType(e.target.value);
+                    if (e.target.value !== 'custom') setNewCustomLabel('');
+                  }}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                >
+                  <option value="serialNumber">Serial Number</option>
+                  <option value="imei">IMEI Number</option>
+                  <option value="productId">Product ID / Code</option>
+                  <option value="receiptRef">Receipt / Invoice Reference</option>
+                  <option value="physicalMark">Unique Physical Mark / Scratch</option>
+                  <option value="specialFeature">Special Feature / Modification</option>
+                  <option value="engraving">Engraving / Text</option>
+                  <option value="custom">Custom ID Detail</option>
+                </select>
+              </div>
+              {newProofType === 'custom' && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Custom Label Name</label>
+                  <input
+                    type="text"
+                    value={newCustomLabel}
+                    onChange={(e) => setNewCustomLabel(e.target.value)}
+                    placeholder="e.g. Frame Number, Keyring details"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Proof Description/Value</label>
+              <textarea
+                rows={2}
+                value={newProofValue}
+                onChange={(e) => setNewProofValue(e.target.value)}
+                placeholder="Enter exact serial/code value, or a detailed description of the mark..."
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleAddProof}
+              className="w-full bg-gray-800 text-white text-xs font-bold py-2 rounded-xl hover:bg-gray-700 transition"
+            >
+              Add Proof Detail
+            </button>
           </div>
         </div>
 

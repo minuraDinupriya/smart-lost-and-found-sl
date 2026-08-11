@@ -55,6 +55,56 @@ const itemSchema = new mongoose.Schema(
       rawSuggestedDescription: String,
       timestamp: Date,
     },
+    // Digital Proof of Ownership Fields (Strictly Confidential)
+    ownershipProofs: [
+      {
+        proofType: {
+          type: String,
+          trim: true,
+        },
+        customLabel: {
+          type: String,
+          trim: true,
+        },
+        proofValue: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    verificationHistory: [
+      {
+        verifierId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        verifyingType: {
+          type: String,
+          enum: ['CLAIM_VERIFICATION', 'OWNER_CHECK'],
+          default: 'CLAIM_VERIFICATION',
+        },
+        overallStatus: {
+          type: String,
+          enum: ['VERIFIED', 'PARTIALLY_VERIFIED', 'NOT_VERIFIED'],
+          required: true,
+        },
+        scorePercentage: {
+          type: Number,
+          required: true,
+        },
+        verifiedCount: Number,
+        totalProofs: Number,
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     imageUrl: {
       type: String, // Will hold local Multer path first, then Cloudinary URL
       default: '',
