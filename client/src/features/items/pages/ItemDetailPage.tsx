@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
-import { Package, MapPin, Calendar, Tag, User, MessageCircle, AlertCircle } from 'lucide-react';
+import { Package, MapPin, Calendar, Tag, User, MessageCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useTranslation } from 'react-i18next';
 
