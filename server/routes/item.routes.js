@@ -3,6 +3,7 @@ const router = express.Router();
 const { verifyToken, verifyPolice } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems, identifyItem, analyzeVoiceReport, verifyOwnership } = require('../controllers/item.controller');
+const { getHotspots } = require('../controllers/hotspot.controller');
 
 
 // @route   POST /api/items/identify
@@ -19,6 +20,11 @@ router.post('/voice-analyze', verifyToken, upload.single('audio'), analyzeVoiceR
 // @desc    Verify digital ownership proofs for an item
 // @access  Private
 router.post('/:itemId/verify-ownership', verifyToken, verifyOwnership);
+
+// @route   GET /api/items/hotspots
+// @desc    Get aggregated hotspots for high-frequency lost items
+// @access  Public
+router.get('/hotspots', getHotspots);
 
 // @route   POST /api/items
 // @desc    Create a new item (requires authentication)
