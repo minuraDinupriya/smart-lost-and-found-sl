@@ -2,7 +2,6 @@ const stringSimilarity = require('string-similarity');
 const Item = require('../models/Item');
 const Message = require('../models/Message');
 const { calculateHammingDistance } = require('../utils/imageHash');
-const { calculateTextSimilarity } = require('../utils/textMatch');
 const { emitGlobalNotification } = require('../services/socket.service');
 const { identifyItemFromImage } = require('../services/itemIdentification.service');
 
@@ -148,9 +147,9 @@ const runAutonomousMatching = async (savedItem) => {
       console.log(`[Phase 2] 📝 Natural Language Processing (NLP) Engine:`);
       console.log(`-> Algorithm: Dice's Coefficient (String Similarity)`);
       
-      // 2. Evaluate Text Similarity
+      // 2. Evaluate Text Similarity (incorporating AI tags and Brand/Model precision boosts)
       if (!isMatch) {
-        const textScore = calculateTextSimilarity(savedItem, match);
+        const textScore = calculateMatchScore(savedItem, match);
         if (textScore >= 0.60) {
           isMatch = true;
           matchReason = `Text Similarity Match (Score: ${(textScore * 100).toFixed(1)}%)`;
