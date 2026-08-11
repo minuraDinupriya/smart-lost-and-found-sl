@@ -4,9 +4,10 @@ const translate = require('google-translate-api-x');
 const path = require('path');
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
-const { generateImageHash, calculateHammingDistance } = require('../utils/imageHash');
-const { calculateTextSimilarity } = require('../utils/textMatch');
+const { generateImageHash } = require('../utils/imageHash');
 const { identifyItemFromImage } = require('../services/itemIdentification.service');
+const { analyzeVoiceReport } = require('../services/voiceReporting.service');
+const { runAutonomousMatching } = require('../services/matching.service');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -30,6 +31,17 @@ const createItem = async (req, res) => {
       aiIdentificationParsed = itemData.aiIdentification;
     }
 
+    let ownershipProofsParsed = [];
+    if (itemData.ownershipProofs && typeof itemData.ownershipProofs === 'string') {
+      try {
+        ownershipProofsParsed = JSON.parse(itemData.ownershipProofs);
+      } catch (e) {
+        ownershipProofsParsed = [];
+      }
+    } else if (itemData.ownershipProofs && Array.isArray(itemData.ownershipProofs)) {
+      ownershipProofsParsed = itemData.ownershipProofs;
+    }
+
     let titleSi, titleTa, descriptionSi, descriptionTa;
     try {
        if (itemData.title) {
@@ -47,8 +59,10 @@ const createItem = async (req, res) => {
     // Instantiate new Item, enforcing the createdBy user mapping from auth middleware
     const newItem = new Item({
       ...itemData,
+      ownershipProofs: ownershipProofsParsed,
       aiIdentified: itemData.aiIdentified === 'true' || itemData.aiIdentified === true,
       aiIdentification: aiIdentificationParsed || undefined,
+      ownershipProofs: ownershipProofsParsed,
       titleSi,
       titleTa,
       descriptionSi,
@@ -80,91 +94,8 @@ const createItem = async (req, res) => {
     
     // Skip matching engine for Smart Tags
     if (savedItem.type !== 'SMART_TAG') {
-      // Scan for visual and text matches asynchronously
-      const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
-    
-    // Fetch potential matches in the same category
-    Item.find({
-      type: oppositeType,
-      category: savedItem.category
-    }).then(potentialMatches => {
-      console.log(`\n=========================================================`);
-      console.log(`🧠 [AI MATCHING ENGINE] - STARTING ANALYSIS...`);
-      console.log(`=========================================================`);
-      console.log(`Target Item: "${savedItem.title}" (${savedItem.type})`);
-      console.log(`Scanning against: ${potentialMatches.length} ${oppositeType} items...\n`);
-
-      for (const match of potentialMatches) {
-        // PREVENT SELF-MATCHING: Do not match a user's newly posted item against their own previously posted items
-        if (savedItem.createdBy.toString() === match.createdBy.toString()) {
-          console.log(`-> Skipping "${match.title}": Created by the same user.\n`);
-          continue;
-        }
-
-        let isMatch = false;
-        let matchReason = '';
-        let matchPhase = ''; // 'VISUAL' or 'NLP'
-
-        console.log(`[Phase 1] 📷 Image Perceptual Hashing (pHash) Algorithm:`);
-        console.log(`-> Comparing Bitwise Hamming Distance against: "${match.title}"`);
-        // 1. Evaluate Image Similarity (if both have images)
-        if (savedItem.imageHash && match.imageHash) {
-          const distance = calculateHammingDistance(savedItem.imageHash, match.imageHash);
-          if (distance !== null && distance <= 10) {
-            isMatch = true;
-            matchReason = `Visual Match (Distance: ${distance})`;
-            matchPhase = 'VISUAL';
-            console.log(`-> Result: Distance = ${distance} (Threshold: <= 10) - 🟢 VISUAL MATCH FOUND!\n`);
-          } else {
-             console.log(`-> Result: Distance = ${distance} (Threshold: <= 10) - NO VISUAL MATCH\n`);
-          }
-        } else {
-           console.log(`-> Result: SKIPPED (Missing Image Data)\n`);
-        }
-
-        console.log(`[Phase 2] 📝 Natural Language Processing (NLP) Engine:`);
-        console.log(`-> Algorithm: Dice's Coefficient (String Similarity)`);
-        // 2. Evaluate Text Similarity (if visual match failed or was skipped)
-        if (!isMatch) {
-          const textScore = calculateTextSimilarity(savedItem, match);
-          if (textScore >= 0.60) {
-            isMatch = true;
-            matchReason = `Text Similarity Match (Score: ${(textScore * 100).toFixed(1)}%)`;
-            matchPhase = 'NLP';
-            console.log(`-> Result: Score = ${(textScore * 100).toFixed(1)}% (Threshold: >= 60%) - 🟢 NLP MATCH FOUND!\n`);
-          } else {
-            console.log(`-> Result: Score = ${(textScore * 100).toFixed(1)}% (Threshold: >= 60%) - NO MATCH\n`);
-          }
-        } else {
-          console.log(`-> Result: SKIPPED (Visual Match already confirmed)\n`);
-        }
-
-        if (isMatch) {
-          console.log(`🚨 SMART MATCH CONFIRMED!`);
-          console.log(`-> Triggering Global Inboxes...`);
-          console.log(`=========================================================\n`);
-
-          // Dynamically generate the message based on the AI engine that triggered it
-          let alertMessage = '';
-          if (matchPhase === 'VISUAL') {
-            alertMessage = `🤖 AI VISUAL MATCH: Our Image Recognition engine detected a structural match between your photos! Click here to view the potential match: /items/${savedItem._id}`;
-          } else {
-            alertMessage = `🤖 AI NLP MATCH: Our Text Analysis engine detected highly similar keyword overlap between your descriptions! Click here to view the potential match: /items/${savedItem._id}`;
-          }
-
-          // Professionally drop exactly ONE message into the original item's chat room connecting both users
-          Message.create({
-            itemId: match._id,
-            senderId: savedItem.createdBy,
-            receiverId: match.createdBy,
-            text: alertMessage
-          }).then(msg => {
-            emitGlobalNotification(match.createdBy, msg);
-            emitGlobalNotification(savedItem.createdBy, msg);
-          }).catch(e => console.error('Failed to send smart match alert:', e));
-        }
-      }
-    }).catch(err => console.error('Error during autonomous matching:', err));
+      // Run autonomous AI matching asynchronously
+      runAutonomousMatching(savedItem).catch(err => console.error('Error running matching engine on create:', err));
     }
 
     res.status(201).json(savedItem);
@@ -193,14 +124,19 @@ const getAllItems = async (req, res) => {
     if (district) filter.district = district;
     if (city) filter.city = city;
 
-    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items
-    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' } })
+    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items and archived items
+    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' }, archiveStatus: { $ne: 'archived' } })
       .sort({ createdAt: -1 })
       .populate('createdBy', 'username'); // Helpful to display the reporter's username
       
     // Apply Fuzzy Geolocation to FOUND items to prevent scammers from knowing exact spots
     const obfuscatedItems = items.map(item => {
       const doc = item.toObject();
+      
+      // Remove private ownership and verification history details from public feed
+      delete doc.ownershipProofs;
+      delete doc.verificationHistory;
+
       if (doc.type === 'FOUND' && doc.latitude && doc.longitude) {
         // Obfuscate coordinates with a ~1km random offset (+/- ~0.009 degrees)
         doc.latitude += (Math.random() - 0.5) * 0.018;
@@ -289,6 +225,46 @@ const getItemById = async (req, res) => {
       .populate('ownerId', 'username')
       .populate('finderId', 'username');
 
+    // Security check to filter private ownership details and verification history
+    const jwt = require('jsonwebtoken');
+    const User = require('../models/User');
+    const Message = require('../models/Message');
+
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    let isCreator = false;
+    let hasHistoryAccess = false;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
+        const decoded = jwt.verify(token, secret);
+        const currentUserId = decoded.userId || decoded.id;
+
+        if (item.createdBy && item.createdBy._id.toString() === currentUserId.toString()) {
+          isCreator = true;
+          hasHistoryAccess = true;
+        } else {
+          // Check if user has role 'police'
+          const currentUser = await User.findById(currentUserId);
+          if (currentUser && currentUser.role === 'police') {
+            hasHistoryAccess = true;
+          } else {
+            // Check if user is participant in chat room for this item
+            const isChatParticipant = await Message.exists({
+              itemId: item._id,
+              $or: [{ senderId: currentUserId }, { receiverId: currentUserId }]
+            });
+            if (isChatParticipant) {
+              hasHistoryAccess = true;
+            }
+          }
+        }
+      } catch (err) {
+        // Ignore token errors and treat as public user
+      }
+    }
+
     const itemObj = item.toObject();
     itemObj.returnRecord = returnRecord;
 
@@ -298,6 +274,23 @@ const getItemById = async (req, res) => {
       itemObj.tipPaid = !!tip;
     } else {
       itemObj.tipPaid = false;
+    }
+
+    // Strict Privacy enforcement: Strip actual proofValue for anyone except the creator
+    if (!isCreator) {
+      if (itemObj.ownershipProofs) {
+        itemObj.ownershipProofs = itemObj.ownershipProofs.map(p => ({
+          _id: p._id,
+          proofType: p.proofType,
+          customLabel: p.customLabel,
+          createdAt: p.createdAt
+        }));
+      }
+    }
+
+    // Limit history visibility to creator, police, and chat participants
+    if (!hasHistoryAccess) {
+      delete itemObj.verificationHistory;
     }
 
     res.status(200).json(itemObj);
@@ -321,8 +314,37 @@ const updateItem = async (req, res) => {
 
     // Update fields
     const updateData = req.body;
+
+    let ownershipProofsParsed = [];
+    if (updateData.ownershipProofs && typeof updateData.ownershipProofs === 'string') {
+      try {
+        ownershipProofsParsed = JSON.parse(updateData.ownershipProofs);
+      } catch (e) {
+        ownershipProofsParsed = [];
+      }
+    } else if (updateData.ownershipProofs && Array.isArray(updateData.ownershipProofs)) {
+      ownershipProofsParsed = updateData.ownershipProofs;
+    }
+
+    if (updateData.ownershipProofs) {
+      updateData.ownershipProofs = ownershipProofsParsed;
+    }
     
+    if (updateData.ownershipProofs && typeof updateData.ownershipProofs === 'string') {
+      try {
+        updateData.ownershipProofs = JSON.parse(updateData.ownershipProofs);
+      } catch (e) {
+        delete updateData.ownershipProofs;
+      }
+    }
+
     if (req.file) {
+      // Generate perceptual hash fingerprint locally for the newly uploaded image
+      const hash = await generateImageHash(req.file.path);
+      if (hash) {
+        updateData.imageHash = hash;
+      }
+
       // Upload to Cloudinary
       const result = await cloudinary.uploader.upload(req.file.path);
       updateData.imageUrl = result.secure_url;
@@ -340,6 +362,11 @@ const updateItem = async (req, res) => {
       { $set: updateData },
       { new: true }
     );
+    
+    // Trigger AI matching engine upon update (e.g. if category or image changed)
+    if (updatedItem.type !== 'SMART_TAG' && updatedItem.status !== 'Claimed') {
+      runAutonomousMatching(updatedItem).catch(err => console.error('Error running matching engine on update:', err));
+    }
     
     res.status(200).json(updatedItem);
   } catch (error) {
@@ -409,25 +436,43 @@ const getNearestPolice = async (req, res) => {
     }
 
     const query = `[out:json];nwr["amenity"="police"](around:15000,${lat},${lng});out center;`;
-    const url = `https://overpass-api.de/api/interpreter`;
+    const endpoints = [
+      'https://overpass-api.de/api/interpreter',
+      'https://lz4.overpass-api.de/api/interpreter',
+      'https://z.overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter'
+    ];
 
-    // Using POST from the backend to bypass WAF and caching issues safely
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'LostAndFoundApp/1.0 Node.js'
-      },
-      body: `data=${encodeURIComponent(query)}`
-    });
+    let data = null;
+    let success = false;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Overpass API Error:", response.status, errorText);
-      return res.status(502).json({ message: 'Failed to fetch from Overpass API' });
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'LostAndFoundApp/1.0 Node.js'
+          },
+          body: `data=${encodeURIComponent(query)}`
+        });
+
+        if (response.ok) {
+          data = await response.json();
+          success = true;
+          break; // Stop trying if successful
+        } else {
+          console.error(`Overpass API Error at ${url}:`, response.status);
+        }
+      } catch (err) {
+        console.error(`Fetch failed for ${url}:`, err.message);
+      }
     }
 
-    const data = await response.json();
+    if (!success || !data) {
+      return res.status(502).json({ message: 'Failed to fetch from all Overpass API endpoints' });
+    }
+
     res.status(200).json(data);
   } catch (error) {
     console.error('getNearestPolice error:', error);
@@ -478,10 +523,17 @@ const resolvePoliceItem = async (req, res) => {
  */
 const getArchivedItems = async (req, res) => {
   try {
-    const items = await Item.find({
-      createdBy: req.userId,
-      archiveStatus: 'archived',
-    }).sort({ createdAt: -1 });
+    const User = require('../models/User');
+    const user = await User.findById(req.userId);
+
+    const query = { archiveStatus: 'archived' };
+
+    // If not admin, only show items created by the user
+    if (!user || user.role !== 'admin') {
+      query.createdBy = req.userId;
+    }
+
+    const items = await Item.find(query).sort({ createdAt: -1 });
 
     res.json(items);
   } catch (error) {
@@ -515,6 +567,10 @@ const identifyItem = async (req, res) => {
       console.error('Failed to cleanup temp upload file:', cleanupErr);
     }
 
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
     return res.status(200).json(result);
   } catch (error) {
     console.error('Identify item controller error:', error);
@@ -525,9 +581,189 @@ const identifyItem = async (req, res) => {
   }
 };
 
+const analyzeVoiceReportController = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No audio file uploaded.' });
+    }
+
+    const result = await analyzeVoiceReport(
+      req.file.path,
+      req.file.mimetype
+    );
+
+    // Clean up temporary upload file
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (cleanupErr) {
+      console.error('Failed to cleanup temp voice file:', cleanupErr);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Voice analyze controller error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process voice report. ' + error.message
+    });
+  }
+};
+const verifyOwnership = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { submittedProofs } = req.body;
+    
+    if (!submittedProofs || !Array.isArray(submittedProofs)) {
+      return res.status(400).json({ message: 'Submitted proofs array is required.' });
+    }
+
+    const item = await Item.findById(itemId);
+    if (!item) return res.status(404).json({ message: 'Item not found.' });
+
+    const storedProofs = item.ownershipProofs || [];
+
+    if (storedProofs.length === 0) {
+      return res.status(400).json({ message: 'This item does not have any registered ownership proofs to verify against.' });
+    }
+
+    const stringSimilarity = require('string-similarity');
+
+    const compareValues = (val1, val2) => {
+      if (!val1 || !val2) return 0;
+
+      const norm1 = val1.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+      const norm2 = val2.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+
+      // Exact match after normalization
+      if (norm1 === norm2 && norm1.length > 0) {
+        return 1.0;
+      }
+
+      // Substring match for description/custom details
+      if (norm1.length >= 6 && norm2.length >= 6) {
+        if (norm1.includes(norm2) || norm2.includes(norm1)) {
+          return 0.9;
+        }
+      }
+
+      // String similarity using Dice's coefficient
+      const sim = stringSimilarity.compareTwoStrings(val1.toLowerCase().trim(), val2.toLowerCase().trim());
+      return sim;
+    };
+
+    let verifiedCount = 0;
+    const details = [];
+
+    for (const stored of storedProofs) {
+      let matched = false;
+      let bestScore = 0;
+      
+      for (const submitted of submittedProofs) {
+        // Match by proofType, or by customLabel if custom
+        const typeMatches = 
+          stored.proofType?.toLowerCase() === submitted.proofType?.toLowerCase() ||
+          (stored.proofType === 'custom' && stored.customLabel?.toLowerCase() === submitted.customLabel?.toLowerCase());
+
+        if (typeMatches) {
+          const score = compareValues(stored.proofValue, submitted.proofValue);
+          if (score > bestScore) {
+            bestScore = score;
+          }
+        }
+      }
+
+      // If the match confidence is high (e.g. >= 0.8), we count it as verified
+      if (bestScore >= 0.8) {
+        verifiedCount++;
+        matched = true;
+      }
+
+      details.push({
+        _id: stored._id,
+        proofType: stored.proofType,
+        customLabel: stored.customLabel,
+        matched,
+        score: bestScore
+      });
+    }
+
+    const scorePercentage = Math.round((verifiedCount / storedProofs.length) * 100);
+    
+    let overallStatus = 'NOT_VERIFIED';
+    if (scorePercentage === 100) {
+      overallStatus = 'VERIFIED';
+    } else if (scorePercentage >= 50) {
+      overallStatus = 'PARTIALLY_VERIFIED';
+    }
+
+    // Add to verificationHistory
+    const verificationRecord = {
+      verifierId: req.userId,
+      verifyingType: 'CLAIM_VERIFICATION',
+      overallStatus,
+      scorePercentage,
+      verifiedCount,
+      totalProofs: storedProofs.length,
+      timestamp: new Date()
+    };
+
+    item.verificationHistory.push(verificationRecord);
+
+    // If verification was successful (VERIFIED or PARTIALLY_VERIFIED), and the item status is 'Available',
+    // update status to 'Pending Verification'.
+    if (overallStatus !== 'NOT_VERIFIED' && item.status === 'Available') {
+      item.status = 'Pending Verification';
+    }
+
+    await item.save();
+
+    // Automatically drop a system message in the secure chat room
+    try {
+      const User = require('../models/User');
+      const verifierUser = await User.findById(req.userId);
+      const verifierName = verifierUser ? verifierUser.username : 'A claimant';
+      
+      let systemAlertMessage = `🤖 DIGITAL OWNERSHIP VERIFICATION RESULT:\nUser @${verifierName} has completed verification.\nMatch Result: ${overallStatus} (${scorePercentage}% score)\nVerified fields: ${verifiedCount} of ${storedProofs.length}.`;
+      
+      // Let's find if a chat partner exists to send message to
+      const Message = require('../models/Message');
+      const { emitGlobalNotification } = require('../services/socket.service');
+      
+      const senderId = req.userId;
+      const receiverId = item.createdBy.toString();
+
+      if (senderId !== receiverId) {
+        const systemMsg = await Message.create({
+          itemId: item._id,
+          senderId,
+          receiverId,
+          text: systemAlertMessage
+        });
+        emitGlobalNotification(receiverId, systemMsg);
+        emitGlobalNotification(senderId, systemMsg);
+      }
+    } catch (msgErr) {
+      console.error('Failed to send verification system message:', msgErr);
+
+    }
+
+    res.status(200).json({
+      success: true,
+      status: overallStatus,
+      scorePercentage
+    });
+  } catch (error) {
+    console.error('Error verifying ownership:', error);
+    res.status(500).json({ success: false, message: 'Server error during verification' });
+  }
+};
+
 module.exports = {
   createItem,
   getAllItems,
+  verifyOwnership,
   getItemById,
   updateItem,
   deleteItem,
@@ -539,4 +775,5 @@ module.exports = {
   resolvePoliceItem,
   getArchivedItems,
   identifyItem,
+  analyzeVoiceReport: analyzeVoiceReportController
 };

@@ -38,6 +38,7 @@ import {
   Award,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import PageNavigation from '../../../components/common/PageNavigation';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -294,6 +295,7 @@ const AdminDashboardPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
+      <PageNavigation />
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#800000] via-[#900000] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 skew-x-12 transform pointer-events-none" />

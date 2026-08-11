@@ -119,13 +119,13 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 overflow-hidden hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 dark:border-slate-700 overflow-hidden hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
       {/* Image Banner & Dynamic Type Badge */}
-      <div className="relative h-56 bg-gray-100 flex-shrink-0 overflow-hidden group">
+      <div className="relative h-56 bg-gray-100 dark:bg-slate-700 flex-shrink-0 overflow-hidden group">
         {item.imageUrl ? (
           <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50 border-b border-slate-100">
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
             <ImageOff className="w-10 h-10 mb-2 opacity-50" />
             <span className="text-sm font-medium opacity-75">{t('item.noImage')}</span>
           </div>
@@ -174,43 +174,44 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
       {/* Content Section */}
       <div className="p-6 flex-grow flex flex-col">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-1 pr-2">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight line-clamp-1 pr-2">
             {i18n.language === 'si' && item.titleSi ? item.titleSi : (i18n.language === 'ta' && item.titleTa ? item.titleTa : item.title)}
           </h3>
-          <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-md font-semibold whitespace-nowrap">
+          <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-xs px-2.5 py-1 rounded-md font-semibold whitespace-nowrap">
             {t(`categories.${item.category}`, { defaultValue: item.category })}
           </span>
         </div>
         
-        <p className="text-gray-500 text-sm mb-5 line-clamp-2 flex-grow leading-relaxed">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-5 line-clamp-2 flex-grow leading-relaxed">
           {i18n.language === 'si' && item.descriptionSi ? item.descriptionSi : (i18n.language === 'ta' && item.descriptionTa ? item.descriptionTa : item.description)}
         </p>
 
-        <div className="space-y-2.5 mb-5 bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <div className="flex items-center text-sm font-medium text-gray-700">
+        {/* Structured Metadata block */}
+        <div className="space-y-2.5 mb-5 bg-gray-50 dark:bg-slate-700/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             <User className="w-4 h-4 mr-2.5 text-[#800000]" />
             <span>{typeof item.createdBy === 'object' && item.createdBy?.username ? `@${item.createdBy.username}` : 'Unknown User'}</span>
           </div>
-          <div className="flex items-center text-sm font-medium text-gray-700">
+          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             <MapPin className="w-4 h-4 mr-2.5 text-[#800000]" />
             <span className="truncate">{item.city}, {item.district}</span>
           </div>
-          <div className="flex items-center text-sm font-medium text-gray-700">
+          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             <Calendar className="w-4 h-4 mr-2.5 text-[#800000]" />
             <span>{new Date(item.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
           </div>
-          <div className="flex items-center text-sm font-medium text-gray-700">
+          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             <Phone className="w-4 h-4 mr-2.5 text-[#800000]" />
             <span>{item.contactNumber}</span>
           </div>
           {item.handedToPolice && item.policeStationName && (
-            <div className="flex items-center text-sm font-bold text-blue-800 bg-blue-50 p-2 rounded-lg mt-2">
+            <div className="flex items-center text-sm font-bold text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg mt-2">
               <ShieldCheck className="w-4 h-4 mr-2 text-blue-600" />
               Available to pick up at {item.policeStationName}
             </div>
           )}
           {item.expiresAt && (
-            <div className="flex items-center text-sm font-medium text-gray-600 border-t border-gray-200/50 pt-2.5 mt-2.5">
+            <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 border-t border-gray-200/50 dark:border-slate-600/50 pt-2.5 mt-2.5">
               <Calendar className="w-4 h-4 mr-2.5 text-gray-500" />
               <span>
                 {item.archiveStatus === 'archived' ? 'Archived on: ' : 'Expires on: '}
@@ -222,7 +223,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
         
         {/* Blind Claim Indicator Banner */}
         {item.securityQuestion && !isLost && (
-           <div className="mb-5 flex items-center text-xs font-bold tracking-wide text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200/60">
+           <div className="mb-5 flex items-center text-xs font-bold tracking-wide text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-200/60 dark:border-amber-700/50">
              <ShieldQuestion className="w-4 h-4 mr-2" />
              {t('item.blindClaimVerification')}
            </div>
@@ -243,14 +244,14 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
               {item.archiveStatus !== 'archived' && (
                 <button 
                   onClick={() => navigate(`/edit/${item._id}`)}
-                  className="flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
+                  className="flex-1 py-2 rounded-xl border-2 border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-300 dark:hover:border-slate-500 transition-colors text-sm"
                 >
                   {t('common.edit')}
                 </button>
               )}
               <button 
                 onClick={handleDelete}
-                className={`py-2 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors text-sm ${item.archiveStatus === 'archived' ? 'w-full' : 'flex-1'}`}
+                className={`py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors text-sm ${item.archiveStatus === 'archived' ? 'w-full' : 'flex-1'}`}
               >
                 Delete Post
               </button>
@@ -264,7 +265,7 @@ const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
             {isLost ? 'I Have This Item' : 'Claim This Item'}
           </button>
         ) : item.archiveStatus === 'archived' ? (
-          <div className="w-full mt-auto py-3 text-center rounded-xl bg-gray-100 text-gray-400 font-bold text-sm select-none border border-gray-200">
+          <div className="w-full mt-auto py-3 text-center rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-gray-500 font-bold text-sm select-none border border-gray-200 dark:border-slate-600">
             Archived
           </div>
         ) : null}

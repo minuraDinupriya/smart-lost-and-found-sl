@@ -5,6 +5,7 @@ import api from '../../../services/api';
 import Swal from 'sweetalert2';
 import { Camera, User, Award, Shield, ArrowLeft, Check, Loader2, History, Gift, Box } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 const ProfilePage: React.FC = () => {
   const { user, fetchMe } = useAuth();
@@ -151,14 +152,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto my-8">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-6 group"
-      >
-        <ArrowLeft className="w-5 h-5 mr-1.5 transition-transform group-hover:-translate-x-1" />
-        <span className="font-semibold text-sm">Back</span>
-      </button>
+      <PageNavigation />
 
       {/* Profile Header Card */}
       <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6">
