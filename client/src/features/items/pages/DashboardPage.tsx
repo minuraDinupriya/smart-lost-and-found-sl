@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Map as MapIcon, LayoutGrid, Trophy, MapPin, Filter, PackageSearch, AlertCircle } from 'lucide-react';
+import { Search, Trophy, PackageSearch, AlertCircle, MapPin, List, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import ItemCard, { ItemProps } from '../components/ItemCard';
-import { motion } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -21,43 +21,72 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// Helper to center map
+function MapUpdater({ province, district, city }: { province: string, district: string, city: string }) {
+  const map = useMap();
+  useEffect(() => {
+    if (city || district || province) {
+      map.setZoom(8);
+    }
+  }, [province, district, city, map]);
+  return null;
+}
+
+const CATEGORIES = [
+  'Electronics',
+  'Wallets & Bags',
+  'Keys',
+  'Documents',
+  'Jewelry',
+  'Clothing',
+  'Pets',
+  'Other'
+];
+
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const [items, setItems] = useState<ItemProps[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'ALL' | 'LOST' | 'FOUND' | 'MY_POSTS'>('ALL');
-  const [locationFilter, setLocationFilter] = useState<LocationState>({ province: '', district: '', city: '' });
-  const [resetKey, setResetKey] = useState(0);
-  const [viewMode, setViewMode] = useState<'GRID' | 'MAP'>('GRID');
-  const [hiddenPins, setHiddenPins] = useState<Set<string>>(new Set());
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Extract filters from URL or use defaults
+  const searchTerm = searchParams.get('q') || '';
+  const isOpenFilter = searchParams.get('openFilter') === 'true';
+  const filterType = (searchParams.get('tab') || 'ALL') as 'ALL' | 'LOST' | 'FOUND' | 'MY_POSTS';
+  
+  // Local Filter State for the Panel
+  const [locationFilter, setLocationFilter] = useState<LocationState>({ province: '', district: '', city: '' });
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [keywordFilter, setKeywordFilter] = useState('');
+  
+  const [resetKey, setResetKey] = useState(0);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   // Scroll to highlighted item once loaded
   useEffect(() => {
     const highlightId = searchParams.get('highlight');
-    if (highlightId && items.length > 0 && viewMode === 'GRID') {
+    if (highlightId && items.length > 0) {
       setTimeout(() => {
         const element = document.getElementById(`item-${highlightId}`);
         if (element) {
-          // Scroll into view
           const y = element.getBoundingClientRect().top + window.scrollY - 120;
           window.scrollTo({ top: y, behavior: 'smooth' });
-          
-          // Clear param after scrolling so it doesn't happen on every re-render
           const params = new URLSearchParams(searchParams);
           params.delete('highlight');
           setSearchParams(params, { replace: true });
         }
-      }, 500); // Wait for render
+      }, 500);
     }
-  }, [items, searchParams, viewMode, setSearchParams]);
+  }, [items, searchParams, setSearchParams]);
 
   useEffect(() => {
-    // Fetch Top Samaritans
     api.get('/auth/leaderboard').then(res => {
       setLeaderboard(res.data.leaderboard);
     }).catch(err => console.error(err));
@@ -66,11 +95,10 @@ const DashboardPage: React.FC = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      // Dynamic query string construction based on active filters
       let query = '/items?';
       if (locationFilter.province) query += `province=${encodeURIComponent(locationFilter.province)}&`;
       if (locationFilter.district) query += `district=${encodeURIComponent(locationFilter.district)}&`;
-      if (locationFilter.city) query += `city=${encodeURIComponent(locationFilter.city)}`;
+      if (locationFilter.city) query += `city=${encodeURIComponent(locationFilter.city)}&`;
 
       const response = await api.get(query);
       setItems(response.data);
@@ -81,13 +109,13 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  // Re-fetch backend feed when location filters adjust
   useEffect(() => {
     fetchItems();
+    setCurrentPage(1); // Reset to page 1 on new fetch
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationFilter]);
 
-  // Real-time client-side text and enum filtering
+  // Client-side filtering
   const filteredItems = items.filter(item => {
     let matchesType = true;
     if (filterType === 'MY_POSTS') {
@@ -96,69 +124,186 @@ const DashboardPage: React.FC = () => {
       matchesType = filterType === 'ALL' || item.type === filterType;
     }
 
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesType && matchesSearch;
+    const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
+
+    // Search term from Navbar OR keyword from Filter Panel
+    const searchToUse = keywordFilter || searchTerm;
+    const matchesSearch = searchToUse ? (
+      item.title.toLowerCase().includes(searchToUse.toLowerCase()) || 
+      item.description.toLowerCase().includes(searchToUse.toLowerCase())
+    ) : true;
+    
+    return matchesType && matchesCategory && matchesSearch;
   });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleTabChange = (tab: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', tab);
+    setSearchParams(params);
+    setCurrentPage(1);
+  };
+  
+  const resetFilters = () => {
+    setCategoryFilter('');
+    setKeywordFilter('');
+    setResetKey(prev => prev + 1);
+    const params = new URLSearchParams(searchParams);
+    params.delete('q');
+    setSearchParams(params);
+  };
 
   return (
     <div className="space-y-6">
-      {/* Search & Filter Control Hub */}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xl shadow-slate-100/70 border border-slate-100 space-y-5 relative lg:sticky lg:top-20 z-40">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full sm:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder={t('dashboard.searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all shadow-inner bg-slate-50 focus:bg-white"
-            />
-          </div>
-          
-          <div className="bg-gray-100 p-1.5 rounded-2xl inline-flex shadow-inner border border-gray-200/50 overflow-x-auto max-w-full">
-              {['ALL', 'LOST', 'FOUND', ...(user ? ['MY_POSTS'] : [])].map(type => (
-                <button
-                  key={type}
-                  onClick={() => setFilterType(type as any)}
-                  className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap ${filterType === type ? 'bg-white text-[#800000] shadow-md transform scale-105' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
-                >
-                  {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : type === 'FOUND' ? t('dashboard.foundTab') : 'My Posts'}
-                </button>
-              ))}
-            </div>
-        </div>
+      
+      {/* Search & Filter Panel (Collapsible) */}
+      <AnimatePresence>
+        {isOpenFilter && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xl shadow-slate-100/70 border border-slate-100 space-y-5 relative z-40">
+              
+              {/* Integrated Map */}
+              <div className="h-64 w-full rounded-xl overflow-hidden shadow-inner border border-gray-200 relative z-0">
+                <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={true} className="h-full w-full">
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+                  <MapUpdater province={locationFilter.province} district={locationFilter.district} city={locationFilter.city} />
+                  
+                  {filteredItems.filter((i: any) => i.latitude && i.longitude).map((item: any) => {
+                     if (item.type === 'FOUND' && item.isFuzzy) {
+                        return (
+                          <Circle 
+                            key={item._id}
+                            center={[item.latitude, item.longitude]}
+                            radius={1000} // 1km radius
+                            pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.4 }}
+                          >
+                            <Popup className="custom-map-popup" offset={[0, -20]} closeButton={false}>
+                              <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
+                                {item.imageUrl ? (
+                                  <div className="h-24 w-full rounded-lg overflow-hidden mb-2">
+                                    <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                                  </div>
+                                ) : (
+                                  <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                                    <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
+                                  </div>
+                                )}
+                                <div className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{item.category}</div>
+                                <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
+                                <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
+                                <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">{t('dashboard.reviewMatch')}</button>
+                              </div>
+                            </Popup>
+                          </Circle>
+                        )
+                      }
+                      
+                     return (
+                        <Marker key={item._id} position={[item.latitude, item.longitude]}>
+                          <Popup className="custom-map-popup" offset={[0, -40]} closeButton={false}>
+                            <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
+                              {item.imageUrl ? (
+                                <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
+                                  <div className={`absolute top-1 left-1 ${item.type === 'LOST' ? 'bg-rose-500' : 'bg-emerald-500'} text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10`}>
+                                    {item.type}
+                                  </div>
+                                  <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
+                                </div>
+                              ) : (
+                                <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">
+                                  <div className={`absolute top-1 left-1 ${item.type === 'LOST' ? 'bg-rose-500' : 'bg-emerald-500'} text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10`}>
+                                    {item.type}
+                                  </div>
+                                  <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
+                                </div>
+                              )}
+                              <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
+                              <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                     );
+                  })}
+                </MapContainer>
+              </div>
 
-        {/* Modular Location Dropdowns & Controls */}
-        <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-end gap-4">
-          <div className="flex-grow w-full">
-            <LocationSelector key={resetKey} onLocationChange={setLocationFilter} />
-          </div>
-          <div className="flex w-full sm:w-auto gap-2">
-            <button 
-              onClick={() => setViewMode(viewMode === 'GRID' ? 'MAP' : 'GRID')}
-              className="flex items-center justify-center px-4 py-2.5 bg-[#800000]/10 text-[#800000] font-semibold rounded-xl hover:bg-[#800000]/20 transition-colors shadow-sm whitespace-nowrap"
+              {/* Filter Controls Row */}
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-grow">
+                  <LocationSelector key={resetKey} onLocationChange={setLocationFilter} />
+                </div>
+                
+                <div className="flex flex-col min-w-[200px]">
+                  <label className="text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white text-gray-900 transition-all cursor-pointer shadow-sm"
+                  >
+                    <option value="">All Categories</option>
+                    {CATEGORIES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-end">
+                <div className="flex-grow flex flex-col">
+                  <label className="text-sm font-semibold text-gray-700 mb-1.5">Keyword</label>
+                  <input
+                    type="text"
+                    placeholder="Refine search with keywords..."
+                    value={keywordFilter}
+                    onChange={(e) => setKeywordFilter(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all shadow-inner bg-slate-50 focus:bg-white"
+                  />
+                </div>
+                <button 
+                  onClick={resetFilters}
+                  className="px-6 py-2.5 h-[46px] bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors shadow-sm whitespace-nowrap"
+                >
+                  {t('dashboard.resetFilters')}
+                </button>
+              </div>
+
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Navigation Tabs */}
+      <div className="flex justify-center border-b border-gray-200 pb-1 overflow-x-auto">
+        <div className="flex space-x-2 sm:space-x-4 px-2">
+          {['ALL', 'LOST', 'FOUND', ...(user ? ['MY_POSTS'] : [])].map(type => (
+            <button
+              key={type}
+              onClick={() => handleTabChange(type)}
+              className={`px-4 sm:px-6 py-3 font-bold text-sm sm:text-base border-b-2 transition-colors whitespace-nowrap ${
+                filterType === type 
+                  ? 'border-[#800000] text-[#800000]' 
+                  : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
+              }`}
             >
-              {viewMode === 'GRID' ? <><MapIcon className="w-5 h-5 mr-2" /> {t('dashboard.mapView')}</> : <><LayoutGrid className="w-5 h-5 mr-2" /> {t('dashboard.gridView')}</>}
+              {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : type === 'FOUND' ? t('dashboard.foundTab') : 'My Posts'}
             </button>
-            <button 
-              onClick={() => {
-                setSearchTerm('');
-                setFilterType('ALL');
-                setResetKey(prev => prev + 1);
-              }}
-              className="px-6 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors shadow-sm whitespace-nowrap"
-            >
-              {t('dashboard.resetFilters')}
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Item Feed or Map View */}
+      {/* Item Feed */}
       {loading ? (
-        // Skeleton Loading State
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map(i => (
             <div key={i} className="animate-pulse bg-white rounded-2xl h-[28rem] border border-gray-100 overflow-hidden">
@@ -174,120 +319,61 @@ const DashboardPage: React.FC = () => {
             </div>
           ))}
         </div>
-      ) : filteredItems.length > 0 ? (
-        viewMode === 'GRID' ? (
+      ) : paginatedItems.length > 0 ? (
+        <>
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {filteredItems.map(item => (
+            {paginatedItems.map(item => (
               <div key={item._id} id={`item-${item._id}`} className={searchParams.get('highlight') === item._id ? 'ring-4 ring-[#800000] ring-offset-4 rounded-2xl transition-all duration-1000' : ''}>
                 <ItemCard item={item} />
               </div>
             ))}
           </motion.div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }} 
-            animate={{ opacity: 1, scale: 1 }} 
-            className="h-[800px] w-full rounded-2xl overflow-hidden shadow-xl border border-gray-200 relative z-0"
-          >
-            <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={true} className="h-full w-full">
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-              {filteredItems.filter((i: any) => i.latitude && i.longitude).map((item: any) => {
-                if (item.type === 'FOUND' && item.isFuzzy) {
-                  return (
-                    <Circle 
-                      key={item._id}
-                      center={[item.latitude, item.longitude]}
-                      radius={1000} // 1km radius
-                      pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.4 }}
-                    >
-                      <Popup className="custom-map-popup" offset={[0, -20]} closeButton={false}>
-                        <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
-                          {item.imageUrl ? (
-                            <div className="h-24 w-full rounded-lg overflow-hidden mb-2">
-                              <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
-                            </div>
-                          ) : (
-                            <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
-                              <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
-                            </div>
-                          )}
-                          <div className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{item.category}</div>
-                          <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
-                          <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                          <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">{t('dashboard.reviewMatch')}</button>
-                        </div>
-                      </Popup>
-                    </Circle>
-                  )
-                }
-                
-                return (
-                  <Marker 
-                    key={item._id} 
-                    position={[item.latitude, item.longitude]}
-                  >
-                    <Popup className="custom-map-popup" offset={[0, -40]} closeButton={false}>
-                      <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
-                        {item.imageUrl ? (
-                          <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
-                             <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
-                            <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
-                          </div>
-                        ) : (
-                          <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">
-                             <div className="absolute top-1 left-1 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">{t('dashboard.lost')}</div>
-                            <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
-                          </div>
-                        )}
-                        <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
-                        <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                        <button className="bg-[#800000] text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-[#600000] transition shadow-sm pointer-events-none">{t('dashboard.helpFind')}</button>
-                      </div>
-                    </Popup>
-                  </Marker>
-                )
-              })}
-            </MapContainer>
 
-            {/* Floating Leaderboard */}
-            <div className="absolute bottom-8 right-8 z-[400] w-64 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 overflow-hidden pointer-events-auto">
-              <div className="bg-[#800000] text-white p-3 flex items-center justify-center space-x-2">
-                <Trophy className="w-5 h-5 text-yellow-400" />
-                <h3 className="font-bold text-sm">{t('dashboard.localHeroes')}</h3>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-2 pt-8">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              
+              <div className="flex space-x-1">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-10 h-10 rounded-lg font-bold text-sm transition-colors ${
+                      currentPage === i + 1 
+                        ? 'bg-[#800000] text-white shadow-md' 
+                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
               </div>
-              <div className="p-3">
-                {leaderboard.length === 0 ? (
-                  <p className="text-xs text-center text-gray-500">{t('dashboard.noHeroesYet')}</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {leaderboard.map((u, index) => (
-                      <li key={u._id} className="flex justify-between items-center text-sm border-b border-gray-100 last:border-0 pb-1 last:pb-0">
-                        <span className="font-medium text-gray-800 flex items-center">
-                          <span className={`w-4 text-xs font-bold mr-2 text-center ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-amber-700' : 'text-gray-300'}`}>
-                            #{index + 1}
-                          </span>
-                          {u.username}
-                        </span>
-                        <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-xs">
-                          {u.karmaPoints}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
-          </motion.div>
-        )
+          )}
+        </>
       ) : (
-        // Empty Results State
         <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-16 text-center">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <Search className="w-10 h-10 text-gray-400" />
+            <PackageSearch className="w-10 h-10 text-gray-400" />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('dashboard.noItemsFound')}</h3>
           <p className="text-gray-500 max-w-sm mx-auto">{t('dashboard.adjustFilters')}</p>

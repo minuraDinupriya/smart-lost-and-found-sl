@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon, Filter } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
@@ -13,6 +13,18 @@ const Navbar: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [navSearch, setNavSearch] = useState(searchParams.get('q') || '');
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/?q=${encodeURIComponent(navSearch)}`);
+  };
+
+  const handleFilterClick = () => {
+    navigate(`/?q=${encodeURIComponent(navSearch)}&openFilter=true`);
+  };
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -67,6 +79,28 @@ const Navbar: React.FC = () => {
               Smart Lost <span className="text-[#800000]">&</span> Found
             </span>
           </a>
+
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-8">
+            <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
+              <Search className="absolute left-4 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by item name or description..."
+                value={navSearch}
+                onChange={(e) => setNavSearch(e.target.value)}
+                className="w-full pl-12 pr-14 py-2.5 rounded-full border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all bg-gray-50/50 hover:bg-gray-50 focus:bg-white text-sm"
+              />
+              <button
+                type="button"
+                onClick={handleFilterClick}
+                className="absolute right-2 p-1.5 text-gray-400 hover:text-[#800000] hover:bg-red-50 rounded-full transition-colors"
+                title="Search & Filter"
+              >
+                <Filter className="w-5 h-5" />
+              </button>
+            </form>
+          </div>
 
           {/* Right Side: Lang + Auth + Desktop Links + Hamburger */}
           <div className="flex items-center space-x-3">
