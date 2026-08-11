@@ -91,8 +91,8 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16 items-center">
           
           {/* Navigation Controls & Logo */}
-          <div className="flex items-center">
-            <div className="flex items-center space-x-2 mr-4">
+          <div className="flex items-center space-x-3 sm:space-x-5">
+            <div className="flex items-center space-x-2">
               {location.pathname !== '/' && (
                 <button
                   onClick={() => navigate(-1)}
@@ -123,7 +123,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-8">
+          <div className="hidden md:flex flex-1 max-w-xl mx-6 lg:mx-10">
             <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
               <Search className="absolute left-4 w-5 h-5 text-gray-400" />
               <input
@@ -131,7 +131,7 @@ const Navbar: React.FC = () => {
                 placeholder="Search by item name or description..."
                 value={navSearch}
                 onChange={(e) => setNavSearch(e.target.value)}
-                className="w-full pl-12 pr-14 py-2.5 rounded-full border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all bg-gray-50/50 hover:bg-gray-50 focus:bg-white text-sm"
+                className="w-full pl-12 pr-14 py-2.5 rounded-full border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all bg-gray-50/50 hover:bg-gray-50 focus:bg-white text-sm shadow-sm"
               />
               <button
                 type="button"
@@ -145,15 +145,15 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Right Side: Lang + Auth + Desktop Links + Hamburger */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 sm:space-x-5">
             
             {/* Language Switcher */}
-            <div className="relative flex items-center bg-gray-100 rounded-full px-2 py-1 border border-gray-200">
-              <Globe className="w-4 h-4 text-gray-500 mr-1" />
+            <div className="relative flex items-center bg-gray-50 hover:bg-gray-100 rounded-full px-3 py-1.5 border border-gray-200 transition-colors shadow-sm">
+              <Globe className="w-4 h-4 text-gray-500 mr-1.5" />
               <select 
                 value={i18n.language} 
                 onChange={(e) => changeLanguage(e.target.value)}
-                className="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer appearance-none pr-4"
+                className="bg-transparent text-sm font-semibold text-gray-700 focus:outline-none cursor-pointer appearance-none pr-4"
               >
                 <option value="en">English</option>
                 <option value="si">සිංහල</option>
@@ -161,17 +161,22 @@ const Navbar: React.FC = () => {
               </select>
             </div>
 
+            {/* Main Vertical Divider */}
+            <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
+
             {user ? (
-              <div className="flex items-center space-x-4 pl-2 sm:pl-4 border-l border-gray-100">
+              <div className="flex items-center space-x-3 sm:space-x-5">
                 {/* Desktop Navigation (Hidden on Mobile) */}
                 <div className="hidden lg:flex items-center space-x-4">
+                  
+                  {/* Inbox Section */}
                   <Link
                     to="/inbox"
-                    className="relative flex items-center text-sm font-medium text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 border border-slate-200/60 transition-colors shadow-sm"
+                    className="relative flex items-center text-sm font-semibold text-slate-700 bg-white px-4 py-2 rounded-full hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 border border-slate-200 transition-all shadow-sm"
                     title={t('nav.inbox')}
                     onClick={() => setUnreadCount(0)}
                   >
-                    <MessageSquare className="w-4 h-4 mr-1.5" />
+                    <MessageSquare className="w-4 h-4 mr-2" />
                     <span>{t('nav.inbox')}</span>
                     {unreadCount > 0 && (
                       <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center">
@@ -182,15 +187,26 @@ const Navbar: React.FC = () => {
                       </span>
                     )}
                   </Link>
+
+                  {/* Divider */}
+                  <div className="w-px h-6 bg-gray-200"></div>
+
+                  {/* Post Item Section */}
                   {user.role !== 'police' && (
-                    <Link to="/post" className="bg-[#800000] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#600000] transition shadow-md shadow-[#800000]/20 whitespace-nowrap">
-                      {t('nav.postItem')}
-                    </Link>
+                    <>
+                      <Link to="/post" className="flex items-center bg-[#800000] text-white px-5 py-2 rounded-full font-bold hover:bg-[#600000] transition-all shadow-md shadow-[#800000]/20 whitespace-nowrap">
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        {t('nav.postItem')}
+                      </Link>
+                      
+                      {/* Divider */}
+                      <div className="w-px h-6 bg-gray-200"></div>
+                    </>
                   )}
                   
-                  {/* User Dropdown (Desktop Only) */}
+                  {/* Profile Section */}
                   <div className="relative group">
-                    <button className="flex items-center space-x-2 bg-white border border-gray-200 rounded-full py-1.5 px-3 hover:bg-gray-50 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
+                    <button className="flex items-center space-x-2.5 bg-white border border-gray-200 rounded-full py-1.5 pl-1.5 pr-4 hover:bg-gray-50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000]/20">
                       {user.profilePicture ? (
                         <img 
                           src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
@@ -202,21 +218,21 @@ const Navbar: React.FC = () => {
                           {user.username.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <span className="font-semibold text-gray-700 text-sm max-w-[100px] truncate">{user.username}</span>
+                      <span className="font-semibold text-gray-700 text-sm max-w-[120px] truncate">{user.username}</span>
                     </button>
                     
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
-                      <div className="p-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900 truncate">{user.username}</p>
+                      <div className="p-3 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
+                        <p className="text-sm font-bold text-gray-900 truncate">{user.username}</p>
                         {user.role !== 'police' && (
-                          <p className="text-xs text-gray-500 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                          <p className="text-xs text-amber-600 font-bold mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
                         )}
                       </div>
-                      <div className="p-1 space-y-0.5">
+                      <div className="p-1.5 space-y-0.5">
                         {user.role !== 'police' && (
                           <Link 
                             to="/tips/history" 
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
                           >
                             <Wallet className="w-4 h-4 mr-2 text-amber-500" />
                             Tip History
@@ -224,14 +240,14 @@ const Navbar: React.FC = () => {
                         )}
                         <Link
                           to="/profile"
-                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
                         >
                           <UserIcon className="w-4 h-4 mr-2 text-gray-500" />
                           Profile
                         </Link>
                         <Link
                           to="/archived"
-                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
                         >
                           <Archive className="w-4 h-4 mr-2 text-gray-500" />
                           {t('nav.archivedItems')}
@@ -239,15 +255,16 @@ const Navbar: React.FC = () => {
                         {user.role !== 'police' && (
                           <Link
                             to="/hotspots"
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 rounded-lg flex items-center transition-colors"
                           >
                             <MapIcon className="w-4 h-4 mr-2 text-gray-500" />
                             Hotspots Map
                           </Link>
                         )}
+                        <div className="h-px bg-gray-100 my-1"></div>
                         <button 
                           onClick={logout}
-                          className="w-full text-left px-4 py-2.5 text-sm text-red-600 font-semibold hover:bg-red-50 rounded-lg flex items-center transition-colors"
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 font-bold hover:bg-red-50 rounded-lg flex items-center transition-colors"
                         >
                           <LogOut className="w-4 h-4 mr-2" />
                           {t('nav.logout')}
@@ -257,26 +274,29 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Mobile/Hamburger Divider */}
+                <div className="hidden lg:block w-px h-8 bg-gray-200"></div>
+
                 {/* Universal Hamburger Menu Button */}
                 <button 
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 text-gray-600 hover:text-[#800000] hover:bg-gray-100 rounded-xl transition-colors focus:outline-none"
+                  className="p-2 text-gray-600 hover:text-[#800000] hover:bg-gray-100 rounded-xl transition-all focus:outline-none border border-transparent hover:border-gray-200 shadow-sm"
                 >
                   <Menu className="w-6 h-6" />
                 </button>
                 
               </div>
             ) : (
-              <div className="flex items-center space-x-3 pl-2 sm:pl-4 border-l border-gray-100">
+              <div className="flex items-center space-x-3 sm:space-x-4">
                 <Link
                   to="/login"
-                  className="text-sm font-medium text-gray-600 hover:text-[#800000] px-2 sm:px-3 py-2 rounded-xl transition-colors"
+                  className="text-sm font-bold text-gray-600 hover:text-[#800000] px-4 py-2 rounded-xl transition-colors hover:bg-gray-50"
                 >
                   {t('nav.login')}
                 </Link>
                 <Link
                   to="/register"
-                  className="text-sm font-medium bg-[#800000] text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl hover:bg-[#600000] transition-all shadow-lg shadow-[#800000]/20 active:scale-95 whitespace-nowrap"
+                  className="text-sm font-bold bg-[#800000] text-white px-5 py-2.5 rounded-full hover:bg-[#600000] transition-all shadow-md shadow-[#800000]/20 active:scale-95 whitespace-nowrap"
                 >
                   {t('nav.register')}
                 </Link>
