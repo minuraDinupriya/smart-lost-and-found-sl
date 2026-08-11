@@ -284,8 +284,8 @@ const AdminDashboardPage: React.FC = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
         <ShieldAlert className="w-16 h-16 text-red-500 mb-4 animate-bounce" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 mb-6">You must be logged in as an Administrator to view this page.</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">You must be logged in as an Administrator to view this page.</p>
         <Link to="/" className="bg-[#800000] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[#600000] transition">
           Return Home
         </Link>
@@ -298,7 +298,7 @@ const AdminDashboardPage: React.FC = () => {
       <PageNavigation />
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#800000] via-[#900000] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 skew-x-12 transform pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white dark:bg-slate-800/5 skew-x-12 transform pointer-events-none" />
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <div className="inline-flex items-center space-x-2 bg-red-950/60 border border-red-500/30 text-red-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
@@ -318,7 +318,7 @@ const AdminDashboardPage: React.FC = () => {
                 if (activeTab === 'posts') fetchItems();
                 if (activeTab === 'users') fetchUsers();
               }}
-              className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl text-sm font-semibold transition backdrop-blur-sm"
+              className="flex items-center space-x-2 bg-white dark:bg-slate-800/10 hover:bg-white dark:bg-slate-800/20 text-white border border-white/20 px-4 py-2 rounded-xl text-sm font-semibold transition backdrop-blur-sm"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Refresh Data</span>
@@ -332,8 +332,8 @@ const AdminDashboardPage: React.FC = () => {
             onClick={() => setActiveTab('overview')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap ${
               activeTab === 'overview'
-                ? 'bg-white text-[#800000] shadow-md'
-                : 'text-white/80 hover:bg-white/10'
+                ? 'bg-white dark:bg-slate-800 text-[#800000] shadow-md'
+                : 'text-white/80 hover:bg-white dark:bg-slate-800/10'
             }`}
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -343,8 +343,8 @@ const AdminDashboardPage: React.FC = () => {
             onClick={() => setActiveTab('posts')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap ${
               activeTab === 'posts'
-                ? 'bg-white text-[#800000] shadow-md'
-                : 'text-white/80 hover:bg-white/10'
+                ? 'bg-white dark:bg-slate-800 text-[#800000] shadow-md'
+                : 'text-white/80 hover:bg-white dark:bg-slate-800/10'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -354,8 +354,8 @@ const AdminDashboardPage: React.FC = () => {
             onClick={() => setActiveTab('users')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap ${
               activeTab === 'users'
-                ? 'bg-white text-[#800000] shadow-md'
-                : 'text-white/80 hover:bg-white/10'
+                ? 'bg-white dark:bg-slate-800 text-[#800000] shadow-md'
+                : 'text-white/80 hover:bg-white dark:bg-slate-800/10'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -377,42 +377,42 @@ const AdminDashboardPage: React.FC = () => {
             <>
               {/* Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Items</p>
-                      <h3 className="text-3xl font-extrabold text-gray-900 mt-1">{stats.totalItems}</h3>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Items</p>
+                      <h3 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{stats.totalItems}</h3>
                     </div>
                     <div className="p-3 bg-red-50 text-[#800000] rounded-xl">
                       <FileText className="w-6 h-6" />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3 font-medium">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 font-medium">
                     <span className="text-emerald-600 font-bold">{stats.activeItems} Active</span> | {stats.totalItems - stats.activeItems} Archived
                   </p>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Claimed Posts</p>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Claimed Posts</p>
                       <h3 className="text-3xl font-extrabold text-emerald-600 mt-1">{stats.claimedItems}</h3>
                     </div>
                     <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
                       <CheckCircle className="w-6 h-6" />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3 font-medium">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 font-medium">
                     {stats.totalItems > 0
                       ? `${Math.round((stats.claimedItems / stats.totalItems) * 100)}% resolution rate`
                       : 'No items recorded'}
                   </p>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Lost / Found</p>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lost / Found</p>
                       <h3 className="text-3xl font-extrabold text-amber-600 mt-1">
                         {stats.lostItems} <span className="text-xs text-gray-400 font-normal">/ {stats.foundItems}</span>
                       </h3>
@@ -421,22 +421,22 @@ const AdminDashboardPage: React.FC = () => {
                       <Tag className="w-6 h-6" />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3 font-medium">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 font-medium">
                     {stats.lostItems} Lost reports, {stats.foundItems} Found reports
                   </p>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Users</p>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Users</p>
                       <h3 className="text-3xl font-extrabold text-indigo-600 mt-1">{stats.totalUsers}</h3>
                     </div>
                     <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
                       <Users className="w-6 h-6" />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3 font-medium">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 font-medium">
                     {stats.policeUsers} Police Stations | {stats.adminUsers} Admins
                   </p>
                 </div>
@@ -444,18 +444,18 @@ const AdminDashboardPage: React.FC = () => {
 
               {/* Quick Actions Panel */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                     <TrendingUp className="w-5 h-5 text-[#800000] mr-2" />
                     System Status Distribution
                   </h3>
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between text-sm font-semibold mb-1">
-                        <span className="text-gray-700">Lost Items Ratio</span>
-                        <span className="text-gray-900">{stats.lostItems}</span>
+                        <span className="text-gray-700 dark:text-gray-300">Lost Items Ratio</span>
+                        <span className="text-gray-900 dark:text-gray-100">{stats.lostItems}</span>
                       </div>
-                      <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-gray-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                         <div
                           className="bg-amber-500 h-full rounded-full"
                           style={{
@@ -467,10 +467,10 @@ const AdminDashboardPage: React.FC = () => {
 
                     <div>
                       <div className="flex justify-between text-sm font-semibold mb-1">
-                        <span className="text-gray-700">Found Items Ratio</span>
-                        <span className="text-gray-900">{stats.foundItems}</span>
+                        <span className="text-gray-700 dark:text-gray-300">Found Items Ratio</span>
+                        <span className="text-gray-900 dark:text-gray-100">{stats.foundItems}</span>
                       </div>
-                      <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-gray-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                         <div
                           className="bg-emerald-500 h-full rounded-full"
                           style={{
@@ -482,10 +482,10 @@ const AdminDashboardPage: React.FC = () => {
 
                     <div>
                       <div className="flex justify-between text-sm font-semibold mb-1">
-                        <span className="text-gray-700">Smart Tags Active</span>
-                        <span className="text-gray-900">{stats.smartTags}</span>
+                        <span className="text-gray-700 dark:text-gray-300">Smart Tags Active</span>
+                        <span className="text-gray-900 dark:text-gray-100">{stats.smartTags}</span>
                       </div>
-                      <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-gray-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                         <div
                           className="bg-purple-500 h-full rounded-full"
                           style={{
@@ -497,13 +497,13 @@ const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center">
                       <Shield className="w-5 h-5 text-[#800000] mr-2" />
                       Admin Quick Actions
                     </h3>
-                    <p className="text-sm text-gray-600 mb-6">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
                       Quickly navigate to post moderation or manage user role permissions.
                     </p>
                   </div>
@@ -534,7 +534,7 @@ const AdminDashboardPage: React.FC = () => {
       {activeTab === 'posts' && (
         <div className="space-y-6">
           {/* Controls Bar */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm space-y-4">
             <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
               {/* Search Bar */}
               <div className="relative w-full md:w-80">
@@ -545,7 +545,7 @@ const AdminDashboardPage: React.FC = () => {
                   value={itemSearch}
                   onChange={(e) => setItemSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && fetchItems()}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20"
                 />
               </div>
 
@@ -557,7 +557,7 @@ const AdminDashboardPage: React.FC = () => {
                     setItemTypeFilter(e.target.value);
                     setItemPage(1);
                   }}
-                  className="bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700 px-3 py-2.5 rounded-xl focus:outline-none"
+                  className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-300 px-3 py-2.5 rounded-xl focus:outline-none"
                 >
                   <option value="ALL">All Types</option>
                   <option value="LOST">Lost Only</option>
@@ -571,7 +571,7 @@ const AdminDashboardPage: React.FC = () => {
                     setItemStatusFilter(e.target.value);
                     setItemPage(1);
                   }}
-                  className="bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700 px-3 py-2.5 rounded-xl focus:outline-none"
+                  className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-300 px-3 py-2.5 rounded-xl focus:outline-none"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="Available">Available</option>
@@ -586,7 +586,7 @@ const AdminDashboardPage: React.FC = () => {
                     setItemArchiveFilter(e.target.value);
                     setItemPage(1);
                   }}
-                  className="bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700 px-3 py-2.5 rounded-xl focus:outline-none"
+                  className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-300 px-3 py-2.5 rounded-xl focus:outline-none"
                 >
                   <option value="ALL">All Archive States</option>
                   <option value="active">Active Only</option>
@@ -604,22 +604,22 @@ const AdminDashboardPage: React.FC = () => {
           </div>
 
           {/* Posts Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
             {itemsLoading ? (
-              <div className="p-8 text-center text-gray-500 flex justify-center items-center space-x-2">
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex justify-center items-center space-x-2">
                 <RefreshCw className="w-5 h-5 animate-spin text-[#800000]" />
                 <span>Loading system posts...</span>
               </div>
             ) : items.length === 0 ? (
-              <div className="p-12 text-center text-gray-500 space-y-3">
+              <div className="p-12 text-center text-gray-500 dark:text-gray-400 space-y-3">
                 <FileText className="w-12 h-12 text-gray-300 mx-auto" />
-                <p className="font-semibold text-gray-700">No matching posts found.</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">No matching posts found.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <tr className="bg-gray-50 dark:bg-slate-900/80 border-b border-gray-100 dark:border-slate-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       <th className="py-3.5 px-4">Post Info</th>
                       <th className="py-3.5 px-4">Type / Category</th>
                       <th className="py-3.5 px-4">Location</th>
@@ -628,9 +628,9 @@ const AdminDashboardPage: React.FC = () => {
                       <th className="py-3.5 px-4 text-right">Admin Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm">
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-sm">
                     {items.map((item) => (
-                      <tr key={item._id} className="hover:bg-gray-50/50 transition">
+                      <tr key={item._id} className="hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900/50 transition">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center space-x-3">
                             {item.imageUrl ? (
@@ -641,15 +641,15 @@ const AdminDashboardPage: React.FC = () => {
                                     : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${item.imageUrl}`
                                 }
                                 alt={item.title}
-                                className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                                className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-slate-600"
                               />
                             ) : (
-                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                              <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-gray-400">
                                 <Tag className="w-5 h-5" />
                               </div>
                             )}
                             <div>
-                              <p className="font-bold text-gray-900 max-w-[200px] truncate">{item.title}</p>
+                              <p className="font-bold text-gray-900 dark:text-gray-100 max-w-[200px] truncate">{item.title}</p>
                               <p className="text-xs text-gray-400">
                                 {new Date(item.createdAt).toLocaleDateString()}
                               </p>
@@ -670,12 +670,12 @@ const AdminDashboardPage: React.FC = () => {
                             >
                               {item.type}
                             </span>
-                            <p className="text-xs text-gray-500 font-medium">{item.category}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{item.category}</p>
                           </div>
                         </td>
 
                         <td className="py-3.5 px-4">
-                          <p className="text-xs font-semibold text-gray-700">{item.city || 'N/A'}</p>
+                          <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{item.city || 'N/A'}</p>
                           <p className="text-xs text-gray-400">{item.district}</p>
                         </td>
 
@@ -683,7 +683,7 @@ const AdminDashboardPage: React.FC = () => {
                           <select
                             value={item.status}
                             onChange={(e) => handleUpdateStatus(item._id, e.target.value)}
-                            className="bg-white border border-gray-200 text-xs font-semibold text-gray-700 px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#800000]"
+                            className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-300 px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#800000]"
                           >
                             <option value="Available">Available</option>
                             <option value="Pending Verification">Pending Verification</option>
@@ -698,10 +698,10 @@ const AdminDashboardPage: React.FC = () => {
                         </td>
 
                         <td className="py-3.5 px-4">
-                          <p className="text-xs font-bold text-gray-800">
+                          <p className="text-xs font-bold text-gray-800 dark:text-gray-200">
                             {item.createdBy?.username || 'Unknown'}
                           </p>
-                          <span className="text-[10px] text-gray-500 capitalize">
+                          <span className="text-[10px] text-gray-500 dark:text-gray-400 capitalize">
                             {item.createdBy?.role || 'user'}
                           </span>
                         </td>
@@ -710,7 +710,7 @@ const AdminDashboardPage: React.FC = () => {
                           <div className="flex items-center justify-end space-x-1.5">
                             <Link
                               to={`/items/${item._id}`}
-                              className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
                               title="View Details"
                             >
                               <Eye className="w-4 h-4" />
@@ -746,22 +746,22 @@ const AdminDashboardPage: React.FC = () => {
 
             {/* Pagination */}
             {itemTotalPages > 1 && (
-              <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-500">
+              <div className="p-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   Showing page {itemPage} of {itemTotalPages} ({itemTotalCount} total posts)
                 </span>
                 <div className="flex items-center space-x-2">
                   <button
                     disabled={itemPage === 1}
                     onClick={() => setItemPage((p) => Math.max(1, p - 1))}
-                    className="p-2 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-40 hover:bg-gray-50"
+                    className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     disabled={itemPage >= itemTotalPages}
                     onClick={() => setItemPage((p) => p + 1)}
-                    className="p-2 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-40 hover:bg-gray-50"
+                    className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -776,7 +776,7 @@ const AdminDashboardPage: React.FC = () => {
       {activeTab === 'users' && (
         <div className="space-y-6">
           {/* User Controls */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm space-y-4">
             <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
               {/* Search Bar */}
               <div className="relative w-full md:w-80">
@@ -787,7 +787,7 @@ const AdminDashboardPage: React.FC = () => {
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20"
                 />
               </div>
 
@@ -799,7 +799,7 @@ const AdminDashboardPage: React.FC = () => {
                     setUserRoleFilter(e.target.value);
                     setUserPage(1);
                   }}
-                  className="bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700 px-3 py-2.5 rounded-xl focus:outline-none"
+                  className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-300 px-3 py-2.5 rounded-xl focus:outline-none"
                 >
                   <option value="ALL">All Roles</option>
                   <option value="user">Regular Users</option>
@@ -818,22 +818,22 @@ const AdminDashboardPage: React.FC = () => {
           </div>
 
           {/* Users Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
             {usersLoading ? (
-              <div className="p-8 text-center text-gray-500 flex justify-center items-center space-x-2">
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex justify-center items-center space-x-2">
                 <RefreshCw className="w-5 h-5 animate-spin text-[#800000]" />
                 <span>Loading registered users...</span>
               </div>
             ) : users.length === 0 ? (
-              <div className="p-12 text-center text-gray-500 space-y-3">
+              <div className="p-12 text-center text-gray-500 dark:text-gray-400 space-y-3">
                 <Users className="w-12 h-12 text-gray-300 mx-auto" />
-                <p className="font-semibold text-gray-700">No users found.</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">No users found.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <tr className="bg-gray-50 dark:bg-slate-900/80 border-b border-gray-100 dark:border-slate-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       <th className="py-3.5 px-4">User</th>
                       <th className="py-3.5 px-4">Role</th>
                       <th className="py-3.5 px-4">Station / Detail</th>
@@ -842,9 +842,9 @@ const AdminDashboardPage: React.FC = () => {
                       <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm">
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-sm">
                     {users.map((u) => (
-                      <tr key={u._id} className="hover:bg-gray-50/50 transition">
+                      <tr key={u._id} className="hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900/50 transition">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center space-x-3">
                             {u.profilePicture ? (
@@ -855,7 +855,7 @@ const AdminDashboardPage: React.FC = () => {
                                     : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${u.profilePicture}`
                                 }
                                 alt={u.username}
-                                className="w-9 h-9 rounded-full object-cover border border-gray-200"
+                                className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-slate-600"
                               />
                             ) : (
                               <div className="w-9 h-9 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
@@ -863,7 +863,7 @@ const AdminDashboardPage: React.FC = () => {
                               </div>
                             )}
                             <div>
-                              <p className="font-bold text-gray-900">{u.username}</p>
+                              <p className="font-bold text-gray-900 dark:text-gray-100">{u.username}</p>
                               <p className="text-xs text-gray-400">{u.email || 'No email registered'}</p>
                             </div>
                           </div>
@@ -876,7 +876,7 @@ const AdminDashboardPage: React.FC = () => {
                                 ? 'bg-red-100 text-red-800'
                                 : u.role === 'police'
                                 ? 'bg-blue-100 text-blue-800'
-                                : 'bg-gray-100 text-gray-800'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-200'
                             }`}
                           >
                             {u.role === 'admin' && <Shield className="w-3 h-3 mr-1" />}
@@ -885,7 +885,7 @@ const AdminDashboardPage: React.FC = () => {
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 text-xs font-medium text-gray-600">
+                        <td className="py-3.5 px-4 text-xs font-medium text-gray-600 dark:text-gray-400">
                           {u.role === 'police' ? u.policeStationName || 'Station Name Unset' : '-'}
                         </td>
 
@@ -896,7 +896,7 @@ const AdminDashboardPage: React.FC = () => {
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 text-xs text-gray-500">
+                        <td className="py-3.5 px-4 text-xs text-gray-500 dark:text-gray-400">
                           {new Date(u.createdAt).toLocaleDateString()}
                         </td>
 
@@ -929,22 +929,22 @@ const AdminDashboardPage: React.FC = () => {
 
             {/* User Pagination */}
             {userTotalPages > 1 && (
-              <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-500">
+              <div className="p-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                   Showing page {userPage} of {userTotalPages} ({userTotalCount} total users)
                 </span>
                 <div className="flex items-center space-x-2">
                   <button
                     disabled={userPage === 1}
                     onClick={() => setUserPage((p) => Math.max(1, p - 1))}
-                    className="p-2 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-40 hover:bg-gray-50"
+                    className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     disabled={userPage >= userTotalPages}
                     onClick={() => setUserPage((p) => p + 1)}
-                    className="p-2 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-40 hover:bg-gray-50"
+                    className="p-2 border border-gray-200 dark:border-slate-600 rounded-lg text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-700 dark:bg-slate-900"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>

@@ -93,16 +93,16 @@ const PoliceDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">Current Station Inventory</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Current Station Inventory</h2>
           <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full border border-blue-200">
             {items.length} Items Registered
           </span>
         </div>
         
         {items.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
+          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
             <ShieldCheck className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium">No items currently in inventory.</p>
             <p className="text-sm mt-1">Items that users physically hand over to your station will appear here.</p>
@@ -111,7 +111,7 @@ const PoliceDashboardPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 text-gray-500 text-sm uppercase tracking-wider border-b border-gray-100">
+                <tr className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm uppercase tracking-wider border-b border-gray-100 dark:border-slate-700">
                   <th className="p-4 font-semibold">Item Details</th>
                   <th className="p-4 font-semibold">Category</th>
                   <th className="p-4 font-semibold">Station Location</th>
@@ -121,29 +121,29 @@ const PoliceDashboardPage: React.FC = () => {
                   <th className="p-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {items.map((item) => (
                   <tr key={item._id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4">
-                      <div className="font-bold text-gray-900">{item.title}</div>
-                      <div className="text-xs text-gray-500 mt-1 flex items-center">
+                      <div className="font-bold text-gray-900 dark:text-gray-100">{item.title}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
                         <Clock className="w-3 h-3 mr-1" />
                         Added: {new Date(item.createdAt).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded-md font-medium border border-gray-200">
+                      <span className="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs px-2.5 py-1 rounded-md font-medium border border-gray-200 dark:border-slate-600">
                         {item.category}
                       </span>
                     </td>
                     <td className="p-4">
-                      <div className="text-sm text-gray-900 font-bold flex items-center">
+                      <div className="text-sm text-gray-900 dark:text-gray-100 font-bold flex items-center">
                         <Building className="w-4 h-4 mr-1.5 text-blue-600" />
                         {item.policeStationName || 'Unknown Station'}
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="text-sm text-gray-900 font-medium">
+                      <div className="text-sm text-gray-900 dark:text-gray-100 font-medium">
                         {item.createdBy.username}
                       </div>
                     </td>
@@ -151,7 +151,7 @@ const PoliceDashboardPage: React.FC = () => {
                       {item.verificationHistory && item.verificationHistory.length > 0 ? (
                         (() => {
                           const latest = item.verificationHistory[item.verificationHistory.length - 1];
-                          let colorClass = 'text-gray-700 bg-gray-50 border-gray-200';
+                          let colorClass = 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-600';
                           if (latest.overallStatus === 'VERIFIED') {
                             colorClass = 'text-emerald-700 bg-emerald-50 border-emerald-200';
                           } else if (latest.overallStatus === 'PARTIALLY_VERIFIED') {
