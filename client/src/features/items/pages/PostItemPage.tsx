@@ -450,11 +450,6 @@ const PostItemPage: React.FC = () => {
 
         {currentStep === 2 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 text-center">
-              <Sparkles className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-              <h3 className="text-xl font-bold text-blue-900 mb-2">Let AI fill this out for you!</h3>
-              <p className="text-blue-700 text-sm">Save time by uploading a photo or speaking into your microphone. Our AI will automatically extract all the details.</p>
-            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Smart Voice Reporting Section */}
               <VoiceReporter onApplyResults={handleApplyVoiceResults} />
