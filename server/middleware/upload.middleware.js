@@ -22,10 +22,10 @@ const storage = multer.diskStorage({
 
 // Configure file filter to reject non-image files
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
+  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('audio/') || file.mimetype.startsWith('video/')) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only image files are allowed!'), false);
+    cb(new Error('Invalid file type. Only image or audio files are allowed!'), false);
   }
 };
 

@@ -6,6 +6,7 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const { generateImageHash } = require('../utils/imageHash');
 const { identifyItemFromImage } = require('../services/itemIdentification.service');
+const { analyzeVoiceReport } = require('../services/voiceReporting.service');
 const { runAutonomousMatching } = require('../services/matching.service');
 
 cloudinary.config({
@@ -61,6 +62,7 @@ const createItem = async (req, res) => {
       ownershipProofs: ownershipProofsParsed,
       aiIdentified: itemData.aiIdentified === 'true' || itemData.aiIdentified === true,
       aiIdentification: aiIdentificationParsed || undefined,
+      ownershipProofs: ownershipProofsParsed,
       titleSi,
       titleTa,
       descriptionSi,
@@ -328,6 +330,14 @@ const updateItem = async (req, res) => {
       updateData.ownershipProofs = ownershipProofsParsed;
     }
     
+    if (updateData.ownershipProofs && typeof updateData.ownershipProofs === 'string') {
+      try {
+        updateData.ownershipProofs = JSON.parse(updateData.ownershipProofs);
+      } catch (e) {
+        delete updateData.ownershipProofs;
+      }
+    }
+
     if (req.file) {
       // Generate perceptual hash fingerprint locally for the newly uploaded image
       const hash = await generateImageHash(req.file.path);
@@ -553,6 +563,35 @@ const identifyItem = async (req, res) => {
   }
 };
 
+const analyzeVoiceReportController = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No audio file uploaded.' });
+    }
+
+    const result = await analyzeVoiceReport(
+      req.file.path,
+      req.file.mimetype
+    );
+
+    // Clean up temporary upload file
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (cleanupErr) {
+      console.error('Failed to cleanup temp voice file:', cleanupErr);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Voice analyze controller error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process voice report. ' + error.message
+    });
+  }
+};
 const verifyOwnership = async (req, res) => {
   try {
     const { itemId } = req.params;
@@ -689,25 +728,21 @@ const verifyOwnership = async (req, res) => {
       }
     } catch (msgErr) {
       console.error('Failed to send verification system message:', msgErr);
+
     }
 
     res.status(200).json({
       success: true,
-      overallStatus,
-      scorePercentage,
-      verifiedCount,
-      totalProofs: storedProofs.length,
-      details
-    });
-  } catch (error) {
-    console.error('Verify ownership error:', error);
-    res.status(500).json({ message: 'Server error during ownership verification.', error: error.message });
+  analyzeVoiceReport: analyzeVoiceReportController,
+  verifyOwnership
+
   }
 };
 
 module.exports = {
   createItem,
   getAllItems,
+  verifyOwnership,
   getItemById,
   updateItem,
   deleteItem,
@@ -719,5 +754,9 @@ module.exports = {
   resolvePoliceItem,
   getArchivedItems,
   identifyItem,
+<<<<<<< HEAD
+  analyzeVoiceReport: analyzeVoiceReportController
+=======
   verifyOwnership,
+>>>>>>> 1574f35b4a3d9a5927d1ab4c820eeb51367fe785
 };

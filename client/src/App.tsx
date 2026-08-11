@@ -12,6 +12,7 @@ import PostItemPage from './features/items/pages/PostItemPage';
 import EditItemPage from './features/items/pages/EditItemPage';
 import ItemDetailPage from './features/items/pages/ItemDetailPage';
 import AnalyticsPage from './features/items/pages/AnalyticsPage';
+import HotspotMapPage from './features/items/pages/HotspotMapPage';
 import ArchivedItemsPage from './features/items/pages/ArchivedItemsPage';
 import PoliceDashboardPage from './features/police/pages/PoliceDashboardPage';
 import AdminDashboardPage from './features/admin/pages/AdminDashboardPage';
@@ -55,6 +56,9 @@ const App: React.FC = () => {
 
           {/* Analytics Route */}
           <Route path="/analytics" element={<AnalyticsPage />} />
+          
+          {/* Hotspots Route */}
+          <Route path="/hotspots" element={<HotspotMapPage />} />
 
           {/* Police Dashboard */}
           <Route path="/police-dashboard" element={<PoliceDashboardPage />} />
