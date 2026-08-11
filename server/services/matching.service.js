@@ -170,6 +170,8 @@ const runAutonomousMatching = async (savedItem) => {
         let alertMessage = '';
         if (matchPhase === 'VISUAL') {
           alertMessage = `🤖 AI VISUAL MATCH: Our Image Recognition engine detected a structural match between your photos! Click here to view the potential match: /items/${savedItem._id}`;
+        } else if (matchPhase === 'NLP' && savedItem.aiIdentified && match.aiIdentified) {
+          alertMessage = `🤖 AI VISUAL MATCH: Our Gemini Vision AI analyzed the photos and identified highly matching objects! Click here to view the potential match: /items/${savedItem._id}`;
         } else {
           alertMessage = `🤖 AI NLP MATCH: Our Text Analysis engine detected highly similar keyword overlap between your descriptions! Click here to view the potential match: /items/${savedItem._id}`;
         }
