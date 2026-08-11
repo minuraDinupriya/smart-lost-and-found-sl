@@ -5,6 +5,7 @@ import { Archive, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
+import PageNavigation from '../../../components/common/PageNavigation';
 import ItemCard, { ItemProps } from '../components/ItemCard';
 
 const ArchivedItemsPage: React.FC = () => {
@@ -53,6 +54,7 @@ const ArchivedItemsPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
+      <PageNavigation />
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#800000] to-[#500000] rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
