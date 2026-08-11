@@ -88,28 +88,28 @@ const InboxPage: React.FC = () => {
           <MessageSquare className="w-8 h-8 text-[#800000]" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Active Inquiries</h1>
-          <p className="text-slate-500">Manage your private negotiations and system alerts.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Active Inquiries</h1>
+          <p className="text-slate-500 dark:text-slate-400">Manage your private negotiations and system alerts.</p>
         </div>
       </div>
 
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="animate-pulse flex p-4 bg-white rounded-2xl border border-slate-100 h-28">
-              <div className="w-20 h-20 bg-slate-200 rounded-xl mr-4 flex-shrink-0"></div>
+            <div key={i} className="animate-pulse flex p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 h-28">
+              <div className="w-20 h-20 bg-slate-200 dark:bg-slate-700 rounded-xl mr-4 flex-shrink-0"></div>
               <div className="flex-grow space-y-3 py-2">
-                <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-                <div className="h-3 bg-slate-200 rounded w-2/3"></div>
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+                <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
               </div>
             </div>
           ))}
         </div>
       ) : threads.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-16 text-center">
-          <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Your inbox is empty</h3>
-          <p className="text-slate-500">You don't have any active messages or system alerts yet.</p>
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 p-16 text-center">
+          <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Your inbox is empty</h3>
+          <p className="text-slate-500 dark:text-slate-400">You don't have any active messages or system alerts yet.</p>
         </div>
       ) : (
         <motion.div 
@@ -128,12 +128,12 @@ const InboxPage: React.FC = () => {
                 onClick={() => thread.itemId && navigate(`/chat/${thread.itemId._id}/${otherUser._id}`)}
                 className={`relative flex items-start p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   isAlert 
-                    ? 'bg-amber-50/60 border-l-4 border-amber-400 shadow-sm hover:bg-amber-50' 
-                    : 'bg-white border border-slate-100 hover:border-slate-300 shadow-sm'
+                    ? 'bg-amber-50/60 dark:bg-amber-900/20 border-l-4 border-amber-400 shadow-sm hover:bg-amber-50 dark:hover:bg-amber-900/40' 
+                    : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 shadow-sm'
                 }`}
               >
                 {/* Item Thumbnail */}
-                <div className="w-20 h-20 bg-slate-100 rounded-xl mr-5 flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-200/60">
+                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700/50 rounded-xl mr-5 flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-200/60 dark:border-slate-600/50">
                   {thread.itemId && thread.itemId.imageUrl ? (
                     <img 
                       src={thread.itemId.imageUrl.startsWith('http') ? thread.itemId.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${thread.itemId.imageUrl}`} 
@@ -148,19 +148,19 @@ const InboxPage: React.FC = () => {
                 {/* Message Content */}
                 <div className="flex-grow">
                   <div className="flex justify-between items-start mb-1">
-                    <h4 className="font-bold text-slate-900 text-lg">
+                    <h4 className="font-bold text-slate-900 dark:text-white text-lg">
                       {thread.itemId ? thread.itemId.title : 'Deleted Item'}
                     </h4>
-                    <span className="text-xs font-medium text-slate-500 whitespace-nowrap ml-4">
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap ml-4">
                       {new Date(thread.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                   
-                  <div className="text-sm font-medium text-[#800000] mb-1.5 flex items-center">
+                  <div className="text-sm font-medium text-[#800000] dark:text-red-400 mb-1.5 flex items-center">
                     {isAlert ? '🤖 SYSTEM_BOT' : `From: ${otherUser.username}`}
                   </div>
 
-                  <p className={`text-sm leading-relaxed pr-8 ${isAlert ? 'text-amber-900 font-medium' : 'text-slate-600 line-clamp-2'}`}>
+                  <p className={`text-sm leading-relaxed pr-8 ${isAlert ? 'text-amber-900 dark:text-amber-400 font-medium' : 'text-slate-600 dark:text-slate-300 line-clamp-2'}`}>
                     {renderMessageText(thread.text, otherUser._id)}
                   </p>
                 </div>
