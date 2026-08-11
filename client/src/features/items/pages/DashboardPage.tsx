@@ -145,7 +145,11 @@ const DashboardPage: React.FC = () => {
 
   const handleTabChange = (tab: string) => {
     const params = new URLSearchParams(searchParams);
-    params.set('tab', tab);
+    if (tab === filterType && tab !== 'ALL') {
+      params.set('tab', 'ALL');
+    } else {
+      params.set('tab', tab);
+    }
     setSearchParams(params);
     setCurrentPage(1);
   };
@@ -187,6 +191,11 @@ const DashboardPage: React.FC = () => {
                             center={[item.latitude, item.longitude]}
                             radius={1000} // 1km radius
                             pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.4 }}
+                            eventHandlers={{
+                              mouseover: (e) => e.target.openPopup(),
+                              mouseout: (e) => e.target.closePopup(),
+                              click: () => navigate(`/items/${item._id}`)
+                            }}
                           >
                             <Popup className="custom-map-popup" offset={[0, -20]} closeButton={false}>
                               <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
@@ -210,7 +219,15 @@ const DashboardPage: React.FC = () => {
                       }
                       
                      return (
-                        <Marker key={item._id} position={[item.latitude, item.longitude]}>
+                        <Marker 
+                          key={item._id} 
+                          position={[item.latitude, item.longitude]}
+                          eventHandlers={{
+                            mouseover: (e) => e.target.openPopup(),
+                            mouseout: (e) => e.target.closePopup(),
+                            click: () => navigate(`/items/${item._id}`)
+                          }}
+                        >
                           <Popup className="custom-map-popup" offset={[0, -40]} closeButton={false}>
                             <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
                               {item.imageUrl ? (
