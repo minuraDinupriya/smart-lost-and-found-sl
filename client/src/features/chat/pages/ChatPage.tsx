@@ -201,15 +201,15 @@ const ChatPage: React.FC = () => {
   return (
     <>
     <PageNavigation />
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-10rem)]">
+    <div className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col h-[calc(100vh-10rem)]">
       {/* Header & Warning Context */}
-      <div className="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+      <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-900/50 rounded-t-2xl">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-lg shadow-sm">
              {receiverName ? receiverName.charAt(0).toUpperCase() : '?'}
           </div>
           <div>
-            <h2 className="font-bold text-gray-900 leading-tight">{receiverName || 'Secure Room'}</h2>
+            <h2 className="font-bold text-gray-900 dark:text-gray-100 leading-tight">{receiverName || 'Secure Room'}</h2>
             <p className="text-xs text-emerald-600 font-medium flex items-center mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
               Online
@@ -229,8 +229,8 @@ const ChatPage: React.FC = () => {
       {/* Verification status banner */}
       {item && item.ownershipProofs && item.ownershipProofs.length > 0 && (
         <div className="bg-[#800000]/5 border-b border-gray-100 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-          <div className="text-xs text-gray-700">
-            <span className="font-bold uppercase text-[#800000] block mb-1">Digital Proof of Ownership:</span>
+          <div className="text-xs text-gray-700 dark:text-gray-300">
+            <span className="font-bold uppercase text-[#800000] dark:text-red-400 block mb-1">Digital Proof of Ownership:</span>
             This item has {item.ownershipProofs.length} private ownership proof fields registered.
             {item.verificationHistory && item.verificationHistory.length > 0 ? (
               <span className="text-gray-500 block mt-1">
@@ -257,7 +257,7 @@ const ChatPage: React.FC = () => {
       )}
 
       {/* Message Feed Canvas */}
-      <div className="flex-grow p-6 overflow-y-auto bg-[#F9FAFB]/60 space-y-4">
+      <div className="flex-grow p-6 overflow-y-auto bg-[#F9FAFB]/60 dark:bg-slate-900/40 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-gray-400 mt-20 text-sm font-medium">
             No messages yet. Send a message to initiate the claim!
@@ -299,7 +299,7 @@ const ChatPage: React.FC = () => {
               <React.Fragment key={msg._id || index}>
                 {showDateHeader && (
                   <div className="flex justify-center my-4">
-                    <span className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full font-medium shadow-sm">
+                    <span className="bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-medium shadow-sm">
                       {dateHeaderText}
                     </span>
                   </div>
@@ -312,7 +312,7 @@ const ChatPage: React.FC = () => {
                   <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 shadow-sm text-sm ${
                     alignRight 
                       ? 'bg-[#800000] text-white rounded-2xl rounded-br-sm' 
-                      : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
+                      : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-800 dark:text-gray-200 rounded-2xl rounded-bl-sm'
                   }`}>
                     {/* Render Text */}
                     <span className="whitespace-pre-wrap">{msg.text}</span>
@@ -335,7 +335,7 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* Persistent Message Input Engine */}
-      <div className="p-4 bg-white border-t border-gray-100 rounded-b-2xl">
+      <div className="p-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 rounded-b-2xl">
         <form onSubmit={sendMessage} className="flex space-x-3 items-end">
           <textarea 
             value={inputText}
@@ -347,7 +347,7 @@ const ChatPage: React.FC = () => {
               }
             }}
             placeholder="Type your message securely..."
-            className="flex-grow resize-none rounded-xl border border-gray-200 px-5 py-3.5 text-sm focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-gray-50 focus:bg-white transition-all shadow-inner"
+            className="flex-grow resize-none rounded-xl border border-gray-200 dark:border-slate-700 px-5 py-3.5 text-sm focus:ring-2 focus:ring-[#800000]/20 dark:focus:ring-red-400/20 focus:border-[#800000] dark:focus:border-red-400 outline-none bg-gray-50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all shadow-inner"
             rows={2}
           />
           <button 

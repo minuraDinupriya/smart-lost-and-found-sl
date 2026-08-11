@@ -19,6 +19,22 @@ router.get('/messages/unread-count', verifyToken, async (req, res) => {
   }
 });
 
+// @route   PUT /api/messages/mark-all-read
+// @desc    Mark all messages for the logged-in user as read
+// @access  Private
+router.put('/messages/mark-all-read', verifyToken, async (req, res) => {
+  try {
+    await Message.updateMany(
+      { receiverId: req.userId, isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.status(200).json({ message: 'All messages marked as read.' });
+  } catch (error) {
+    console.error('Mark all read error:', error);
+    res.status(500).json({ message: 'Internal error marking messages as read.' });
+  }
+});
+
 // @route   GET /api/messages/inbox
 // @desc    Fetch latest messages for all active chat threads of the user
 // @access  Private
