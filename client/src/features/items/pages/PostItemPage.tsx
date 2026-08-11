@@ -7,7 +7,6 @@ import Swal from 'sweetalert2';
 import api from '../../../services/api';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import AIItemIdentifier from '../components/AIItemIdentifier';
-import VoiceReporter from '../components/VoiceReporter';
 import { ShieldCheck, Navigation } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
@@ -58,21 +57,34 @@ const PostItemPage: React.FC = () => {
   const [isSearchingPolice, setIsSearchingPolice] = useState(false);
   const [hasSearchedPolice, setHasSearchedPolice] = useState(false);
 
-  // Digital Proof of Ownership
-  const [ownershipProofs, setOwnershipProofs] = useState<{proofType: string, proofValue: string}[]>([]);
+  // Digital Proof of Ownership Composition State
+  const [ownershipProofs, setOwnershipProofs] = useState<{ proofType: string; customLabel: string; proofValue: string }[]>([]);
+  const [newProofType, setNewProofType] = useState('serialNumber');
+  const [newCustomLabel, setNewCustomLabel] = useState('');
+  const [newProofValue, setNewProofValue] = useState('');
 
   const handleAddProof = () => {
-    setOwnershipProofs([...ownershipProofs, { proofType: '', proofValue: '' }]);
-  };
+    if (!newProofValue.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Value required', text: 'Please enter a value or description for this proof.', confirmButtonColor: '#800000' });
+      return;
+    }
+    if (newProofType === 'custom' && !newCustomLabel.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Label required', text: 'Please enter a custom label name.', confirmButtonColor: '#800000' });
+      return;
+    }
 
-  const handleRemoveProof = (index: number) => {
-    setOwnershipProofs(ownershipProofs.filter((_, i) => i !== index));
-  };
+    setOwnershipProofs((prev) => [
+      ...prev,
+      {
+        proofType: newProofType,
+        customLabel: newProofType === 'custom' ? newCustomLabel.trim() : '',
+        proofValue: newProofValue.trim()
+      }
+    ]);
 
-  const handleProofChange = (index: number, field: 'proofType' | 'proofValue', value: string) => {
-    const newProofs = [...ownershipProofs];
-    newProofs[index][field] = value;
-    setOwnershipProofs(newProofs);
+    // reset composition states
+    setNewProofValue('');
+    setNewCustomLabel('');
   };
 
   const [formData, setFormData] = useState({
@@ -215,42 +227,6 @@ const PostItemPage: React.FC = () => {
     });
   };
 
-  const handleApplyVoiceResults = (details: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      type: details.type || prev.type,
-      title: details.itemName || prev.title,
-      category: details.category || prev.category,
-      description: details.description || prev.description,
-      color: details.color || prev.color,
-      brand: details.brand || prev.brand,
-      model: details.model || prev.model,
-    }));
-    
-    if (details.location) {
-      setExternalLocation((prev) => ({
-        province: prev?.province || '',
-        district: prev?.district || '',
-        city: details.location
-      }));
-      setLocation((prev) => ({
-        province: prev?.province || '',
-        district: prev?.district || '',
-        city: details.location
-      }));
-    }
-
-    Swal.fire({
-      toast: true,
-      position: 'top-end',
-      icon: 'success',
-      title: 'Voice Details Applied!',
-      text: 'Form fields have been populated.',
-      showConfirmButton: false,
-      timer: 2500,
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!location.province || !location.district || !location.city) {
@@ -267,24 +243,24 @@ const PostItemPage: React.FC = () => {
       data.append('province', location.province);
       data.append('district', location.district);
       data.append('city', location.city);
+      
       if (mapPosition) {
-        data.append('lat', mapPosition[0].toString());
-        data.append('lng', mapPosition[1].toString());
+        data.append('latitude', mapPosition[0].toString());
+        data.append('longitude', mapPosition[1].toString());
       }
+      
       if (imageFile) data.append('image', imageFile);
+
+      if (ownershipProofs && ownershipProofs.length > 0) {
+        data.append('ownershipProofs', JSON.stringify(ownershipProofs));
+      }
+
       if (aiMetadata) {
         data.append('aiIdentified', 'true');
         data.append('aiIdentification', JSON.stringify(aiMetadata));
       }
-      if (ownershipProofs.length > 0) {
-        // Only keep non-empty proofs
-        const validProofs = ownershipProofs.filter(p => p.proofType.trim() && p.proofValue.trim());
-        if (validProofs.length > 0) {
-          data.append('ownershipProofs', JSON.stringify(validProofs));
-        }
-      }
 
-      await api.post('/items', data, {
+      const response = await api.post('/items', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -319,9 +295,6 @@ const PostItemPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Voice Reporting Section */}
-        <VoiceReporter onApplyResults={handleApplyVoiceResults} />
-
         {/* Smart Item Identification Section */}
         <AIItemIdentifier
           imageFile={imageFile}
@@ -456,6 +429,97 @@ const PostItemPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Digital Proof of Ownership */}
+        <div className="space-y-4 pt-6 border-t border-gray-100">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">Digital Proof of Ownership</h3>
+            <span className="text-xs text-gray-400 font-semibold bg-gray-100 px-2 py-1 rounded-md">Confidential Layer</span>
+          </div>
+          <p className="text-xs text-gray-500">
+            Add private ownership details (e.g. serial numbers, IMEIs, receipts, or unique physical marks). These details are stored securely and <strong>never shown to the public or finder</strong>. They are only used to verify your ownership when claiming.
+          </p>
+
+          {/* List of currently added proofs */}
+          {ownershipProofs.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              {ownershipProofs.map((proof, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-gray-400">
+                      {proof.proofType === 'custom' ? `Custom: ${proof.customLabel}` : proof.proofType}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700 truncate max-w-[200px]">
+                      {proof.proofValue}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOwnershipProofs(prev => prev.filter((_, i) => i !== index))}
+                    className="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Form to add a new proof */}
+          <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl p-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Proof Type</label>
+                <select
+                  value={newProofType}
+                  onChange={(e) => {
+                    setNewProofType(e.target.value);
+                    if (e.target.value !== 'custom') setNewCustomLabel('');
+                  }}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                >
+                  <option value="serialNumber">Serial Number</option>
+                  <option value="imei">IMEI Number</option>
+                  <option value="productId">Product ID / Code</option>
+                  <option value="receiptRef">Receipt / Invoice Reference</option>
+                  <option value="physicalMark">Unique Physical Mark / Scratch</option>
+                  <option value="specialFeature">Special Feature / Modification</option>
+                  <option value="engraving">Engraving / Text</option>
+                  <option value="custom">Custom ID Detail</option>
+                </select>
+              </div>
+              {newProofType === 'custom' && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Custom Label Name</label>
+                  <input
+                    type="text"
+                    value={newCustomLabel}
+                    onChange={(e) => setNewCustomLabel(e.target.value)}
+                    placeholder="e.g. Frame Number, Keyring details"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Proof Description/Value</label>
+              <textarea
+                rows={2}
+                value={newProofValue}
+                onChange={(e) => setNewProofValue(e.target.value)}
+                placeholder="Enter exact serial/code value, or a detailed description of the mark..."
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleAddProof}
+              className="w-full bg-gray-800 text-white text-xs font-bold py-2 rounded-xl hover:bg-gray-700 transition"
+            >
+              Add Proof Detail
+            </button>
+          </div>
+        </div>
+
         {/* Security / Blind Claim */}
         <div className="space-y-4 pt-6 border-t border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3">Verification & Contact</h3>
@@ -469,60 +533,6 @@ const PostItemPage: React.FC = () => {
               <input type="text" name="securityQuestion" value={formData.securityQuestion} onChange={handleInputChange} placeholder="e.g., What is the lock screen wallpaper?" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
               <p className="text-xs text-gray-500 mt-1.5">If posted as FOUND, claimants must answer this to verify ownership.</p>
             </div>
-          </div>
-        </div>
-
-        {/* Digital Proof of Ownership */}
-        <div className="space-y-4 pt-6 border-t border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3 flex items-center justify-between">
-            <span>Digital Proof of Ownership</span>
-            <button
-              type="button"
-              onClick={handleAddProof}
-              className="text-sm bg-gray-100 text-gray-700 font-semibold px-3 py-1 rounded hover:bg-gray-200 transition"
-            >
-              + Add Private Proof
-            </button>
-          </h3>
-          <p className="text-sm text-gray-500">
-            Add highly specific identifiers (e.g. IMEI, serial numbers, custom marks, receipts) to prove ownership. These will remain strictly private and will never be shown to the public or finders. Anyone claiming this item must enter matching proofs to be verified.
-          </p>
-          
-          <div className="space-y-3">
-            {ownershipProofs.map((proof, index) => (
-              <div key={index} className="flex flex-col sm:flex-row items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <input
-                  type="text"
-                  placeholder="Proof Type (e.g. IMEI)"
-                  value={proof.proofType}
-                  onChange={(e) => handleProofChange(index, 'proofType', e.target.value)}
-                  className="w-full sm:w-1/3 px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Proof Value (e.g. 123456789012345)"
-                  value={proof.proofValue}
-                  onChange={(e) => handleProofChange(index, 'proofValue', e.target.value)}
-                  className="w-full sm:w-flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveProof(index)}
-                  className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-            {ownershipProofs.length === 0 && (
-              <div className="text-center p-4 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm">
-                No digital proofs added. Click above to add secure verification details.
-              </div>
-            )}
           </div>
         </div>
 

@@ -63,11 +63,11 @@ const ItemDetailPage: React.FC = () => {
         confirmButtonText: 'Proceed to Chat'
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate(`/chat/${item._id}`);
+          navigate(`/chat/${item._id}/${item.createdBy._id || item.createdBy}`);
         }
       });
     } else {
-      navigate(`/chat/${item._id}`);
+      navigate(`/chat/${item._id}/${item.createdBy._id || item.createdBy}`);
     }
   };
 

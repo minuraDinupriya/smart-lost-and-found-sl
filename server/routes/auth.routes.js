@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, googleLogin, getMe, getLeaderboard, updateProfile } = require('../controllers/auth.controller');
+const { register, login, googleLogin, getMe, getLeaderboard, updateProfile, updateBankDetails } = require('../controllers/auth.controller');
 const { verifyToken } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 
@@ -33,6 +33,11 @@ router.get('/me', verifyToken, getMe);
 // @desc    Update user profile (username & profile picture)
 // @access  Private
 router.put('/profile', verifyToken, upload.single('profilePicture'), updateProfile);
+
+// @route   PUT /api/auth/profile/bank
+// @desc    Update user bank details
+// @access  Private
+router.put('/profile/bank', verifyToken, updateBankDetails);
 
 module.exports = router;
 

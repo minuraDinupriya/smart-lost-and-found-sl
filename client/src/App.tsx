@@ -62,7 +62,7 @@ const App: React.FC = () => {
           {/* Admin Dashboard */}
           <Route path="/admin" element={<AdminDashboardPage />} />
 
-          <Route path="/chat/:itemId" element={<ChatPage />} />
+          <Route path="/chat/:itemId/:otherUserId" element={<ChatPage />} />
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

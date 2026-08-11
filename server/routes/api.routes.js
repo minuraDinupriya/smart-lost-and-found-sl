@@ -49,18 +49,24 @@ router.get('/messages/inbox', verifyToken, async (req, res) => {
   }
 });
 
-// @route   GET /api/messages/:itemId
+// @route   GET /api/messages/:itemId/:otherUserId
 // @desc    Fetch comprehensive chat history for an item's negotiation room
 // @access  Private
-router.get('/messages/:itemId', verifyToken, async (req, res) => {
+router.get('/messages/:itemId/:otherUserId', verifyToken, async (req, res) => {
   try {
     // Auto-read protocol: Mark all messages in this room sent to the user as read
     await Message.updateMany(
-      { itemId: req.params.itemId, receiverId: req.userId, isRead: false },
+      { itemId: req.params.itemId, senderId: req.params.otherUserId, receiverId: req.userId, isRead: false },
       { $set: { isRead: true } }
     );
 
-    const messages = await Message.find({ itemId: req.params.itemId }).sort({ createdAt: 1 });
+    const messages = await Message.find({ 
+      itemId: req.params.itemId,
+      $or: [
+        { senderId: req.userId, receiverId: req.params.otherUserId },
+        { senderId: req.params.otherUserId, receiverId: req.userId }
+      ]
+    }).sort({ createdAt: 1 });
     res.status(200).json(messages);
   } catch (error) {
     console.error('Database message retrieval error:', error);

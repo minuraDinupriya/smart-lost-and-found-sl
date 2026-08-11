@@ -53,7 +53,8 @@ const Navbar: React.FC = () => {
   }, [socket]);
 
   return (
-    <nav className="backdrop-blur-md bg-white/90 border-b border-slate-100 sticky top-0 z-50">
+    <>
+      <nav className="backdrop-blur-md bg-white/90 border-b border-slate-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
@@ -88,47 +89,6 @@ const Navbar: React.FC = () => {
               <div className="flex items-center space-x-4 pl-2 sm:pl-4 border-l border-gray-100">
                 {/* Desktop Navigation (Hidden on Mobile) */}
                 <div className="hidden lg:flex items-center space-x-4">
-                  {user.role !== 'police' && (
-                    <>
-                      <div className="flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-full border border-yellow-200">
-                        <span className="text-sm font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</span>
-                      </div>
-                      <Link
-                        to="/smart-tags"
-                        className="relative flex items-center text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 hover:border-emerald-200 border border-emerald-200/60 transition-colors shadow-sm"
-                      >
-                        <ShieldCheck className="w-4 h-4 mr-1.5" />
-                        <span>{t('nav.smartTags')}</span>
-                      </Link>
-                    </>
-                  )}
-                  {user.role === 'police' && (
-                    <Link
-                      to="/police-dashboard"
-                      className="relative flex items-center text-sm font-medium text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 hover:border-blue-200 border border-blue-200/60 transition-colors shadow-sm"
-                    >
-                      <Building className="w-4 h-4 mr-1.5" />
-                      <span>Station Dashboard</span>
-                    </Link>
-                  )}
-                  {user.role === 'admin' && (
-                    <Link
-                      to="/admin"
-                      className="relative flex items-center text-sm font-bold text-red-700 bg-red-50 px-3 py-1.5 rounded-full hover:bg-red-100 hover:border-red-200 border border-red-200/60 transition-colors shadow-sm"
-                    >
-                      <ShieldAlert className="w-4 h-4 mr-1.5 text-red-600" />
-                      <span>Admin Panel</span>
-                    </Link>
-                  )}
-                  {user.role !== 'police' && (
-                    <Link
-                      to="/analytics"
-                      className="relative flex items-center text-sm font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 hover:border-indigo-200 border border-indigo-200/60 transition-colors shadow-sm"
-                    >
-                      <BarChart3 className="w-4 h-4 mr-1.5" />
-                      <span>{t('nav.analytics')}</span>
-                    </Link>
-                  )}
                   <Link
                     to="/inbox"
                     className="relative flex items-center text-sm font-medium text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 border border-slate-200/60 transition-colors shadow-sm"
@@ -212,12 +172,12 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Mobile Menu Button (Hamburger) */}
+                {/* Universal Hamburger Menu Button */}
                 <button 
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="lg:hidden p-2 text-gray-600 hover:text-[#800000] hover:bg-gray-100 rounded-xl transition-colors"
+                  className="p-2 text-gray-600 hover:text-[#800000] hover:bg-gray-100 rounded-xl transition-colors focus:outline-none"
                 >
-                  {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                  <Menu className="w-6 h-6" />
                 </button>
                 
               </div>
@@ -240,96 +200,129 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
+      </nav>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Side Drawer Overlay */}
       {user && isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-16 left-0 w-full bg-white border-b border-gray-200 shadow-xl z-40 px-4 py-4 space-y-4">
-          <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-            {user.profilePicture ? (
-              <img 
-                src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
-                alt="Profile" 
-                className="w-10 h-10 rounded-full object-cover border border-gray-200" 
-              />
-            ) : (
-              <div className="w-10 h-10 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-lg">
-                {user.username.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div>
-              <p className="font-bold text-gray-900">{user.username}</p>
-              {user.role !== 'police' && (
-                <p className="text-xs text-yellow-600 font-bold">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {user.role !== 'police' && (
-              <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100">
-                <ShieldCheck className="w-6 h-6 mb-1" />
-                <span className="text-sm font-semibold">{t('nav.smartTags')}</span>
-              </Link>
-            )}
-            {user.role === 'police' && (
-              <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-blue-50 text-blue-700 rounded-xl border border-blue-100">
-                <Building className="w-6 h-6 mb-1" />
-                <span className="text-sm font-semibold">Station Dashboard</span>
-              </Link>
-            )}
-            {user.role === 'admin' && (
-              <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-red-50 text-red-700 rounded-xl border border-red-200">
-                <ShieldAlert className="w-6 h-6 mb-1 text-red-600" />
-                <span className="text-sm font-bold">Admin Panel</span>
-              </Link>
-            )}
-            {user.role !== 'police' && (
-              <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100">
-                <BarChart3 className="w-6 h-6 mb-1" />
-                <span className="text-sm font-semibold">{t('nav.analytics')}</span>
-              </Link>
-            )}
-            <Link to="/inbox" onClick={() => { setIsMobileMenuOpen(false); setUnreadCount(0); }} className="relative flex flex-col items-center justify-center p-3 bg-slate-50 text-slate-700 rounded-xl border border-slate-200">
-              <MessageSquare className="w-6 h-6 mb-1" />
-              <span className="text-sm font-semibold">{t('nav.inbox')}</span>
-              {unreadCount > 0 && (
-                <span className="absolute top-2 right-6 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
-                  {unreadCount}
-                </span>
-              )}
-            </Link>
-            <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-slate-50 text-slate-700 rounded-xl border border-slate-200">
-              <UserIcon className="w-6 h-6 mb-1 text-slate-500" />
-              <span className="text-sm font-semibold">Profile</span>
-            </Link>
-            <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-red-50/50 text-[#800000] rounded-xl border border-red-100">
-              <Archive className="w-6 h-6 mb-1" />
-              <span className="text-sm font-semibold">{t('nav.archivedItems')}</span>
-            </Link>
-            {user.role !== 'police' && (
-              <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20">
-                <PlusCircle className="w-6 h-6 mb-1" />
-                <span className="text-sm font-bold">{t('nav.postItem')}</span>
-              </Link>
-            )}
-            {user.role !== 'police' && (
-              <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 col-span-2">
-                <Wallet className="w-6 h-6 mb-1" />
-                <span className="text-sm font-semibold">Tip History</span>
-              </Link>
-            )}
-          </div>
-
-          <button 
-            onClick={() => { setIsMobileMenuOpen(false); logout(); }}
-            className="w-full flex items-center justify-center space-x-2 mt-4 p-3 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 active:scale-95 transition-transform"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>{t('nav.logout')}</span>
-          </button>
-        </div>
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
       )}
-    </nav>
+
+      {/* Universal Side Drawer */}
+      <div 
+        className={`fixed inset-y-0 right-0 w-80 sm:w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'} overflow-y-auto flex flex-col`}
+      >
+        {user && (
+          <>
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 z-10">
+              <span className="font-bold text-gray-900 text-lg">Menu</span>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors focus:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-5 flex-1">
+              {/* User Profile Summary */}
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                {user.profilePicture ? (
+                  <img 
+                    src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
+                    alt="Profile" 
+                    className="w-12 h-12 rounded-full object-cover border border-gray-200" 
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-xl">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-900 truncate text-base">{user.username}</p>
+                  {user.role !== 'police' && (
+                    <p className="text-xs text-yellow-600 font-bold bg-yellow-100/50 inline-block px-2 py-0.5 rounded-full mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Navigation Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {user.role !== 'police' && (
+                  <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-colors">
+                    <ShieldCheck className="w-6 h-6 mb-2" />
+                    <span className="text-sm font-semibold text-center">{t('nav.smartTags')}</span>
+                  </Link>
+                )}
+                {user.role === 'police' && (
+                  <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors">
+                    <Building className="w-6 h-6 mb-2" />
+                    <span className="text-sm font-semibold text-center">Station Dashboard</span>
+                  </Link>
+                )}
+                {user.role === 'admin' && (
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 hover:bg-red-100 transition-colors">
+                    <ShieldAlert className="w-6 h-6 mb-2 text-red-600" />
+                    <span className="text-sm font-bold text-center">Admin Panel</span>
+                  </Link>
+                )}
+                {user.role !== 'police' && (
+                  <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                    <BarChart3 className="w-6 h-6 mb-2" />
+                    <span className="text-sm font-semibold text-center">{t('nav.analytics')}</span>
+                  </Link>
+                )}
+                
+                {/* On mobile devices, we show inbox & post item in the drawer since they are hidden in the nav. On desktop they are redundant but harmless. */}
+                <Link to="/inbox" onClick={() => { setIsMobileMenuOpen(false); setUnreadCount(0); }} className="relative flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors lg:hidden">
+                  <MessageSquare className="w-6 h-6 mb-2" />
+                  <span className="text-sm font-semibold text-center">{t('nav.inbox')}</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-3 right-8 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+                
+                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
+                  <UserIcon className="w-6 h-6 mb-2 text-slate-500" />
+                  <span className="text-sm font-semibold text-center">Profile</span>
+                </Link>
+                <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50/50 text-[#800000] rounded-xl border border-red-100 hover:bg-red-50 transition-colors">
+                  <Archive className="w-6 h-6 mb-2" />
+                  <span className="text-sm font-semibold text-center">{t('nav.archivedItems')}</span>
+                </Link>
+                
+                {user.role !== 'police' && (
+                  <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20 hover:bg-[#800000]/20 transition-colors lg:hidden">
+                    <PlusCircle className="w-6 h-6 mb-2" />
+                    <span className="text-sm font-bold text-center">{t('nav.postItem')}</span>
+                  </Link>
+                )}
+                {user.role !== 'police' && (
+                  <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 hover:bg-amber-100 transition-colors col-span-2">
+                    <Wallet className="w-6 h-6 mb-2" />
+                    <span className="text-sm font-semibold text-center">Tip History</span>
+                  </Link>
+                )}
+              </div>
+
+              <div className="pt-4 mt-auto">
+                <button 
+                  onClick={() => { setIsMobileMenuOpen(false); logout(); }}
+                  className="w-full flex items-center justify-center space-x-2 p-3.5 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 hover:bg-red-100 active:scale-95 transition-all"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>{t('nav.logout')}</span>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

@@ -40,6 +40,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
       // Only applicable if role is 'police'
     },
+    bankDetails: {
+      bankName: { type: String, trim: true },
+      branchName: { type: String, trim: true },
+      accountName: { type: String, trim: true },
+      accountNumber: { type: String, trim: true },
+    },
   },
   {
     // Mongoose automatically creates and manages 'createdAt' and 'updatedAt' fields
