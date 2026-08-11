@@ -118,8 +118,8 @@ const Navbar: React.FC = () => {
             <div className="p-1.5 bg-[#800000]/5 rounded-xl">
               <PackageSearch className="w-7 h-7 text-[#800000]" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-gray-900 hidden sm:block">
-              Smart Lost <span className="text-[#800000]">&</span> Found
+            <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-gray-100 hidden sm:block">
+              Smart Lost <span className="text-[#800000] dark:text-red-400">&</span> Found
             </span>
             </a>
           </div>
@@ -163,25 +163,7 @@ const Navbar: React.FC = () => {
               </select>
             </div>
 
-            {/* Theme Switcher */}
-            <div className="relative group">
-              <button className="flex items-center justify-center p-2 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 transition-colors shadow-sm">
-                {theme === 'light' ? <Sun className="w-4 h-4 text-gray-600 dark:text-gray-300" /> : theme === 'dark' ? <Moon className="w-4 h-4 text-gray-600 dark:text-gray-300" /> : <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-300" />}
-              </button>
-              <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
-                <div className="p-1.5 space-y-0.5">
-                  <button onClick={() => setTheme('light')} className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors ${theme === 'light' ? 'bg-gray-100 dark:bg-slate-700 text-[#800000] dark:text-red-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
-                    <Sun className="w-4 h-4 mr-2" /> Light
-                  </button>
-                  <button onClick={() => setTheme('dark')} className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors ${theme === 'dark' ? 'bg-gray-100 dark:bg-slate-700 text-[#800000] dark:text-red-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
-                    <Moon className="w-4 h-4 mr-2" /> Dark
-                  </button>
-                  <button onClick={() => setTheme('system')} className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg flex items-center transition-colors ${theme === 'system' ? 'bg-gray-100 dark:bg-slate-700 text-[#800000] dark:text-red-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>
-                    <Monitor className="w-4 h-4 mr-2" /> System
-                  </button>
-                </div>
-              </div>
-            </div>
+
 
             {/* Main Vertical Divider */}
             <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
@@ -339,15 +321,15 @@ const Navbar: React.FC = () => {
 
       {/* Universal Side Drawer */}
       <div 
-        className={`fixed inset-y-0 right-0 w-80 sm:w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'} overflow-y-auto flex flex-col`}
+        className={`fixed inset-y-0 right-0 w-80 sm:w-96 bg-white dark:bg-slate-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'} overflow-y-auto flex flex-col`}
       >
         {user && (
           <>
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 z-10">
-              <span className="font-bold text-gray-900 text-lg">Menu</span>
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50 sticky top-0 z-10">
+              <span className="font-bold text-gray-900 dark:text-gray-100 text-lg">Menu</span>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors focus:outline-none"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors focus:outline-none"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -355,12 +337,12 @@ const Navbar: React.FC = () => {
 
             <div className="p-4 space-y-5 flex-1">
               {/* User Profile Summary */}
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700">
                 {user.profilePicture ? (
                   <img 
                     src={user.profilePicture.startsWith('http') ? user.profilePicture : `${api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000'}${user.profilePicture}`} 
                     alt="Profile" 
-                    className="w-12 h-12 rounded-full object-cover border border-gray-200" 
+                    className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-slate-600" 
                   />
                 ) : (
                   <div className="w-12 h-12 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-xl">
@@ -368,10 +350,24 @@ const Navbar: React.FC = () => {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 truncate text-base">{user.username}</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100 truncate text-base">{user.username}</p>
                   {user.role !== 'police' && (
-                    <p className="text-xs text-yellow-600 font-bold bg-yellow-100/50 inline-block px-2 py-0.5 rounded-full mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-500 font-bold bg-yellow-100/50 dark:bg-yellow-900/30 inline-block px-2 py-0.5 rounded-full mt-1">🏆 {user.karmaPoints || 0} {t('nav.trustScore')}</p>
                   )}
+                </div>
+              </div>
+
+              {/* Theme Selection */}
+              <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center">
+                    <Moon className="w-4 h-4 mr-2" /> Theme
+                  </span>
+                </div>
+                <div className="flex space-x-2">
+                  <button onClick={() => setTheme('light')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex justify-center items-center transition-colors ${theme === 'light' ? 'bg-white dark:bg-slate-700 text-[#800000] dark:text-red-400 shadow-sm border border-gray-200 dark:border-slate-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>Light</button>
+                  <button onClick={() => setTheme('dark')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex justify-center items-center transition-colors ${theme === 'dark' ? 'bg-white dark:bg-slate-700 text-[#800000] dark:text-red-400 shadow-sm border border-gray-200 dark:border-slate-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>Dark</button>
+                  <button onClick={() => setTheme('system')} className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex justify-center items-center transition-colors ${theme === 'system' ? 'bg-white dark:bg-slate-700 text-[#800000] dark:text-red-400 shadow-sm border border-gray-200 dark:border-slate-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>System</button>
                 </div>
               </div>
 
