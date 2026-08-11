@@ -7,6 +7,10 @@
   font-family: 'Inter', sans-serif;
   background-color: #F9FAFB;
 }
+.dark body {
+  background-color: #020617;
+  color: #f3f4f6;
+}
 
 /* Leaflet Customizations for Map Cards */
 .custom-map-popup .leaflet-popup-content-wrapper {
@@ -27,6 +31,11 @@
   box-shadow: 0 4px 6px -1px rgba(200, 147, 147, 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   padding: 0;
   pointer-events: auto;
+}
+.dark .custom-map-tooltip {
+  background: #1e293b;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
 }
 .custom-map-tooltip::before {
   display: none; /* Hide default arrow */

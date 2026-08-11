@@ -5,6 +5,7 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { registerSW } from 'virtual:pwa-register';
+import { ThemeProvider } from './context/ThemeContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
 import './i18n';
@@ -19,11 +20,13 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       {/* Router must encapsulate providers so hooks like useNavigate work correctly inside Context */}
       <BrowserRouter>
-        <AuthProvider>
-          <SocketProvider>
-            <App />
-          </SocketProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <SocketProvider>
+              <App />
+            </SocketProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
   </React.StrictMode>
