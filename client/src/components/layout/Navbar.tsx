@@ -359,38 +359,38 @@ const Navbar: React.FC = () => {
               {/* Navigation Grid */}
               <div className="grid grid-cols-2 gap-3">
                 {user.role !== 'police' && (
-                  <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-colors">
+                  <Link to="/smart-tags" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
                     <ShieldCheck className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">{t('nav.smartTags')}</span>
                   </Link>
                 )}
                 {user.role === 'police' && (
-                  <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors">
+                  <Link to="/police-dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
                     <Building className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">Station Dashboard</span>
                   </Link>
                 )}
                 {user.role === 'admin' && (
-                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 hover:bg-red-100 transition-colors">
-                    <ShieldAlert className="w-6 h-6 mb-2 text-red-600" />
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                    <ShieldAlert className="w-6 h-6 mb-2" />
                     <span className="text-sm font-bold text-center">Admin Panel</span>
                   </Link>
                 )}
                 {user.role !== 'police' && (
-                  <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                  <Link to="/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
                     <BarChart3 className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">{t('nav.analytics')}</span>
                   </Link>
                 )}
                 {user.role !== 'police' && (
-                  <Link to="/hotspots" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-colors">
+                  <Link to="/hotspots" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
                     <MapIcon className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">Hotspots Map</span>
                   </Link>
                 )}
                 
                 {/* On mobile devices, we show inbox & post item in the drawer since they are hidden in the nav. On desktop they are redundant but harmless. */}
-                <Link to="/inbox" onClick={() => { setIsMobileMenuOpen(false); setUnreadCount(0); }} className="relative flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors lg:hidden">
+                <Link to="/inbox" onClick={() => { setIsMobileMenuOpen(false); setUnreadCount(0); }} className="relative flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors lg:hidden">
                   <MessageSquare className="w-6 h-6 mb-2" />
                   <span className="text-sm font-semibold text-center">{t('nav.inbox')}</span>
                   {unreadCount > 0 && (
@@ -400,23 +400,23 @@ const Navbar: React.FC = () => {
                   )}
                 </Link>
                 
-                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
-                  <UserIcon className="w-6 h-6 mb-2 text-slate-500" />
+                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  <UserIcon className="w-6 h-6 mb-2" />
                   <span className="text-sm font-semibold text-center">Profile</span>
                 </Link>
-                <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50/50 text-[#800000] rounded-xl border border-red-100 hover:bg-red-50 transition-colors">
+                <Link to="/archived" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-red-50/50 dark:bg-red-900/20 text-[#800000] dark:text-red-400 rounded-xl border border-red-100 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors">
                   <Archive className="w-6 h-6 mb-2" />
                   <span className="text-sm font-semibold text-center">{t('nav.archivedItems')}</span>
                 </Link>
                 
                 {user.role !== 'police' && (
-                  <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-[#800000]/10 text-[#800000] rounded-xl border border-[#800000]/20 hover:bg-[#800000]/20 transition-colors lg:hidden">
+                  <Link to="/post" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-[#800000]/10 dark:bg-[#800000]/20 text-[#800000] dark:text-red-400 rounded-xl border border-[#800000]/20 dark:border-[#800000]/40 hover:bg-[#800000]/20 dark:hover:bg-[#800000]/30 transition-colors lg:hidden">
                     <PlusCircle className="w-6 h-6 mb-2" />
                     <span className="text-sm font-bold text-center">{t('nav.postItem')}</span>
                   </Link>
                 )}
                 {user.role !== 'police' && (
-                  <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 hover:bg-amber-100 transition-colors col-span-2">
+                  <Link to="/tips/history" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">
                     <Wallet className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">Tip History</span>
                   </Link>
