@@ -188,12 +188,31 @@ const PostItemPage: React.FC = () => {
         setIsSearchingPolice(true);
         setNearestPolice(null);
         try {
-          // Use our reliable backend proxy to query Overpass API to bypass Browser CORS/WAF blocks
-          const baseUrl =
-            import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-          const url = `${baseUrl}/items/nearest-police?lat=${mapPosition[0]}&lng=${mapPosition[1]}`;
-          const response = await fetch(url);
-          const data = await response.json();
+          let data = null;
+          
+          try {
+            // Strategy 1: Direct fast browser fetch from Overpass Kumi Systems mirror (Zero latency)
+            const query = `[out:json];nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});out center;`;
+            const overpassUrl = `https://overpass.kumi.systems/api/interpreter`;
+            const response = await fetch(overpassUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: `data=${encodeURIComponent(query)}`
+            });
+            if (response.ok) {
+              data = await response.json();
+            }
+          } catch(e) {
+            console.log("Direct overpass failed, falling back to backend proxy...");
+          }
+
+          if (!data || !data.elements) {
+            // Strategy 2: Fallback to reliable backend proxy if CORS/WAF blocked
+            const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+            const url = `${baseUrl}/items/nearest-police?lat=${mapPosition[0]}&lng=${mapPosition[1]}`;
+            const response = await fetch(url);
+            data = await response.json();
+          }
 
           if (data.elements && data.elements.length > 0) {
             let closest: {
