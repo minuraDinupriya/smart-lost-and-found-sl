@@ -9,7 +9,14 @@
     "trustScore": "Trust Score",
     "login": "Login",
     "register": "Register",
-    "archivedItems": "Archived Items"
+    "archivedItems": "Archived Items",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "stationDashboard": "Station Dashboard",
+    "profile": "Profile",
+    "menu": "Menu"
   },
   "dashboard": {
     "title": "Welcome to Smart Lost & Found 🇱🇰",
@@ -34,7 +41,8 @@
     "adjustFilters": "Try adjusting your search keywords, switching categories, or clearing the location filters.",
     "all": "ALL",
     "lostTab": "LOST",
-    "foundTab": "FOUND"
+    "foundTab": "FOUND",
+    "myPostsTab": "MY POSTS"
   },
   "location": {
     "province": "Province",
@@ -69,5 +77,25 @@
     "loading": "Loading...",
     "edit": "Edit",
     "delete": "Delete"
+  },
+  "profile": {
+    "personalInfo": "Personal Info",
+    "claimedItemHistory": "Claimed Item History",
+    "foundReturnedHistory": "Found & Returned History",
+    "bankDetails": "Bank Details (Payouts)",
+    "username": "Username",
+    "usernameWarning": "Changing your username will affect how you appear on items posted and messages.",
+    "saveChanges": "Save Changes"
+  },
+  "provinces": {
+    "Western": "Western",
+    "Central": "Central",
+    "Southern": "Southern",
+    "Northern": "Northern",
+    "Eastern": "Eastern",
+    "North Western": "North Western",
+    "North Central": "North Central",
+    "Uva": "Uva",
+    "Sabaragamuwa": "Sabaragamuwa"
   }
 }
