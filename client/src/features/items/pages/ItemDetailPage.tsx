@@ -5,6 +5,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { Package, MapPin, Calendar, Tag, User, MessageCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useTranslation } from 'react-i18next';
+import PageNavigation from '../../../components/common/PageNavigation';
 
 const ItemDetailPage: React.FC = () => {
   const { itemId } = useParams<{ itemId: string }>();
@@ -174,9 +175,11 @@ const ItemDetailPage: React.FC = () => {
     : null;
 
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Header Image Area */}
-      <div className="h-64 bg-gray-100 relative flex items-center justify-center overflow-hidden">
+    <>
+      <PageNavigation />
+      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Header Image Area */}
+        <div className="h-64 bg-gray-100 relative flex items-center justify-center overflow-hidden">
         {imgUrl ? (
           <img src={imgUrl} alt={item.title} className="w-full h-full object-cover" />
         ) : (
@@ -316,6 +319,7 @@ const ItemDetailPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

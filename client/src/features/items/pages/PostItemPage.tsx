@@ -12,6 +12,7 @@ import AIItemIdentifier from "../components/AIItemIdentifier";
 import VoiceReporter from "../components/VoiceReporter";
 import { ShieldCheck, Navigation } from "lucide-react";
 import "leaflet/dist/leaflet.css";
+import PageNavigation from "../../../components/common/PageNavigation";
 
 // Leaflet marker icon configuration fix for React compatibility
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -373,6 +374,8 @@ const PostItemPage: React.FC = () => {
   };
 
   return (
+    <>
+    <PageNavigation />
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -801,6 +804,7 @@ const PostItemPage: React.FC = () => {
         </button>
       </form>
     </motion.div>
+    </>
   );
 };
 
