@@ -52,7 +52,7 @@ class PaymentService {
       // Mock Payment Gateway Fallback
       console.log('PayHere not configured. Falling back to Mock Payment Mode.');
       const mockReference = `mock_ref_${Math.random().toString(36).substring(2, 15)}`;
-      const mockUrl = `${cleanClientUrl}/tips/payment/${tip._id}?reference=${mockReference}&mock=true`;
+      const mockUrl = `${cleanClientUrl}/tips/success?session_id=${mockReference}&mock=true`;
 
       return {
         url: mockUrl,
