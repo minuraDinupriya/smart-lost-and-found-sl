@@ -733,9 +733,12 @@ const verifyOwnership = async (req, res) => {
 
     res.status(200).json({
       success: true,
-  analyzeVoiceReport: analyzeVoiceReportController,
-  verifyOwnership
-
+      status: overallStatus,
+      scorePercentage
+    });
+  } catch (error) {
+    console.error('Error verifying ownership:', error);
+    res.status(500).json({ success: false, message: 'Server error during verification' });
   }
 };
 
