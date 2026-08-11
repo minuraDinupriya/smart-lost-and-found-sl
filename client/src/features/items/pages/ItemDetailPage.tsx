@@ -102,6 +102,73 @@ const ItemDetailPage: React.FC = () => {
     }
   };
 
+  const handleVerifyOwnership = async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Verify Digital Ownership',
+      html: `
+        <div style="text-align: left; margin-bottom: 15px; font-size: 14px; color: #555;">
+          If the original poster added private digital proofs (like an IMEI, Serial Number, or custom mark), you can verify your ownership here.
+        </div>
+        <input id="swal-proof-type" class="swal2-input" placeholder="Proof Type (e.g. IMEI)" style="width: 80%; margin-bottom: 10px;">
+        <input id="swal-proof-value" class="swal2-input" placeholder="Proof Value (e.g. 123456789)" style="width: 80%;">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonColor: '#800000',
+      confirmButtonText: 'Verify Proof',
+      preConfirm: () => {
+        const typeInput = document.getElementById('swal-proof-type') as HTMLInputElement;
+        const valInput = document.getElementById('swal-proof-value') as HTMLInputElement;
+        if (!typeInput.value || !valInput.value) {
+          Swal.showValidationMessage('Both fields are required');
+          return false;
+        }
+        return {
+          proofType: typeInput.value,
+          proofValue: valInput.value
+        };
+      }
+    });
+
+    if (formValues) {
+      try {
+        const res = await api.post(`/items/${item._id}/verify-ownership`, {
+          proofs: [formValues]
+        });
+        
+        if (res.data.status === 'Verified') {
+          Swal.fire({
+            title: 'Verified!',
+            text: 'Ownership successfully verified! You provided a matching proof.',
+            icon: 'success',
+            confirmButtonColor: '#800000'
+          });
+        } else if (res.data.status === 'Partially Verified') {
+          Swal.fire({
+            title: 'Partially Verified',
+            text: 'You provided a valid proof, but there are other proofs on this item.',
+            icon: 'info',
+            confirmButtonColor: '#800000'
+          });
+        } else {
+          Swal.fire({
+            title: 'Not Verified',
+            text: 'The proof provided does not match any registered proofs for this item.',
+            icon: 'error',
+            confirmButtonColor: '#800000'
+          });
+        }
+      } catch (error: any) {
+        Swal.fire({
+          title: 'Verification Failed',
+          text: error.response?.data?.message || 'Could not verify ownership.',
+          icon: 'error',
+          confirmButtonColor: '#800000'
+        });
+      }
+    }
+  };
+
   const imgUrl = item.imageUrl
     ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`)
     : null;
@@ -201,14 +268,26 @@ const ItemDetailPage: React.FC = () => {
           
           
           {user?.role !== 'police' && (
-            <button 
-              onClick={handleClaimOrChat}
-              className={`flex-grow px-6 py-3 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center focus:outline-none focus:ring-4 ${
-                isSmartTag ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-600/20 shadow-blue-600/20' : 'bg-[#800000] hover:bg-[#600000] focus:ring-[#800000]/20 shadow-[#800000]/20'
-              }`}
-            >
-              {isOwner ? 'Edit Your Post' : (isSmartTag ? 'Scan Successful: Contact Owner' : (isFound ? 'I Have This Item' : 'I Found This Item'))}
-            </button>
+            <>
+              <button 
+                onClick={handleClaimOrChat}
+                className={`flex-grow px-6 py-3 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center focus:outline-none focus:ring-4 ${
+                  isSmartTag ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-600/20 shadow-blue-600/20' : 'bg-[#800000] hover:bg-[#600000] focus:ring-[#800000]/20 shadow-[#800000]/20'
+                }`}
+              >
+                {isOwner ? 'Edit Your Post' : (isSmartTag ? 'Scan Successful: Contact Owner' : (isFound ? 'Claim This Item' : 'I Found This Item'))}
+              </button>
+              
+              {!isOwner && (
+                <button 
+                  onClick={handleVerifyOwnership}
+                  className="px-6 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-900 transition-all shadow-md flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-gray-800/20 shadow-gray-800/20"
+                >
+                  <ShieldCheck className="w-5 h-5 mr-2" />
+                  Verify Ownership
+                </button>
+              )}
+            </>
           )}
 
           {isOwner && item.status !== 'Claimed' && (

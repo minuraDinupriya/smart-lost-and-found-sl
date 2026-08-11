@@ -31,6 +31,17 @@ const createItem = async (req, res) => {
       aiIdentificationParsed = itemData.aiIdentification;
     }
 
+    let ownershipProofsParsed = [];
+    if (itemData.ownershipProofs && typeof itemData.ownershipProofs === 'string') {
+      try {
+        ownershipProofsParsed = JSON.parse(itemData.ownershipProofs);
+      } catch (e) {
+        ownershipProofsParsed = [];
+      }
+    } else if (itemData.ownershipProofs && Array.isArray(itemData.ownershipProofs)) {
+      ownershipProofsParsed = itemData.ownershipProofs;
+    }
+
     let titleSi, titleTa, descriptionSi, descriptionTa;
     try {
        if (itemData.title) {
@@ -50,6 +61,7 @@ const createItem = async (req, res) => {
       ...itemData,
       aiIdentified: itemData.aiIdentified === 'true' || itemData.aiIdentified === true,
       aiIdentification: aiIdentificationParsed || undefined,
+      ownershipProofs: ownershipProofsParsed,
       titleSi,
       titleTa,
       descriptionSi,
@@ -323,6 +335,14 @@ const updateItem = async (req, res) => {
     // Update fields
     const updateData = req.body;
     
+    if (updateData.ownershipProofs && typeof updateData.ownershipProofs === 'string') {
+      try {
+        updateData.ownershipProofs = JSON.parse(updateData.ownershipProofs);
+      } catch (e) {
+        delete updateData.ownershipProofs;
+      }
+    }
+
     if (req.file) {
       // Upload to Cloudinary
       const result = await cloudinary.uploader.upload(req.file.path);
@@ -594,10 +614,64 @@ const analyzeVoiceReportController = async (req, res) => {
     });
   }
 };
+const verifyOwnership = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { proofs } = req.body; // Array of { proofType, proofValue }
+
+    if (!proofs || !Array.isArray(proofs) || proofs.length === 0) {
+      return res.status(400).json({ message: 'No proofs provided for verification.' });
+    }
+
+    // Explicitly select the hidden ownershipProofs field
+    const item = await Item.findById(itemId).select('+ownershipProofs');
+    
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    if (!item.ownershipProofs || item.ownershipProofs.length === 0) {
+      return res.status(400).json({ message: 'This item does not have any digital ownership proofs registered.' });
+    }
+
+    let matchedCount = 0;
+    const totalStored = item.ownershipProofs.length;
+
+    // Securely compare
+    for (const submittedProof of proofs) {
+      const storedProof = item.ownershipProofs.find(
+        (p) => p.proofType.toLowerCase() === submittedProof.proofType.toLowerCase()
+      );
+
+      if (storedProof) {
+        // Case insensitive string comparison
+        if (storedProof.proofValue.toLowerCase().trim() === submittedProof.proofValue.toLowerCase().trim()) {
+          matchedCount++;
+        }
+      }
+    }
+
+    let status = 'Not Verified';
+    if (matchedCount > 0) {
+      status = matchedCount === totalStored ? 'Verified' : 'Partially Verified';
+    }
+
+    res.status(200).json({
+      success: true,
+      status,
+      matchedCount,
+      totalStored
+    });
+  } catch (error) {
+    console.error('Verify ownership error:', error);
+    res.status(500).json({ message: 'Server error while verifying ownership.' });
+  }
+};
 
 module.exports = {
   createItem,
   getAllItems,
+  verifyOwnership,
   getItemById,
   updateItem,
   deleteItem,

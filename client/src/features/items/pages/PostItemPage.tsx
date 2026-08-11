@@ -58,6 +58,23 @@ const PostItemPage: React.FC = () => {
   const [isSearchingPolice, setIsSearchingPolice] = useState(false);
   const [hasSearchedPolice, setHasSearchedPolice] = useState(false);
 
+  // Digital Proof of Ownership
+  const [ownershipProofs, setOwnershipProofs] = useState<{proofType: string, proofValue: string}[]>([]);
+
+  const handleAddProof = () => {
+    setOwnershipProofs([...ownershipProofs, { proofType: '', proofValue: '' }]);
+  };
+
+  const handleRemoveProof = (index: number) => {
+    setOwnershipProofs(ownershipProofs.filter((_, i) => i !== index));
+  };
+
+  const handleProofChange = (index: number, field: 'proofType' | 'proofValue', value: string) => {
+    const newProofs = [...ownershipProofs];
+    newProofs[index][field] = value;
+    setOwnershipProofs(newProofs);
+  };
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -250,20 +267,24 @@ const PostItemPage: React.FC = () => {
       data.append('province', location.province);
       data.append('district', location.district);
       data.append('city', location.city);
-      
       if (mapPosition) {
-        data.append('latitude', mapPosition[0].toString());
-        data.append('longitude', mapPosition[1].toString());
+        data.append('lat', mapPosition[0].toString());
+        data.append('lng', mapPosition[1].toString());
       }
-      
       if (imageFile) data.append('image', imageFile);
-
       if (aiMetadata) {
         data.append('aiIdentified', 'true');
         data.append('aiIdentification', JSON.stringify(aiMetadata));
       }
+      if (ownershipProofs.length > 0) {
+        // Only keep non-empty proofs
+        const validProofs = ownershipProofs.filter(p => p.proofType.trim() && p.proofValue.trim());
+        if (validProofs.length > 0) {
+          data.append('ownershipProofs', JSON.stringify(validProofs));
+        }
+      }
 
-      const response = await api.post('/items', data, {
+      await api.post('/items', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -448,6 +469,60 @@ const PostItemPage: React.FC = () => {
               <input type="text" name="securityQuestion" value={formData.securityQuestion} onChange={handleInputChange} placeholder="e.g., What is the lock screen wallpaper?" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
               <p className="text-xs text-gray-500 mt-1.5">If posted as FOUND, claimants must answer this to verify ownership.</p>
             </div>
+          </div>
+        </div>
+
+        {/* Digital Proof of Ownership */}
+        <div className="space-y-4 pt-6 border-t border-gray-100">
+          <h3 className="text-lg font-bold text-gray-800 border-l-4 border-[#800000] pl-3 flex items-center justify-between">
+            <span>Digital Proof of Ownership</span>
+            <button
+              type="button"
+              onClick={handleAddProof}
+              className="text-sm bg-gray-100 text-gray-700 font-semibold px-3 py-1 rounded hover:bg-gray-200 transition"
+            >
+              + Add Private Proof
+            </button>
+          </h3>
+          <p className="text-sm text-gray-500">
+            Add highly specific identifiers (e.g. IMEI, serial numbers, custom marks, receipts) to prove ownership. These will remain strictly private and will never be shown to the public or finders. Anyone claiming this item must enter matching proofs to be verified.
+          </p>
+          
+          <div className="space-y-3">
+            {ownershipProofs.map((proof, index) => (
+              <div key={index} className="flex flex-col sm:flex-row items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <input
+                  type="text"
+                  placeholder="Proof Type (e.g. IMEI)"
+                  value={proof.proofType}
+                  onChange={(e) => handleProofChange(index, 'proofType', e.target.value)}
+                  className="w-full sm:w-1/3 px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Proof Value (e.g. 123456789012345)"
+                  value={proof.proofValue}
+                  onChange={(e) => handleProofChange(index, 'proofValue', e.target.value)}
+                  className="w-full sm:w-flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveProof(index)}
+                  className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+            {ownershipProofs.length === 0 && (
+              <div className="text-center p-4 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                No digital proofs added. Click above to add secure verification details.
+              </div>
+            )}
           </div>
         </div>
 

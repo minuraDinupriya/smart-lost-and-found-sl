@@ -119,6 +119,15 @@ const itemSchema = new mongoose.Schema(
       type: Date,
        default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
     },
+    // Private Digital Proofs of Ownership
+    ownershipProofs: {
+      type: [{
+        proofType: { type: String, required: true },
+        proofValue: { type: String, required: true }
+      }],
+      select: false, // Ensures this is NEVER returned by default in standard queries
+      default: []
+    },
     // Reference to the User who created the item
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
