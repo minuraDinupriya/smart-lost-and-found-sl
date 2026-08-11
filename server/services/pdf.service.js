@@ -14,7 +14,9 @@ const generatePoliceHandoverPDF = (item, user, res) => {
   doc.fontSize(12).font('Helvetica').text('Official Police Item Handover Declaration Form', 0, 55, { align: 'center' });
 
   // --- METADATA ---
-  doc.fillColor('#000000').moveDown(3);
+  doc.x = 50;
+  doc.y = 110;
+  doc.fillColor('#000000');
   doc.fontSize(10).font('Helvetica-Bold').text(`Reference Number: SLFMS-${item._id}`, { align: 'right' });
   doc.fontSize(10).font('Helvetica').text(`Timestamp: ${new Date().toLocaleString()}`, { align: 'right' });
   
