@@ -19,7 +19,8 @@ import ChatPage from './features/chat/pages/ChatPage';
 import InboxPage from './features/chat/pages/InboxPage';
 // Reward Tip Pages
 import NewTipPage from './features/tips/pages/NewTipPage';
-import SuccessTipPage from './features/tips/pages/SuccessPage';
+import PaymentPage from './features/tips/pages/PaymentPage';
+import SuccessPage from './features/tips/pages/SuccessPage';
 import FailedPage from './features/tips/pages/FailedPage';
 import TipHistoryPage from './features/tips/pages/TipHistoryPage';
 
@@ -69,7 +70,8 @@ const App: React.FC = () => {
 
           {/* Reward Tip Routes */}
           <Route path="/tips/new/:returnRecordId" element={<NewTipPage />} />
-          <Route path="/tips/success" element={<SuccessTipPage />} />
+          <Route path="/tips/payment/:tipId" element={<PaymentPage />} />
+          <Route path="/tips/success" element={<SuccessPage />} />
           <Route path="/tips/failed" element={<FailedPage />} />
           <Route path="/tips/history" element={<TipHistoryPage />} />
 

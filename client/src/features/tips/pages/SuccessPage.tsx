@@ -12,8 +12,6 @@ const SuccessPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [tip, setTip] = useState<any>(null);
 
-  const [isPolling, setIsPolling] = useState(false);
-
   useEffect(() => {
     if (!sessionId) {
       Swal.fire('Error', 'Missing transaction identifier.', 'error');
@@ -21,64 +19,29 @@ const SuccessPage: React.FC = () => {
       return;
     }
 
-    let pollInterval: ReturnType<typeof setInterval>;
-    let attempts = 0;
-    const maxAttempts = 15; // 30 seconds total (15 * 2s)
-
     const verifyPayment = async () => {
       try {
         const res = await api.put('/tips/payment-status', {
           paymentReference: sessionId,
         });
-        
-        const currentTip = res.data.tip;
-        
-        if (currentTip.paymentStatus === 'paid' || currentTip.paymentStatus === 'completed') {
-          setTip(currentTip);
-          setLoading(false);
-          setIsPolling(false);
-          if (pollInterval) clearInterval(pollInterval);
-        } else if (currentTip.paymentStatus === 'failed') {
-          Swal.fire('Payment Failed', 'The payment transaction failed.', 'error');
-          navigate('/');
-          if (pollInterval) clearInterval(pollInterval);
-        } else {
-          // Still pending, continue polling
-          setIsPolling(true);
-          attempts++;
-          if (attempts >= maxAttempts) {
-            clearInterval(pollInterval);
-            Swal.fire('Pending', 'Payment is still being processed. Please check your history later.', 'info');
-            navigate('/tips/history');
-          }
-        }
+        setTip(res.data.tip);
       } catch (err: any) {
         console.error('Payment verification failed:', err);
-        if (pollInterval) clearInterval(pollInterval);
         Swal.fire({
-          title: 'Verification Error',
+          title: 'Verification Failed',
           text: err.response?.data?.message || 'Could not verify transaction status.',
           icon: 'error',
           confirmButtonColor: '#800000',
         });
-        navigate('/');
+      } finally {
+        setLoading(false);
       }
     };
-    
-    // Initial check
     verifyPayment();
-
-    // Poll every 2 seconds
-    pollInterval = setInterval(verifyPayment, 2000);
-
-    return () => clearInterval(pollInterval);
   }, [sessionId, navigate]);
 
-  if (loading || isPolling) {
-    return <div className="flex flex-col items-center justify-center p-20 text-gray-500 font-medium">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mb-4"></div>
-      Waiting for payment confirmation...
-    </div>;
+  if (loading) {
+    return <div className="flex justify-center p-20 text-gray-500 font-medium animate-pulse">Verifying payment transaction...</div>;
   }
 
   return (
