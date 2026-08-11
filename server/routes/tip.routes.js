@@ -7,7 +7,8 @@ const {
   getUserTips,
   updateTipPaymentStatus,
   getReturnRecordById,
-  skipTip
+  skipTip,
+  payhereNotify
 } = require('../controllers/tip.controller');
 
 // @route   POST /api/tips
@@ -19,6 +20,11 @@ router.post('/', verifyToken, createTip);
 // @desc    Skip tipping and log status
 // @access  Private
 router.post('/skip', verifyToken, skipTip);
+
+// @route   POST /api/tips/payhere/notify
+// @desc    Handle PayHere asynchronous webhook
+// @access  Public (PayHere servers only)
+router.post('/payhere/notify', express.urlencoded({ extended: true }), payhereNotify);
 
 // @route   PUT /api/tips/payment-status
 // @desc    Verify payment status and process updates
