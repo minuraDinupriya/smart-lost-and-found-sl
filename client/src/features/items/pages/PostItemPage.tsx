@@ -9,6 +9,7 @@ import LocationSelector, {
   LocationState,
 } from "../components/LocationSelector";
 import AIItemIdentifier from "../components/AIItemIdentifier";
+import policeStationsData from "../../data/policeStations.json";
 import VoiceReporter from "../components/VoiceReporter";
 import { ShieldCheck, Navigation, Search, CheckCircle2, ChevronRight, ChevronLeft, Sparkles, MapPin, FileCheck } from "lucide-react";
 import "leaflet/dist/leaflet.css";
@@ -183,84 +184,54 @@ const PostItemPage: React.FC = () => {
         }
       };
 
-      const fetchPolice = async () => {
+      const fetchPolice = () => {
         if (formData.type !== "FOUND") return;
         setIsSearchingPolice(true);
         setNearestPolice(null);
-        try {
-          let data = null;
-          
-          try {
-            // Strategy 1: Direct fast browser fetch from Overpass Kumi Systems mirror (Zero latency)
-            const query = `[out:json];nwr["amenity"="police"](around:15000,${mapPosition[0]},${mapPosition[1]});out center;`;
-            const overpassUrl = `https://overpass.kumi.systems/api/interpreter`;
-            const response = await fetch(overpassUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: `data=${encodeURIComponent(query)}`
-            });
-            if (response.ok) {
-              data = await response.json();
-            }
-          } catch(e) {
-            console.log("Direct overpass failed, falling back to backend proxy...");
-          }
+        
+        let closest: {
+          name: string;
+          lat: number;
+          lon: number;
+          distance: number;
+        } | null = null;
+        let minDistance = Infinity;
 
-          if (!data || !data.elements) {
-            // Strategy 2: Fallback to reliable backend proxy if CORS/WAF blocked
-            const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-            const url = `${baseUrl}/items/nearest-police?lat=${mapPosition[0]}&lng=${mapPosition[1]}`;
-            const response = await fetch(url);
-            data = await response.json();
-          }
+        // Fast local search: O(N) where N=491 takes < 1ms
+        policeStationsData.forEach((el: any) => {
+          const elLat = el.lat;
+          const elLon = el.lon;
 
-          if (data.elements && data.elements.length > 0) {
-            let closest: {
-              name: string;
-              lat: number;
-              lon: number;
-              distance: number;
-            } | null = null;
-            let minDistance = Infinity;
-
-            data.elements.forEach((el: any) => {
-              const elLat = el.lat || (el.center && el.center.lat);
-              const elLon = el.lon || (el.center && el.center.lon);
-
-              if (elLat && elLon) {
-                const dist = getDistanceFromLatLonInKm(
-                  mapPosition[0],
-                  mapPosition[1],
-                  elLat,
-                  elLon,
-                );
-                if (dist < minDistance) {
-                  minDistance = dist;
-                  closest = {
-                    name: el.tags?.name || "Local Police Station",
-                    lat: elLat,
-                    lon: elLon,
-                    distance: dist,
-                  };
-                }
-              }
-            });
-
-            if (closest) {
-              const stationName = (closest as any).name;
-              setNearestPolice(closest);
-              setFormData((prev) => ({
-                ...prev,
-                policeStationName: stationName,
-              }));
+          if (elLat && elLon) {
+            const dist = getDistanceFromLatLonInKm(
+              mapPosition[0],
+              mapPosition[1],
+              elLat,
+              elLon,
+            );
+            if (dist < 15 && dist < minDistance) {
+              minDistance = dist;
+              closest = {
+                name: el.name || "Local Police Station",
+                lat: elLat,
+                lon: elLon,
+                distance: dist,
+              };
             }
           }
-        } catch (error) {
-          console.error("Failed to find police station", error);
-        } finally {
-          setIsSearchingPolice(false);
-          setHasSearchedPolice(true);
+        });
+
+        if (closest) {
+          const stationName = (closest as any).name;
+          setNearestPolice(closest);
+          setFormData((prev) => ({
+            ...prev,
+            policeStationName: stationName,
+          }));
         }
+
+        setIsSearchingPolice(false);
+        setHasSearchedPolice(true);
       };
 
       // 500ms debounce
