@@ -200,7 +200,7 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto space-x-2 mb-6 hide-scrollbar">
+      <div className="flex overflow-x-auto space-x-2 mb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <button
           onClick={() => setActiveTab('profile')}
           className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
