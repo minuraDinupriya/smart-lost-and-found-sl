@@ -123,7 +123,7 @@ const PoliceDashboardPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {items.map((item) => (
-                  <tr key={item._id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={item._id} className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                     <td className="p-4">
                       <div className="font-bold text-gray-900 dark:text-gray-100">{item.title}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
