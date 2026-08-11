@@ -105,6 +105,39 @@ class PaymentService {
 
     return { status: 'failed', amount: 0 };
   }
+
+  /**
+   * Initiate a payout to the finder's bank account.
+   * Mocking the real Stripe Connect transfer.
+   * @param {Object} tip - The Tip document
+   * @param {Object} finder - The Finder user document with bankDetails
+   * @returns {Promise<{status: 'completed' | 'failed'}>}
+   */
+  async initiatePayout(tip, finder) {
+    if (!finder.bankDetails || !finder.bankDetails.accountNumber) {
+      return { status: 'failed' };
+    }
+
+    if (stripe) {
+      try {
+        // In a real production app, this would use Stripe Connect Transfers:
+        // await stripe.transfers.create({
+        //   amount: Math.round(tip.amount * 100),
+        //   currency: 'lkr',
+        //   destination: finder.stripeAccountId,
+        // });
+        console.log(`[STRIPE MOCK] Successfully transferred Rs. ${tip.amount} to account ${finder.bankDetails.accountNumber} at ${finder.bankDetails.bankName}`);
+        return { status: 'completed' };
+      } catch (error) {
+        console.error('Stripe Payout Error:', error);
+        return { status: 'failed' };
+      }
+    } else {
+      // Mock mode payout
+      console.log(`[MOCK PAYOUT] Successfully transferred Rs. ${tip.amount} to account ${finder.bankDetails.accountNumber} at ${finder.bankDetails.bankName}`);
+      return { status: 'completed' };
+    }
+  }
 }
 
 module.exports = new PaymentService();

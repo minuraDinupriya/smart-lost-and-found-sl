@@ -6,6 +6,66 @@ const { emitGlobalNotification } = require('../services/socket.service');
 const User = require('../models/User');
 
 /**
+ * Helper to verify all tip eligibility conditions on the backend.
+ */
+const checkTipEligibility = async (returnRecord, userId) => {
+  if (!returnRecord) {
+    return { eligible: false, reason: 'Return record not found.' };
+  }
+  
+  if (!returnRecord.itemId) {
+    return { eligible: false, reason: 'Associated item not found.' };
+  }
+
+  // Handle populated or unpopulated ownerId and finderId
+  const ownerIdString = returnRecord.ownerId._id ? returnRecord.ownerId._id.toString() : returnRecord.ownerId.toString();
+  const finderIdString = returnRecord.finderId._id ? returnRecord.finderId._id.toString() : returnRecord.finderId.toString();
+
+  // 1. Logged in user must be the rightful owner
+  if (ownerIdString !== userId.toString()) {
+    return { eligible: false, reason: 'Only the rightful owner can give a tip.' };
+  }
+
+  // 2. Finder must be a valid user and not the owner itself
+  if (ownerIdString === finderIdString) {
+    return { eligible: false, reason: 'You cannot give a tip to yourself.' };
+  }
+
+  const finder = await User.findById(finderIdString);
+  if (!finder) {
+    return { eligible: false, reason: 'The finder user does not exist.' };
+  }
+
+  // 3. Handover status must be successfully completed (Mutual Verification Protocol)
+  if (returnRecord.status !== 'RETURN_COMPLETED' && returnRecord.status !== 'Returned' && returnRecord.status !== 'Completed') {
+    return { eligible: false, reason: 'Handover status is not completed.' };
+  }
+
+  // Ensure mutual verification actually occurred (Security against forced statuses)
+  if (returnRecord.status === 'RETURN_COMPLETED') {
+    if (!returnRecord.finderConfirmedAt || !returnRecord.ownerConfirmedAt || !returnRecord.ownerReceivedAt) {
+      return { eligible: false, reason: 'Mutual verification steps are incomplete. Both parties must confirm.' };
+    }
+  }
+
+  // 4. Item status must be successfully claimed/returned
+  if (returnRecord.itemId.status !== 'Claimed') {
+    return { eligible: false, reason: 'The item has not been marked as Claimed/Returned.' };
+  }
+
+  // 5. No completed tip already exists
+  const existingTip = await Tip.findOne({ 
+    returnRecordId: returnRecord._id, 
+    paymentStatus: { $in: ['paid', 'completed'] } 
+  });
+  if (existingTip) {
+    return { eligible: false, reason: 'A tip has already been paid for this return.' };
+  }
+
+  return { eligible: true, reason: '' };
+};
+
+/**
  * Creates a new Tip record (or updates an existing pending one) and initiates payment.
  */
 const createTip = async (req, res) => {
@@ -26,18 +86,14 @@ const createTip = async (req, res) => {
       return res.status(404).json({ message: 'Return record not found.' });
     }
 
-    // 3. Security: Only the verified owner can create a tip
-    if (returnRecord.ownerId.toString() !== req.userId) {
-      return res.status(403).json({ message: 'Only the verified owner can create a tip for this item.' });
+    // 3. Security eligibility check on the backend
+    const eligibility = await checkTipEligibility(returnRecord, req.userId);
+    if (!eligibility.eligible) {
+      return res.status(400).json({ message: eligibility.reason });
     }
 
-    // 4. Duplicate checks: Only one PAID tip allowed per completed return
+    // 4. If no tip exists, create one. If a pending one exists, update it.
     let tip = await Tip.findOne({ returnRecordId });
-    if (tip && tip.paymentStatus === 'paid') {
-      return res.status(400).json({ message: 'A tip has already been paid for this return record.' });
-    }
-
-    // 5. If no tip exists, create one. If a pending one exists, update it.
     if (!tip) {
       tip = new Tip({
         returnRecordId,
@@ -51,11 +107,12 @@ const createTip = async (req, res) => {
       tip.amount = parseFloat(amount);
       tip.thankYouMessage = thankYouMessage || '';
       tip.paymentStatus = 'pending';
+      tip.paymentReference = ''; // Reset reference for retry
     }
 
     await tip.save();
 
-    // 6. Initiate Payment Checkout Session
+    // 5. Initiate Payment Checkout Session
     const hostUrl = req.headers.origin || process.env.CLIENT_URL || 'http://localhost:5173';
     const paymentSession = await paymentService.createCheckoutSession(tip, hostUrl);
 
@@ -175,8 +232,27 @@ const updateTipPaymentStatus = async (req, res) => {
       const returnRec = await ReturnRecord.findById(tip.returnRecordId).populate('itemId');
       const itemTitle = returnRec?.itemId?.title || 'Returned Item';
 
+      // Check for Bank Details and Handle Payout
+      let finderMessage = '';
+      if (finder.bankDetails && finder.bankDetails.accountNumber) {
+        // Initiate payout immediately
+        const payoutResult = await paymentService.initiatePayout(tip, finder);
+        if (payoutResult.status === 'completed') {
+          tip.payoutStatus = 'completed';
+          finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! The money has been transferred to your bank account.`;
+        } else {
+          tip.payoutStatus = 'pending';
+          finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'}! We had trouble transferring it to your bank. Please check your bank details in your profile.`;
+        }
+      } else {
+        // Hold in escrow
+        tip.payoutStatus = 'pending';
+        finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! Please add your bank details in your Profile to receive the money.`;
+      }
+      
+      await tip.save();
+
       // 1. Notify Finder (Receiver)
-      const finderMessage = `You received a reward tip of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for returning "${itemTitle}"!`;
       const finderNotification = await Notification.create({
         userId: tip.finderId,
         message: finderMessage,
@@ -237,10 +313,60 @@ const getReturnRecordById = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to view this return record.' });
     }
 
-    res.status(200).json(returnRecord);
+    // Backend independently verifies all eligibility conditions
+    const eligibility = await checkTipEligibility(returnRecord, req.userId);
+
+    const recordObj = returnRecord.toObject();
+    recordObj.isEligible = eligibility.eligible;
+    recordObj.ineligibilityReason = eligibility.reason;
+
+    res.status(200).json(recordObj);
   } catch (error) {
     console.error('Get return record by ID error:', error);
     res.status(500).json({ message: 'Server error retrieving return record.' });
+  }
+};
+
+/**
+ * Logs a skipped tip status in the database.
+ */
+const skipTip = async (req, res) => {
+  try {
+    const { returnRecordId } = req.body;
+    if (!returnRecordId) {
+      return res.status(400).json({ message: 'Return record ID is required.' });
+    }
+
+    const returnRecord = await ReturnRecord.findById(returnRecordId).populate('itemId');
+    if (!returnRecord) {
+      return res.status(404).json({ message: 'Return record not found.' });
+    }
+
+    // Verify eligibility before saving skipped status
+    const eligibility = await checkTipEligibility(returnRecord, req.userId);
+    if (!eligibility.eligible) {
+      return res.status(400).json({ message: eligibility.reason });
+    }
+
+    let tip = await Tip.findOne({ returnRecordId });
+    if (!tip) {
+      tip = new Tip({
+        returnRecordId,
+        ownerId: returnRecord.ownerId,
+        finderId: returnRecord.finderId,
+        amount: 0,
+        paymentStatus: 'skipped',
+      });
+    } else {
+      tip.paymentStatus = 'skipped';
+      tip.amount = 0;
+    }
+
+    await tip.save();
+    res.status(200).json({ message: 'Tip successfully marked as skipped.', tip });
+  } catch (error) {
+    console.error('Skip tip error:', error);
+    res.status(500).json({ message: 'Server error while skipping tip.' });
   }
 };
 
@@ -250,4 +376,5 @@ module.exports = {
   getUserTips,
   updateTipPaymentStatus,
   getReturnRecordById,
+  skipTip,
 };

@@ -50,7 +50,7 @@ const InboxPage: React.FC = () => {
   const isSystemAlert = (text: string) => text.includes('🤖 AI VISUAL MATCH') || text.includes('🤖 AI NLP MATCH') || text.includes('🤖 AUTOMATIC SMART MATCH DETECTED');
 
   // Interactive Message Parser
-  const renderMessageText = (text: string) => {
+  const renderMessageText = (text: string, otherUserId: string) => {
     const itemPathRegex = /\/items\/([a-zA-Z0-9_]+)/g;
     
     if (!itemPathRegex.test(text)) return text;
@@ -67,7 +67,7 @@ const InboxPage: React.FC = () => {
               e.stopPropagation();
               // Extract ID from the /items/[ID] string and redirect to chat room
               const id = matches[0].split('/').pop();
-              navigate(`/chat/${id}`);
+              navigate(`/chat/${id}/${otherUserId}`);
             }}
             className="inline-flex items-center text-xs font-bold text-[#800000] bg-white px-3 py-1.5 rounded-lg shadow-sm border border-red-100 hover:bg-red-50 hover:shadow transition-all ml-1"
           >
@@ -122,7 +122,7 @@ const InboxPage: React.FC = () => {
             return (
               <div 
                 key={thread._id}
-                onClick={() => thread.itemId && navigate(`/chat/${thread.itemId._id}`)}
+                onClick={() => thread.itemId && navigate(`/chat/${thread.itemId._id}/${otherUser._id}`)}
                 className={`relative flex items-start p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg ${
                   isAlert 
                     ? 'bg-amber-50/60 border-l-4 border-amber-400 shadow-sm hover:bg-amber-50' 
@@ -158,7 +158,7 @@ const InboxPage: React.FC = () => {
                   </div>
 
                   <p className={`text-sm leading-relaxed pr-8 ${isAlert ? 'text-amber-900 font-medium' : 'text-slate-600 line-clamp-2'}`}>
-                    {renderMessageText(thread.text)}
+                    {renderMessageText(thread.text, otherUser._id)}
                   </p>
                 </div>
                 

@@ -4,9 +4,9 @@ const translate = require('google-translate-api-x');
 const path = require('path');
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
-const { generateImageHash, calculateHammingDistance } = require('../utils/imageHash');
-const { calculateTextSimilarity } = require('../utils/textMatch');
+const { generateImageHash } = require('../utils/imageHash');
 const { identifyItemFromImage } = require('../services/itemIdentification.service');
+const { runAutonomousMatching } = require('../services/matching.service');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -92,91 +92,8 @@ const createItem = async (req, res) => {
     
     // Skip matching engine for Smart Tags
     if (savedItem.type !== 'SMART_TAG') {
-      // Scan for visual and text matches asynchronously
-      const oppositeType = savedItem.type === 'LOST' ? 'FOUND' : 'LOST';
-    
-    // Fetch potential matches in the same category
-    Item.find({
-      type: oppositeType,
-      category: savedItem.category
-    }).then(potentialMatches => {
-      console.log(`\n=========================================================`);
-      console.log(`🧠 [AI MATCHING ENGINE] - STARTING ANALYSIS...`);
-      console.log(`=========================================================`);
-      console.log(`Target Item: "${savedItem.title}" (${savedItem.type})`);
-      console.log(`Scanning against: ${potentialMatches.length} ${oppositeType} items...\n`);
-
-      for (const match of potentialMatches) {
-        // PREVENT SELF-MATCHING: Do not match a user's newly posted item against their own previously posted items
-        if (savedItem.createdBy.toString() === match.createdBy.toString()) {
-          console.log(`-> Skipping "${match.title}": Created by the same user.\n`);
-          continue;
-        }
-
-        let isMatch = false;
-        let matchReason = '';
-        let matchPhase = ''; // 'VISUAL' or 'NLP'
-
-        console.log(`[Phase 1] 📷 Image Perceptual Hashing (pHash) Algorithm:`);
-        console.log(`-> Comparing Bitwise Hamming Distance against: "${match.title}"`);
-        // 1. Evaluate Image Similarity (if both have images)
-        if (savedItem.imageHash && match.imageHash) {
-          const distance = calculateHammingDistance(savedItem.imageHash, match.imageHash);
-          if (distance !== null && distance <= 10) {
-            isMatch = true;
-            matchReason = `Visual Match (Distance: ${distance})`;
-            matchPhase = 'VISUAL';
-            console.log(`-> Result: Distance = ${distance} (Threshold: <= 10) - 🟢 VISUAL MATCH FOUND!\n`);
-          } else {
-             console.log(`-> Result: Distance = ${distance} (Threshold: <= 10) - NO VISUAL MATCH\n`);
-          }
-        } else {
-           console.log(`-> Result: SKIPPED (Missing Image Data)\n`);
-        }
-
-        console.log(`[Phase 2] 📝 Natural Language Processing (NLP) Engine:`);
-        console.log(`-> Algorithm: Dice's Coefficient (String Similarity)`);
-        // 2. Evaluate Text Similarity (if visual match failed or was skipped)
-        if (!isMatch) {
-          const textScore = calculateTextSimilarity(savedItem, match);
-          if (textScore >= 0.60) {
-            isMatch = true;
-            matchReason = `Text Similarity Match (Score: ${(textScore * 100).toFixed(1)}%)`;
-            matchPhase = 'NLP';
-            console.log(`-> Result: Score = ${(textScore * 100).toFixed(1)}% (Threshold: >= 60%) - 🟢 NLP MATCH FOUND!\n`);
-          } else {
-            console.log(`-> Result: Score = ${(textScore * 100).toFixed(1)}% (Threshold: >= 60%) - NO MATCH\n`);
-          }
-        } else {
-          console.log(`-> Result: SKIPPED (Visual Match already confirmed)\n`);
-        }
-
-        if (isMatch) {
-          console.log(`🚨 SMART MATCH CONFIRMED!`);
-          console.log(`-> Triggering Global Inboxes...`);
-          console.log(`=========================================================\n`);
-
-          // Dynamically generate the message based on the AI engine that triggered it
-          let alertMessage = '';
-          if (matchPhase === 'VISUAL') {
-            alertMessage = `🤖 AI VISUAL MATCH: Our Image Recognition engine detected a structural match between your photos! Click here to view the potential match: /items/${savedItem._id}`;
-          } else {
-            alertMessage = `🤖 AI NLP MATCH: Our Text Analysis engine detected highly similar keyword overlap between your descriptions! Click here to view the potential match: /items/${savedItem._id}`;
-          }
-
-          // Professionally drop exactly ONE message into the original item's chat room connecting both users
-          Message.create({
-            itemId: match._id,
-            senderId: savedItem.createdBy,
-            receiverId: match.createdBy,
-            text: alertMessage
-          }).then(msg => {
-            emitGlobalNotification(match.createdBy, msg);
-            emitGlobalNotification(savedItem.createdBy, msg);
-          }).catch(e => console.error('Failed to send smart match alert:', e));
-        }
-      }
-    }).catch(err => console.error('Error during autonomous matching:', err));
+      // Run autonomous AI matching asynchronously
+      runAutonomousMatching(savedItem).catch(err => console.error('Error running matching engine on create:', err));
     }
 
     res.status(201).json(savedItem);
@@ -205,8 +122,8 @@ const getAllItems = async (req, res) => {
     if (district) filter.district = district;
     if (city) filter.city = city;
 
-    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items
-    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' } })
+    // Fetch items with filter, sort descending (newest first), EXCLUDE claimed items and archived items
+    const items = await Item.find({ ...filter, status: { $ne: 'Claimed' }, archiveStatus: { $ne: 'archived' } })
       .sort({ createdAt: -1 })
       .populate('createdBy', 'username'); // Helpful to display the reporter's username
       
@@ -412,6 +329,12 @@ const updateItem = async (req, res) => {
     }
     
     if (req.file) {
+      // Generate perceptual hash fingerprint locally for the newly uploaded image
+      const hash = await generateImageHash(req.file.path);
+      if (hash) {
+        updateData.imageHash = hash;
+      }
+
       // Upload to Cloudinary
       const result = await cloudinary.uploader.upload(req.file.path);
       updateData.imageUrl = result.secure_url;
@@ -429,6 +352,11 @@ const updateItem = async (req, res) => {
       { $set: updateData },
       { new: true }
     );
+    
+    // Trigger AI matching engine upon update (e.g. if category or image changed)
+    if (updatedItem.type !== 'SMART_TAG' && updatedItem.status !== 'Claimed') {
+      runAutonomousMatching(updatedItem).catch(err => console.error('Error running matching engine on update:', err));
+    }
     
     res.status(200).json(updatedItem);
   } catch (error) {
@@ -472,38 +400,6 @@ const claimItem = async (req, res) => {
 
     item.status = 'Claimed';
     await item.save();
-
-    // Create a ReturnRecord automatically if we can find a chat partner
-    const ReturnRecord = require('../models/ReturnRecord');
-    const messages = await Message.find({ itemId: item._id });
-    
-    let otherUserId = null;
-    for (const msg of messages) {
-      if (msg.senderId.toString() !== item.createdBy.toString()) {
-        otherUserId = msg.senderId;
-        break;
-      }
-      if (msg.receiverId.toString() !== item.createdBy.toString()) {
-        otherUserId = msg.receiverId;
-        break;
-      }
-    }
-
-    if (otherUserId) {
-      try {
-        const existingRecord = await ReturnRecord.findOne({ itemId: item._id });
-        if (!existingRecord) {
-          await ReturnRecord.create({
-            itemId: item._id,
-            ownerId: item.type === 'LOST' ? item.createdBy : otherUserId,
-            finderId: item.type === 'FOUND' ? item.createdBy : otherUserId,
-            status: 'Returned'
-          });
-        }
-      } catch (err) {
-        console.error('Failed to create ReturnRecord:', err);
-      }
-    }
 
     // The Good Samaritan Karma System
     // If the user posted a FOUND item and successfully returned it, award them 50 Karma points
@@ -599,10 +495,17 @@ const resolvePoliceItem = async (req, res) => {
  */
 const getArchivedItems = async (req, res) => {
   try {
-    const items = await Item.find({
-      createdBy: req.userId,
-      archiveStatus: 'archived',
-    }).sort({ createdAt: -1 });
+    const User = require('../models/User');
+    const user = await User.findById(req.userId);
+
+    const query = { archiveStatus: 'archived' };
+
+    // If not admin, only show items created by the user
+    if (!user || user.role !== 'admin') {
+      query.createdBy = req.userId;
+    }
+
+    const items = await Item.find(query).sort({ createdAt: -1 });
 
     res.json(items);
   } catch (error) {

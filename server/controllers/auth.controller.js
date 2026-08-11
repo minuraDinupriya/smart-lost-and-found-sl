@@ -250,6 +250,70 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Update user bank details
+// @route   PUT /api/auth/profile/bank
+// @access  Private
+const updateBankDetails = async (req, res) => {
+  try {
+    const { bankName, branchName, accountName, accountNumber } = req.body;
+    const userId = req.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    user.bankDetails = {
+      bankName: bankName || '',
+      branchName: branchName || '',
+      accountName: accountName || '',
+      accountNumber: accountNumber || '',
+    };
+    await user.save();
+
+    // After updating bank details, check if there are any tips stuck in pending payout
+    // and initiate the payout!
+    const Tip = require('../models/Tip');
+    const paymentService = require('../services/payment.service');
+    const Notification = require('../models/Notification');
+    const { emitGlobalNotification } = require('../services/socket.service');
+
+    const pendingTips = await Tip.find({ finderId: userId, paymentStatus: 'paid', payoutStatus: 'pending' });
+    
+    let processedCount = 0;
+    for (const tip of pendingTips) {
+      const payoutResult = await paymentService.initiatePayout(tip, user);
+      if (payoutResult.status === 'completed') {
+        tip.payoutStatus = 'completed';
+        await tip.save();
+        processedCount++;
+
+        const msg = `🎉 Your pending reward of Rs. ${tip.amount} has been successfully transferred to your newly added bank account!`;
+        const notification = await Notification.create({
+          userId: tip.finderId,
+          message: msg,
+          type: 'TIP_RECEIVED',
+        });
+        emitGlobalNotification(tip.finderId, {
+          _id: notification._id,
+          text: msg,
+          type: 'TIP_RECEIVED',
+          createdAt: notification.createdAt,
+        });
+      }
+    }
+
+    const updatedUser = await User.findById(userId).select('-password');
+    res.status(200).json({
+      message: `Bank details updated successfully. ${processedCount > 0 ? `Initiated ${processedCount} pending payout(s)!` : ''}`,
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Update bank details error:', error);
+    res.status(500).json({ message: 'Server error during bank details update.' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -257,5 +321,6 @@ module.exports = {
   getMe,
   getLeaderboard,
   updateProfile,
+  updateBankDetails,
 };
 

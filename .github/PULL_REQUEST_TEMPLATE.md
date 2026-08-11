@@ -1,0 +1,14 @@
+## Description
+Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context.
+
+## Type of change
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+
+## Checklist:
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have verified that my code does not throw any errors in the console during runtime
+- [ ] I have tested this feature on a mobile-sized screen

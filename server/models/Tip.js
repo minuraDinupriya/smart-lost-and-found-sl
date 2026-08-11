@@ -20,11 +20,16 @@ const tipSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: [true, 'Amount is required'],
-      min: [0.01, 'Amount must be greater than zero'],
+      min: [0, 'Amount must be greater than or equal to zero'],
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'failed'],
+      enum: ['pending', 'paid', 'completed', 'failed', 'skipped'],
+      default: 'pending',
+    },
+    payoutStatus: {
+      type: String,
+      enum: ['pending', 'processing', 'completed'],
       default: 'pending',
     },
     paymentReference: {

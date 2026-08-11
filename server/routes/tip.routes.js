@@ -6,13 +6,19 @@ const {
   getTipById,
   getUserTips,
   updateTipPaymentStatus,
-  getReturnRecordById
+  getReturnRecordById,
+  skipTip
 } = require('../controllers/tip.controller');
 
 // @route   POST /api/tips
 // @desc    Initiate a tip & create checkout session
 // @access  Private
 router.post('/', verifyToken, createTip);
+
+// @route   POST /api/tips/skip
+// @desc    Skip tipping and log status
+// @access  Private
+router.post('/skip', verifyToken, skipTip);
 
 // @route   PUT /api/tips/payment-status
 // @desc    Verify payment status and process updates
