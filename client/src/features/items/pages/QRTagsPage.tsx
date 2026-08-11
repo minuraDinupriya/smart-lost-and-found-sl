@@ -126,28 +126,28 @@ const QRTagsPage: React.FC = () => {
 
       {/* Creation Form */}
       {showForm && (
-        <form onSubmit={handleCreateTag} className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 animate-in fade-in slide-in-from-top-4">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+        <form onSubmit={handleCreateTag} className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 animate-in fade-in slide-in-from-top-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
             <Tag className="w-5 h-5 mr-2 text-[#800000]" /> Tag Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Item Name</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Item Name</label>
               <input 
                 type="text" 
                 required
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. MacBook Pro M3, House Keys"
-                className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                className="w-full border border-gray-200 dark:border-slate-600 rounded-xl p-3 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Category</label>
               <select 
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white"
+                className="w-full border border-gray-200 dark:border-slate-600 rounded-xl p-3 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
               >
                 <option value="Electronics">Electronics</option>
                 <option value="Documents">Documents</option>
@@ -160,21 +160,21 @@ const QRTagsPage: React.FC = () => {
             </div>
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Private Description / Message</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Private Description / Message</label>
             <textarea 
               required
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="e.g. If found, please scan this code and message me to arrange a reward!"
               rows={3}
-              className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+              className="w-full border border-gray-200 dark:border-slate-600 rounded-xl p-3 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
             />
           </div>
           <div className="flex justify-end space-x-3">
             <button 
               type="button" 
               onClick={() => setShowForm(false)}
-              className="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+              className="px-5 py-2.5 rounded-xl font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>
@@ -188,15 +188,14 @@ const QRTagsPage: React.FC = () => {
         </form>
       )}
 
-      {/* Grid of Existing Tags */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
           <ShieldCheck className="w-6 h-6 mr-2 text-emerald-600" /> Active Smart Tags
         </h2>
         {loading ? (
           <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#800000]"></div></div>
         ) : tags.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center border border-gray-100 shadow-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 text-center border border-gray-100 dark:border-slate-700 shadow-sm">
              <ShieldCheck className="w-16 h-16 mx-auto text-gray-300 mb-4" />
              <h3 className="text-lg font-bold text-gray-700 mb-2">No Smart Tags Yet</h3>
              <p className="text-gray-500">Create your first tag to digitally secure your items.</p>
@@ -208,13 +207,13 @@ const QRTagsPage: React.FC = () => {
               const scanUrl = `${window.location.origin}/items/${tag._id}`;
               
               return (
-                <div key={tag._id} className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col items-center text-center shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:-translate-y-1 transition-transform">
-                  <h3 className="font-bold text-gray-900 text-lg mb-1">{tag.title}</h3>
-                  <span className="text-xs font-bold text-[#800000] bg-red-50 px-2.5 py-1 rounded-full mb-6 whitespace-nowrap">
+                <div key={tag._id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-6 flex flex-col items-center text-center shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:-translate-y-1 transition-transform">
+                  <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1">{tag.title}</h3>
+                  <span className="text-xs font-bold text-[#800000] bg-red-50 dark:bg-red-900/30 px-2.5 py-1 rounded-full mb-6 whitespace-nowrap">
                     {tag.category}
                   </span>
                   
-                  <div className="bg-white p-4 rounded-2xl shadow-inner border border-gray-100 mb-6 w-full max-w-[220px] aspect-square flex items-center justify-center">
+                  <div className="bg-white dark:bg-slate-200 p-4 rounded-2xl shadow-inner border border-gray-100 dark:border-slate-700 mb-6 w-full max-w-[220px] aspect-square flex items-center justify-center">
                     <QRCodeSVG 
                       id={`qr-${tag._id}`}
                       value={scanUrl} 
@@ -228,7 +227,7 @@ const QRTagsPage: React.FC = () => {
                   
                   <button 
                     onClick={() => handleDownloadQR(tag._id, tag.title)}
-                    className="w-full flex items-center justify-center space-x-2 bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors shadow-sm mt-auto"
+                    className="w-full flex items-center justify-center space-x-2 bg-gray-900 dark:bg-slate-700 text-white py-3 rounded-xl font-bold hover:bg-gray-800 dark:hover:bg-slate-600 transition-colors shadow-sm mt-auto"
                   >
                     <Download className="w-4 h-4" />
                     <span>Download Label</span>

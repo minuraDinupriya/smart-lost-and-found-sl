@@ -155,7 +155,7 @@ const ProfilePage: React.FC = () => {
       <PageNavigation />
 
       {/* Profile Header Card */}
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden mb-6">
         <div className="h-32 bg-gradient-to-r from-[#800000] to-[#500000] relative">
           <div className="absolute right-6 top-6 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 flex items-center text-white space-x-1.5 shadow-sm">
             <Shield className="w-4 h-4 text-amber-400" />
@@ -166,7 +166,7 @@ const ProfilePage: React.FC = () => {
         <div className="px-6 pb-6 relative flex flex-col md:flex-row md:items-end justify-between">
           <div className="flex items-end -mt-16 mb-4 md:mb-0">
             <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-              <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-white bg-slate-100 shadow-lg relative flex items-center justify-center">
+              <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 shadow-lg relative flex items-center justify-center">
                 {previewUrl ? (
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                 ) : (
@@ -178,7 +178,7 @@ const ProfilePage: React.FC = () => {
                   <Camera className="w-8 h-8 text-white animate-pulse" />
                 </div>
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-[#800000] text-white p-2 rounded-2xl border-4 border-white shadow-md group-hover:bg-[#600000] transition-colors">
+              <div className="absolute -bottom-2 -right-2 bg-[#800000] text-white p-2 rounded-2xl border-4 border-white dark:border-slate-800 shadow-md group-hover:bg-[#600000] transition-colors">
                 <Camera className="w-4 h-4" />
               </div>
             </div>
@@ -186,13 +186,13 @@ const ProfilePage: React.FC = () => {
           </div>
 
           {user.role !== 'police' && (
-            <div className="bg-yellow-50/60 border border-yellow-200/80 rounded-2xl p-4 flex items-center space-x-3.5 shadow-sm max-w-[200px]">
-              <div className="p-2.5 bg-yellow-100/80 rounded-xl text-yellow-700">
+            <div className="bg-yellow-50/60 dark:bg-yellow-900/20 border border-yellow-200/80 dark:border-yellow-900/50 rounded-2xl p-4 flex items-center space-x-3.5 shadow-sm max-w-[200px]">
+              <div className="p-2.5 bg-yellow-100/80 dark:bg-yellow-900/40 rounded-xl text-yellow-700 dark:text-yellow-500">
                 <Award className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs text-yellow-600 font-bold uppercase tracking-wider">Trust Score</p>
-                <p className="text-xl font-black text-yellow-700">{user.karmaPoints || 0} pts</p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-500 font-bold uppercase tracking-wider">Trust Score</p>
+                <p className="text-xl font-black text-yellow-700 dark:text-yellow-400">{user.karmaPoints || 0} pts</p>
               </div>
             </div>
           )}
@@ -204,7 +204,7 @@ const ProfilePage: React.FC = () => {
         <button
           onClick={() => setActiveTab('profile')}
           className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-            activeTab === 'profile' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+            activeTab === 'profile' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
           }`}
         >
           <User className="w-5 h-5" />
@@ -215,7 +215,7 @@ const ProfilePage: React.FC = () => {
             <button
               onClick={() => setActiveTab('claimed')}
               className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-                activeTab === 'claimed' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+                activeTab === 'claimed' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
             >
               <Box className="w-5 h-5" />
@@ -224,7 +224,7 @@ const ProfilePage: React.FC = () => {
             <button
               onClick={() => setActiveTab('returned')}
               className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-                activeTab === 'returned' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+                activeTab === 'returned' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
             >
               <Gift className="w-5 h-5" />
@@ -233,7 +233,7 @@ const ProfilePage: React.FC = () => {
             <button
               onClick={() => setActiveTab('bank')}
               className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-                activeTab === 'bank' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-100'
+                activeTab === 'bank' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
             >
               <Award className="w-5 h-5" />
@@ -244,12 +244,12 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-gray-100 dark:border-slate-700 p-8">
         {/* PROFILE TAB */}
         {activeTab === 'profile' && (
           <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Username</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Username</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
                   <User className="w-5 h-5" />
@@ -259,13 +259,13 @@ const ProfilePage: React.FC = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                   required
                 />
               </div>
               <p className="text-xs text-gray-400 mt-2 font-medium">Changing your username will affect how you appear on items posted and messages.</p>
             </div>
-            <div className="flex justify-end pt-4 border-t border-gray-100">
+            <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-slate-700">
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -281,61 +281,61 @@ const ProfilePage: React.FC = () => {
         {activeTab === 'bank' && (
           <form onSubmit={handleBankSubmit} className="space-y-6 max-w-xl mx-auto">
             <div>
-              <p className="text-gray-500 font-medium mb-6 text-sm">
+              <p className="text-gray-500 dark:text-gray-400 font-medium mb-6 text-sm">
                 If you successfully return a lost item, the owner has the option to send you a monetary reward. Add your bank account details here so that we can directly transfer any rewards you receive!
               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="block text-sm font-bold text-gray-700">Bank Name</label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Bank Name</label>
                 <input
                   type="text"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="e.g. Commercial Bank"
-                  className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                  className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                   required
                 />
               </div>
               <div className="space-y-1">
-                <label className="block text-sm font-bold text-gray-700">Branch</label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Branch</label>
                 <input
                   type="text"
                   value={branchName}
                   onChange={(e) => setBranchName(e.target.value)}
                   placeholder="e.g. Nugegoda"
-                  className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                  className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="block text-sm font-bold text-gray-700">Account Name</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Account Name</label>
               <input
                 type="text"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 placeholder="e.g. J. Doe"
-                className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="block text-sm font-bold text-gray-700">Account Number</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Account Number</label>
               <input
                 type="text"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
                 placeholder="e.g. 1029384756"
-                className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white transition-all font-medium text-gray-800"
+                className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                 required
               />
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-gray-100">
+            <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-slate-700">
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -347,23 +347,22 @@ const ProfilePage: React.FC = () => {
           </form>
         )}
 
-        {/* CLAIMED ITEM HISTORY TAB (OWNER) */}
         {activeTab === 'claimed' && (
           <div>
-            <h2 className="text-2xl font-black text-gray-900 mb-6">Claimed Item History</h2>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Claimed Item History</h2>
             {isLoadingHistory ? (
               <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 text-[#800000] animate-spin" /></div>
             ) : claimedHistory.length === 0 ? (
-              <div className="text-center py-16 px-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <Box className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-gray-800">No Claimed Items Yet</h3>
-                <p className="text-gray-500 mt-2">Items that you successfully recover will appear here.</p>
+              <div className="text-center py-16 px-4 bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-gray-100 dark:border-slate-700">
+                <Box className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white">No Claimed Items Yet</h3>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Items that you successfully recover will appear here.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[700px]">
                   <thead>
-                    <tr className="border-b-2 border-gray-100 text-gray-500 text-sm">
+                    <tr className="border-b-2 border-gray-100 dark:border-slate-700 text-gray-500 dark:text-gray-400 text-sm">
                       <th className="pb-4 font-bold">Item</th>
                       <th className="pb-4 font-bold">Finder</th>
                       <th className="pb-4 font-bold">Date</th>
@@ -371,15 +370,15 @@ const ProfilePage: React.FC = () => {
                       <th className="pb-4 font-bold text-right">Tip / Reward</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm">
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-sm">
                     {claimedHistory.map((record) => (
-                      <tr key={record._id} className="hover:bg-gray-50/50 transition-colors">
+                      <tr key={record._id} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors">
                         <td className="py-4">
-                          <div className="font-bold text-gray-900">{record.itemId?.title || 'Unknown Item'}</div>
-                          <div className="text-gray-500 text-xs">{record.itemId?.category}</div>
+                          <div className="font-bold text-gray-900 dark:text-white">{record.itemId?.title || 'Unknown Item'}</div>
+                          <div className="text-gray-500 dark:text-gray-400 text-xs">{record.itemId?.category}</div>
                         </td>
-                        <td className="py-4 font-medium text-gray-700">{record.finderId?.username}</td>
-                        <td className="py-4 text-gray-500">{new Date(record.createdAt).toLocaleDateString()}</td>
+                        <td className="py-4 font-medium text-gray-700 dark:text-gray-300">{record.finderId?.username}</td>
+                        <td className="py-4 text-gray-500 dark:text-gray-400">{new Date(record.createdAt).toLocaleDateString()}</td>
                         <td className="py-4">
                           <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs uppercase tracking-wider">{record.status}</span>
                         </td>
@@ -410,23 +409,22 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        {/* FOUND & RETURNED HISTORY TAB (FINDER) */}
         {activeTab === 'returned' && (
           <div>
-            <h2 className="text-2xl font-black text-gray-900 mb-6">Found & Returned History</h2>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Found & Returned History</h2>
             {isLoadingHistory ? (
               <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 text-[#800000] animate-spin" /></div>
             ) : returnedHistory.length === 0 ? (
-              <div className="text-center py-16 px-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <Gift className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-gray-800">No Returned Items Yet</h3>
-                <p className="text-gray-500 mt-2">Items you successfully return to their owners will appear here.</p>
+              <div className="text-center py-16 px-4 bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-gray-100 dark:border-slate-700">
+                <Gift className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white">No Returned Items Yet</h3>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Items you successfully return to their owners will appear here.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[700px]">
                   <thead>
-                    <tr className="border-b-2 border-gray-100 text-gray-500 text-sm">
+                    <tr className="border-b-2 border-gray-100 dark:border-slate-700 text-gray-500 dark:text-gray-400 text-sm">
                       <th className="pb-4 font-bold">Item</th>
                       <th className="pb-4 font-bold">Owner</th>
                       <th className="pb-4 font-bold">Date</th>
@@ -434,15 +432,15 @@ const ProfilePage: React.FC = () => {
                       <th className="pb-4 font-bold text-right">Reward</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm">
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-700 text-sm">
                     {returnedHistory.map((record) => (
-                      <tr key={record._id} className="hover:bg-gray-50/50 transition-colors">
+                      <tr key={record._id} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors">
                         <td className="py-4">
-                          <div className="font-bold text-gray-900">{record.itemId?.title || 'Unknown Item'}</div>
-                          <div className="text-gray-500 text-xs">{record.itemId?.category}</div>
+                          <div className="font-bold text-gray-900 dark:text-white">{record.itemId?.title || 'Unknown Item'}</div>
+                          <div className="text-gray-500 dark:text-gray-400 text-xs">{record.itemId?.category}</div>
                         </td>
-                        <td className="py-4 font-medium text-gray-700">{record.ownerId?.username}</td>
-                        <td className="py-4 text-gray-500">{new Date(record.createdAt).toLocaleDateString()}</td>
+                        <td className="py-4 font-medium text-gray-700 dark:text-gray-300">{record.ownerId?.username}</td>
+                        <td className="py-4 text-gray-500 dark:text-gray-400">{new Date(record.createdAt).toLocaleDateString()}</td>
                         <td className="py-4">
                           <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs uppercase tracking-wider">{record.status}</span>
                         </td>
