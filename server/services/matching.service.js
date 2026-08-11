@@ -2,7 +2,6 @@ const stringSimilarity = require('string-similarity');
 const Item = require('../models/Item');
 const Message = require('../models/Message');
 const { calculateHammingDistance } = require('../utils/imageHash');
-const { calculateTextSimilarity } = require('../utils/textMatch');
 const { emitGlobalNotification } = require('../services/socket.service');
 const { identifyItemFromImage } = require('../services/itemIdentification.service');
 
@@ -148,9 +147,9 @@ const runAutonomousMatching = async (savedItem) => {
       console.log(`[Phase 2] 📝 Natural Language Processing (NLP) Engine:`);
       console.log(`-> Algorithm: Dice's Coefficient (String Similarity)`);
       
-      // 2. Evaluate Text Similarity
+      // 2. Evaluate Text Similarity (incorporating AI tags and Brand/Model precision boosts)
       if (!isMatch) {
-        const textScore = calculateTextSimilarity(savedItem, match);
+        const textScore = calculateMatchScore(savedItem, match);
         if (textScore >= 0.60) {
           isMatch = true;
           matchReason = `Text Similarity Match (Score: ${(textScore * 100).toFixed(1)}%)`;
@@ -171,6 +170,8 @@ const runAutonomousMatching = async (savedItem) => {
         let alertMessage = '';
         if (matchPhase === 'VISUAL') {
           alertMessage = `🤖 AI VISUAL MATCH: Our Image Recognition engine detected a structural match between your photos! Click here to view the potential match: /items/${savedItem._id}`;
+        } else if (matchPhase === 'NLP' && savedItem.aiIdentified && match.aiIdentified) {
+          alertMessage = `🤖 AI VISUAL MATCH: Our Gemini Vision AI analyzed the photos and identified highly matching objects! Click here to view the potential match: /items/${savedItem._id}`;
         } else {
           alertMessage = `🤖 AI NLP MATCH: Our Text Analysis engine detected highly similar keyword overlap between your descriptions! Click here to view the potential match: /items/${savedItem._id}`;
         }
