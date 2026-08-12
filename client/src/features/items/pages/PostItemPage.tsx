@@ -685,7 +685,7 @@ const PostItemPage: React.FC = () => {
         {currentStep === 4 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
           {/* Digital Proof of Ownership */}
-          {formData.type === 'LOST' && (
+        {formData.type === "LOST" && (
         <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">
@@ -825,7 +825,6 @@ const PostItemPage: React.FC = () => {
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
               />
             </div>
-            {formData.type === 'FOUND' && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Security Question (Blind Claim Protocol)
@@ -843,7 +842,6 @@ const PostItemPage: React.FC = () => {
                 ownership.
               </p>
             </div>
-            )}
           </div>
         </div>
           </motion.div>
