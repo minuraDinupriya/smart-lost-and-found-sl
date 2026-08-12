@@ -117,27 +117,8 @@ Rules:
 - CRITICAL: Describe ONLY the object. Completely ignore and do not mention the background, environment, hands holding the object, tables, outdoors, etc.
     `;
 
-    // Fetch available models dynamically
-    let modelNames = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-3.5-flash']; // Fallback defaults
-    try {
-      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-      const listRes = await fetch(listUrl);
-      if (listRes.ok) {
-        const listData = await listRes.json();
-        // Find ALL models that support generateContent and contain 'flash' but exclude 2.5
-        const models = listData.models || [];
-        const validModels = models
-          .filter(m => m.supportedGenerationMethods.includes('generateContent') && m.name.includes('flash') && !m.name.includes('gemini-2.5-flash'))
-          .map(m => m.name.replace('models/', ''));
-          
-        if (validModels.length > 0) {
-          modelNames = validModels;
-          console.log('[AI Service] Dynamically selected models to try:', modelNames);
-        }
-      }
-    } catch (err) {
-      console.warn('[AI Service] Failed to list models, using default array:', err.message);
-    }
+    // Hardcode the fastest, most reliable vision model to prevent unnecessary HTTP round-trips
+    let modelNames = ['gemini-1.5-flash'];
 
     let lastError = null;
 
