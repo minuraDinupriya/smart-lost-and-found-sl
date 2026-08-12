@@ -117,8 +117,8 @@ Rules:
 - CRITICAL: Describe ONLY the object. Completely ignore and do not mention the background, environment, hands holding the object, tables, outdoors, etc.
     `;
 
-    // Hardcode the fastest, most reliable vision model to prevent unnecessary HTTP round-trips
-    let modelNames = ['gemini-flash-latest'];
+    // Hardcode the fastest models in order of preference. If the free tier quota is hit on one, it will instantly fallback to the next.
+    let modelNames = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-flash-lite-latest'];
 
     let lastError = null;
 
