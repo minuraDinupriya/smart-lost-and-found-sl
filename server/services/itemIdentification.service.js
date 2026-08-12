@@ -118,7 +118,7 @@ Rules:
     `;
 
     // Hardcode the fastest, most reliable vision model to prevent unnecessary HTTP round-trips
-    let modelNames = ['gemini-1.5-flash'];
+    let modelNames = ['gemini-flash-latest'];
 
     let lastError = null;
 
