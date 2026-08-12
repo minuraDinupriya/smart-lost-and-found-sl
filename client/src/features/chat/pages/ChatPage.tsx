@@ -191,10 +191,16 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const isClaimant = item && (
-    (item.type === 'LOST' && ((item.createdBy?._id || item.createdBy) === user?._id)) ||
-    (item.type === 'FOUND' && ((item.createdBy?._id || item.createdBy) !== user?._id))
-  );
+  // The claimant is always the person who did NOT create the post.
+  const isClaimant = item && ((item.createdBy?._id || item.createdBy) !== user?._id);
+
+  // Check if chat should be locked
+  const lastVerification = item?.verificationHistory?.[item?.verificationHistory?.length - 1];
+  const isVerified = lastVerification && (lastVerification.overallStatus === 'VERIFIED' || lastVerification.overallStatus === 'PARTIALLY_VERIFIED');
+  
+  // We no longer lock the chat based on user feedback. The system allows free chat, but keeps the verification badge.
+  const isChatLocked = false;
+  const isOwnerLocked = false;
 
   if (loading) return <div className="flex justify-center p-10 text-gray-500 font-medium">Initializing Secure Room...</div>;
 
@@ -228,24 +234,27 @@ const ChatPage: React.FC = () => {
 
       {/* Verification status banner */}
       {item && item.ownershipProofs && item.ownershipProofs.length > 0 && (
-        <div className="bg-[#800000]/5 border-b border-gray-100 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+        <div className={`border-b border-gray-100 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 ${isVerified ? 'bg-green-50 dark:bg-green-900/20' : 'bg-amber-50 dark:bg-amber-900/20'}`}>
           <div className="text-xs text-gray-700 dark:text-gray-300">
-            <span className="font-bold uppercase text-[#800000] dark:text-red-400 block mb-1">Digital Proof of Ownership:</span>
-            This item has {item.ownershipProofs.length} private ownership proof fields registered.
+            <span className={`font-bold uppercase block mb-1 ${isVerified ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
+              <ShieldQuestion className="w-3 h-3 inline mr-1" />
+              Blind Claim Protocol {isVerified ? '(Verified)' : '(Locked)'}
+            </span>
+            This item has {item.ownershipProofs.length} security question(s) registered.
             {item.verificationHistory && item.verificationHistory.length > 0 ? (
               <span className="text-gray-500 block mt-1">
-                Last verification attempt: <strong className="text-[#800000]">{item.verificationHistory[item.verificationHistory.length - 1].overallStatus} ({item.verificationHistory[item.verificationHistory.length - 1].scorePercentage}% Match)</strong>
+                Last attempt: <strong className={isVerified ? 'text-green-700' : 'text-red-600'}>{item.verificationHistory[item.verificationHistory.length - 1].overallStatus} ({item.verificationHistory[item.verificationHistory.length - 1].scorePercentage}% Match)</strong>
               </span>
             ) : (
               <span className="text-gray-500 block mt-1">No verification attempts have been made yet.</span>
             )}
           </div>
-          {isClaimant && (
+          {isClaimant && !isVerified && (
             <button
               onClick={() => setIsVerificationModalOpen(true)}
-              className="bg-[#800000] text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-[#600000] transition active:scale-95 shadow-sm"
+              className="bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-amber-700 transition active:scale-95 shadow-sm animate-bounce"
             >
-              Verify Ownership Proof
+              Answer Security Question to Unlock Chat
             </button>
           )}
         </div>
@@ -257,7 +266,7 @@ const ChatPage: React.FC = () => {
       )}
 
       {/* Message Feed Canvas */}
-      <div className="flex-grow p-6 overflow-y-auto bg-[#F9FAFB]/60 dark:bg-slate-900/40 space-y-4">
+      <div className="flex-grow p-6 overflow-y-auto bg-[#F9FAFB]/60 dark:bg-slate-900/40 space-y-4 relative">
         {messages.length === 0 ? (
           <div className="text-center text-gray-400 mt-20 text-sm font-medium">
             No messages yet. Send a message to initiate the claim!
@@ -335,7 +344,7 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* Persistent Message Input Engine */}
-      <div className="p-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 rounded-b-2xl">
+      <div className="p-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 rounded-b-2xl relative">
         <form onSubmit={sendMessage} className="flex space-x-3 items-end">
           <textarea 
             value={inputText}
