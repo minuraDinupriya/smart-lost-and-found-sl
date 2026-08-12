@@ -157,6 +157,13 @@ exports.confirmReceipt = async (req, res) => {
     item.status = 'Claimed';
     await item.save();
 
+    // Increment Finder's Karma Points (+50)
+    const finder = await User.findById(finderId);
+    if (finder) {
+      finder.karmaPoints = (finder.karmaPoints || 0) + 50;
+      await finder.save();
+    }
+
     return res.status(200).json(record);
   } catch (error) {
     console.error('Error in confirmReceipt:', error);

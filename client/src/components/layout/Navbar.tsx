@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-do
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../services/api';
-import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon, Filter, ChevronLeft, Home, Sun, Moon, Monitor } from 'lucide-react';
+import { Search, LogOut, PackageSearch, MessageSquare, ShieldCheck, BarChart3, Globe, Menu, X, PlusCircle, Building, Wallet, User as UserIcon, Archive, ShieldAlert, Map as MapIcon, Filter, ChevronLeft, Home, Sun, Moon, Monitor, Trophy } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
@@ -266,6 +266,15 @@ const Navbar: React.FC = () => {
                             Hotspots Map
                           </Link>
                         )}
+                        {user.role !== 'police' && (
+                          <Link
+                            to="/leaderboard"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
+                          >
+                            <Trophy className="w-4 h-4 mr-2 text-yellow-500 dark:text-yellow-400" />
+                            Leaderboard
+                          </Link>
+                        )}
                         <div className="h-px bg-gray-100 dark:bg-slate-700 my-1"></div>
                         <button 
                           onClick={logout}
@@ -389,6 +398,12 @@ const Navbar: React.FC = () => {
                   <Link to="/hotspots" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
                     <MapIcon className="w-6 h-6 mb-2" />
                     <span className="text-sm font-semibold text-center">Hotspots Map</span>
+                  </Link>
+                )}
+                {user.role !== 'police' && (
+                  <Link to="/leaderboard" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-center justify-center p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-xl border border-yellow-100 dark:border-yellow-800 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
+                    <Trophy className="w-6 h-6 mb-2" />
+                    <span className="text-sm font-semibold text-center">Leaderboard</span>
                   </Link>
                 )}
                 

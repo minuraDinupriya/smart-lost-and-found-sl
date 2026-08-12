@@ -5,6 +5,7 @@ import Navbar from './components/layout/Navbar';
 import LoginPage from './features/auth/pages/LoginPage';
 import RegisterPage from './features/auth/pages/RegisterPage';
 import ProfilePage from './features/auth/pages/ProfilePage';
+import LeaderboardPage from './features/auth/pages/LeaderboardPage';
 
 import DashboardPage from './features/items/pages/DashboardPage';
 import QRTagsPage from './features/items/pages/QRTagsPage';
@@ -59,6 +60,9 @@ const App: React.FC = () => {
           
           {/* Hotspots Route */}
           <Route path="/hotspots" element={<HotspotMapPage />} />
+
+          {/* Gamification Route */}
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
 
           {/* Police Dashboard */}
           <Route path="/police-dashboard" element={<PoliceDashboardPage />} />
