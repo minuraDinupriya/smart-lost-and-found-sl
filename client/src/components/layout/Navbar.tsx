@@ -234,15 +234,6 @@ const Navbar: React.FC = () => {
                         )}
                       </div>
                       <div className="p-1.5 space-y-0.5">
-                        {user.role !== 'police' && (
-                          <Link 
-                            to="/tips/history" 
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
-                          >
-                            <Wallet className="w-4 h-4 mr-2 text-amber-500" />
-                            Tip History
-                          </Link>
-                        )}
                         <Link
                           to="/profile"
                           className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
@@ -250,31 +241,6 @@ const Navbar: React.FC = () => {
                           <UserIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                           {t('nav.profile')}
                         </Link>
-                        <Link
-                          to="/archived"
-                          className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
-                        >
-                          <Archive className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                          {t('nav.archivedItems')}
-                        </Link>
-                        {user.role !== 'police' && (
-                          <Link
-                            to="/hotspots"
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
-                          >
-                            <MapIcon className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                            Hotspots Map
-                          </Link>
-                        )}
-                        {user.role !== 'police' && (
-                          <Link
-                            to="/leaderboard"
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg flex items-center transition-colors"
-                          >
-                            <Trophy className="w-4 h-4 mr-2 text-yellow-500 dark:text-yellow-400" />
-                            Leaderboard
-                          </Link>
-                        )}
                         <div className="h-px bg-gray-100 dark:bg-slate-700 my-1"></div>
                         <button 
                           onClick={logout}
