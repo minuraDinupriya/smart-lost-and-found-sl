@@ -62,24 +62,8 @@ The JSON object MUST adhere to this exact format:
   }
 }
     `;
-    // Fetch available models dynamically
-    let modelNames = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-3.5-flash']; // Fallback defaults
-    try {
-      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-      const listRes = await fetch(listUrl);
-      if (listRes.ok) {
-        const listData = await listRes.json();
-        const models = listData.models || [];
-        const validModels = models
-          .filter(m => m.supportedGenerationMethods.includes('generateContent') && m.name.includes('flash') && !m.name.includes('gemini-2.5-flash'))
-          .map(m => m.name.replace('models/', ''));
-        if (validModels.length > 0) {
-          modelNames = validModels;
-        }
-      }
-    } catch (err) {
-      console.warn('[AI Service] Failed to list models in voice report, using default:', err.message);
-    }
+    // Hardcode the fastest models in order of preference. If the free tier quota is hit on one, it will instantly fallback to the next.
+    let modelNames = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-flash-lite-latest'];
 
     let lastError = null;
 
