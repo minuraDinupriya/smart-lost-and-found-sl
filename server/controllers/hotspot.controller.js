@@ -106,7 +106,7 @@ const getHotspots = async (req, res) => {
     }
 
     const hotspots = clusters
-      .filter(cluster => cluster.items.length >= 2) // Minimum 2 reports to be a hotspot
+      .filter(cluster => cluster.items.length >= 1) // Minimum 1 report to be a hotspot (lowered for demonstration)
       .map(cluster => {
         const lostCount = cluster.items.length;
         const foundCount = cluster.foundItems.length;
