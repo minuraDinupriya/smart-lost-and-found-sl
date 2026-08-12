@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useSocket } from '../../../context/SocketContext';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
-import { Send, FileText, AlertCircle, ShieldCheck, X } from 'lucide-react';
+import { Send, FileText, AlertCircle, ShieldCheck, ShieldQuestion, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { motion } from 'framer-motion';
 import ItemLinkPreview from '../components/ItemLinkPreview';
