@@ -4,11 +4,11 @@ A web application for reporting lost and found items in Sri Lanka and coordinati
 
 ## Demo and engineering walkthrough
 
-![Local demo dashboard with synthetic reports](docs/media/01-dashboard.jpg)
+![Local demo dashboard with synthetic reports](docs/media/ui-home-desktop-light.jpg)
 
-[Watch the 42-second walkthrough](docs/media/demo-walkthrough.mp4) · [Run the isolated demo](docs/DEMO.md) · [Architecture and engineering decisions](docs/ENGINEERING.md)
+[Watch the 42-second walkthrough](docs/media/demo-walkthrough.mp4) · [Run the isolated demo](docs/DEMO.md) · [Architecture and engineering decisions](docs/ENGINEERING.md) · [UI decisions and browser checks](docs/UI_REVIEW.md)
 
-The walkthrough uses synthetic data. The engineering focus is server-enforced conversation access, private ownership checks, retry-safe return rewards, and reproducible tests. See the engineering notes for evidence and remaining limitations.
+The walkthrough uses synthetic data and predates the current visual redesign. The engineering focus is server-enforced conversation access, private ownership checks, retry-safe return rewards, and reproducible tests. See the engineering notes for evidence and remaining limitations.
 
 ## Project status
 
