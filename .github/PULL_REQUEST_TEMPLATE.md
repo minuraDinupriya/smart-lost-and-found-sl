@@ -1,14 +1,26 @@
-## Description
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context.
+## Problem and resulting behavior
 
-## Type of change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+<!-- Who is affected? Give a concrete before/after example. Link an issue if one exists. -->
 
-## Checklist:
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have verified that my code does not throw any errors in the console during runtime
-- [ ] I have tested this feature on a mobile-sized screen
+## Approach
+
+<!-- Explain the important decision or tradeoff. Omit details already obvious from the diff. -->
+
+## Validation
+
+<!-- List exact commands and results, plus relevant manual steps. Mark checks not run and explain why. -->
+
+## Risks and limitations
+
+<!-- Note remaining gaps, configuration/migration requirements, or rollback concerns. Use "None identified" when appropriate. -->
+
+## Screenshots
+
+<!-- Include before/after images for visible UI changes; otherwise remove this section. -->
+
+## Self-review
+
+- [ ] The diff addresses one problem and excludes unrelated changes.
+- [ ] I checked the final diff for credentials, private data, and debug output.
+- [ ] Validation above describes checks I actually ran and their limitations.
+- [ ] Relevant documentation is updated, or no update is needed.
