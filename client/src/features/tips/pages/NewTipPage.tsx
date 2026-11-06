@@ -48,14 +48,14 @@ const NewTipPage: React.FC = () => {
   }, [returnRecordId, navigate]);
 
   if (loading) {
-    return <div className="flex justify-center p-20 text-gray-500 font-medium animate-pulse">Loading return details...</div>;
+    return <div className="flex justify-center p-20 text-gray-500 font-medium animate-pulse dark:text-slate-400">Loading return details...</div>;
   }
 
   if (!returnRecord) {
     return (
-      <div className="max-w-md mx-auto text-center p-10 bg-white rounded-2xl border border-gray-100 shadow-sm mt-10">
-        <p className="text-gray-500 font-semibold">Return details could not be found.</p>
-        <button onClick={() => navigate('/')} className="mt-4 text-[#800000] font-bold hover:underline">Go Home</button>
+      <div className="max-w-md mx-auto text-center p-10 bg-white rounded-2xl border border-gray-100 shadow-sm mt-10 dark:bg-slate-800 dark:border-slate-700">
+        <p className="text-gray-500 font-semibold dark:text-slate-400">Return details could not be found.</p>
+        <button onClick={() => navigate('/')} className="mt-4 text-brand-700 font-bold hover:underline dark:text-brand-300">Go Home</button>
       </div>
     );
   }
@@ -65,10 +65,10 @@ const NewTipPage: React.FC = () => {
 
   if (!isOwner) {
     return (
-      <div className="max-w-md mx-auto text-center p-10 bg-white rounded-2xl border border-gray-100 shadow-sm mt-10">
-        <p className="text-red-600 font-bold">Unauthorized Access</p>
-        <p className="text-gray-500 text-sm mt-2">Only the rightful owner of this item can send a reward tip.</p>
-        <button onClick={() => navigate('/')} className="mt-4 text-[#800000] font-bold hover:underline">Go Home</button>
+      <div className="max-w-md mx-auto text-center p-10 bg-white rounded-2xl border border-gray-100 shadow-sm mt-10 dark:bg-slate-800 dark:border-slate-700">
+        <p className="text-red-600 font-bold dark:text-red-300">Unauthorized Access</p>
+        <p className="text-gray-500 text-sm mt-2 dark:text-slate-400">Only the rightful owner of this item can send a reward tip.</p>
+        <button onClick={() => navigate('/')} className="mt-4 text-brand-700 font-bold hover:underline dark:text-brand-300">Go Home</button>
       </div>
     );
   }
@@ -76,10 +76,10 @@ const NewTipPage: React.FC = () => {
   // Backend independently checks eligibility. If ineligible, block user.
   if (returnRecord.isEligible === false) {
     return (
-      <div className="max-w-md mx-auto text-center p-10 bg-white rounded-2xl border border-gray-100 shadow-sm mt-10">
-        <p className="text-amber-600 font-bold text-lg mb-2">Notice</p>
-        <p className="text-gray-600 text-sm font-medium">{returnRecord.ineligibilityReason || 'You are not eligible to tip for this return.'}</p>
-        <button onClick={() => navigate('/')} className="mt-6 px-6 py-2.5 bg-[#800000] text-white font-bold rounded-xl hover:bg-[#600000] transition" >
+      <div className="max-w-md mx-auto text-center p-10 bg-white rounded-2xl border border-gray-100 shadow-sm mt-10 dark:bg-slate-800 dark:border-slate-700">
+        <p className="text-amber-600 font-bold text-lg mb-2 dark:text-amber-300">Notice</p>
+        <p className="text-gray-600 text-sm font-medium dark:text-slate-300">{returnRecord.ineligibilityReason || 'You are not eligible to tip for this return.'}</p>
+        <button onClick={() => navigate('/')} className="mt-6 px-6 py-2.5 bg-brand-700 text-white font-bold rounded-xl hover:bg-brand-800 transition" >
           Return to Dashboard
         </button>
       </div>
@@ -178,21 +178,21 @@ const NewTipPage: React.FC = () => {
   return (
     <>
     <PageNavigation />
-    <div className="max-w-xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="max-w-xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden dark:bg-slate-800 dark:border-slate-700">
       {/* Header Banner */}
-      <div className="bg-[#800000] text-white p-8 relative overflow-hidden">
+      <div className="bg-brand-700 text-white p-8 relative overflow-hidden">
         <button
           onClick={() => {
             if (step === 'confirm') setStep('form');
             else if (step === 'form') setStep('choice');
             else navigate(`/items/${itemId._id}`);
           }}
-          className="absolute top-6 left-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors focus:outline-none"
+          className="absolute top-6 left-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors focus:outline-none dark:bg-slate-800/10"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex flex-col items-center text-center mt-4">
-          <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-md">
+          <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-md dark:bg-slate-800/15">
             <Gift className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold">Item Successfully Returned 🎉</h1>
@@ -204,22 +204,22 @@ const NewTipPage: React.FC = () => {
 
       <div className="p-8">
         {/* Item Card Context */}
-        <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-6">
+        <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-6 dark:bg-slate-900/50 dark:border-slate-700">
           {itemId?.imageUrl ? (
             <img
               src={itemId.imageUrl.startsWith('http') ? itemId.imageUrl : `http://localhost:5000/uploads/${itemId.imageUrl}`}
               alt={itemId.title}
-              className="w-16 h-16 rounded-xl object-cover border border-gray-100 flex-shrink-0"
+              className="w-16 h-16 rounded-xl object-cover border border-gray-100 flex-shrink-0 dark:border-slate-700"
             />
           ) : (
-            <div className="w-16 h-16 rounded-xl bg-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
+            <div className="w-16 h-16 rounded-xl bg-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0 dark:bg-slate-700 dark:text-slate-400">
               <Gift className="w-6 h-6" />
             </div>
           )}
           <div>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Returned Item</p>
-            <h4 className="font-bold text-gray-900 line-clamp-1">{itemId?.title}</h4>
-            <p className="text-xs text-emerald-600 font-medium flex items-center mt-0.5">
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider dark:text-slate-400">Returned Item</p>
+            <h4 className="font-bold text-gray-900 line-clamp-1 dark:text-slate-100">{itemId?.title}</h4>
+            <p className="text-xs text-emerald-600 font-medium flex items-center mt-0.5 dark:text-emerald-300">
               <Coins className="w-3.5 h-3.5 mr-1" /> Handover Completed
             </p>
           </div>
@@ -228,13 +228,13 @@ const NewTipPage: React.FC = () => {
         {/* STEP 1: Choice (Give Tip vs Skip) */}
         {step === 'choice' && (
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 border border-blue-100 text-blue-700 text-sm font-medium rounded-xl text-center">
+            <div className="p-4 bg-blue-50 border border-blue-100 text-blue-700 text-sm font-medium rounded-xl text-center dark:bg-blue-900/25 dark:border-blue-800 dark:text-blue-300">
               Tips are completely voluntary and go directly to finder <span className="font-bold">@{finderId?.username}</span>.
             </div>
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setStep('form')}
-                className="py-4 bg-[#800000] text-white font-bold rounded-2xl hover:bg-[#600000] transition shadow-lg shadow-[#800000]/15 flex items-center justify-center space-x-2"
+                className="py-4 bg-brand-700 text-white font-bold rounded-2xl hover:bg-brand-800 transition shadow-lg shadow-brand-700/15 flex items-center justify-center space-x-2"
               >
                 <span>Give a Tip</span>
                 <ChevronRight className="w-5 h-5" />
@@ -242,9 +242,9 @@ const NewTipPage: React.FC = () => {
               <button
                 onClick={handleSkipTip}
                 disabled={submitting}
-                className="py-4 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition flex items-center justify-center space-x-2"
+                className="py-4 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition flex items-center justify-center space-x-2 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
               >
-                <Ban className="w-5 h-5 text-gray-400" />
+                <Ban className="w-5 h-5 text-gray-400 dark:text-slate-400" />
                 <span>Skip</span>
               </button>
             </div>
@@ -255,7 +255,7 @@ const NewTipPage: React.FC = () => {
         {step === 'form' && (
           <form onSubmit={handleContinue} className="space-y-6">
             <div className="space-y-3">
-              <label className="block text-sm font-bold text-gray-700">Select Reward Amount (LKR)</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-slate-300">Select Reward Amount (LKR)</label>
               <div className="grid grid-cols-4 gap-2">
                 {[100, 250, 500, 1000].map((amt) => (
                   <button
@@ -264,7 +264,7 @@ const NewTipPage: React.FC = () => {
                     onClick={() => handleSelectPredefined(amt)}
                     className={`py-3 px-2 rounded-xl border-2 font-bold transition-all text-xs text-center focus:outline-none ${
                       selectedAmount === amt
-                        ? 'border-[#800000] bg-[#800000]/5 text-[#800000]'
+                        ? 'border-brand-700 bg-brand-700/5 text-brand-700'
                         : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -274,7 +274,7 @@ const NewTipPage: React.FC = () => {
               </div>
 
               <div className="relative mt-2">
-                <span className="absolute inset-y-0 left-4 flex items-center text-gray-400 font-bold text-sm">
+                <span className="absolute inset-y-0 left-4 flex items-center text-gray-400 font-bold text-sm dark:text-slate-400">
                   Rs.
                 </span>
                 <input
@@ -284,8 +284,8 @@ const NewTipPage: React.FC = () => {
                   placeholder="Or enter custom amount..."
                   className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 focus:outline-none transition-colors text-sm font-medium ${
                     selectedAmount === null
-                      ? 'border-[#800000] focus:ring-1 focus:ring-[#800000]'
-                      : 'border-gray-200 focus:border-[#800000]'
+                      ? 'border-brand-700 focus:ring-1 focus:ring-brand-700'
+                      : 'border-gray-200 focus:border-brand-700'
                   }`}
                   min="1"
                 />
@@ -294,8 +294,8 @@ const NewTipPage: React.FC = () => {
 
             {/* Thank You Note */}
             <div className="space-y-2">
-              <label className="block text-sm font-bold text-gray-700 flex items-center">
-                <Heart className="w-4 h-4 mr-1.5 text-rose-500 fill-rose-500" />
+              <label className="block text-sm font-bold text-gray-700 flex items-center dark:text-slate-300">
+                <Heart className="w-4 h-4 mr-1.5 text-rose-500 fill-rose-500 dark:text-rose-300" />
                 Thank-You Message (Optional)
               </label>
               <textarea
@@ -303,17 +303,17 @@ const NewTipPage: React.FC = () => {
                 onChange={(e) => setThankYouMessage(e.target.value)}
                 placeholder="Write a short message to thank the finder..."
                 rows={4}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#800000] focus:outline-none transition-colors text-sm placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-brand-700 focus:outline-none transition-colors text-sm placeholder-gray-400 dark:border-slate-700"
                 maxLength={300}
               />
-              <div className="text-right text-xs text-gray-400 font-medium">
+              <div className="text-right text-xs text-gray-400 font-medium dark:text-slate-400">
                 {thankYouMessage.length}/300 characters
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-4 bg-[#800000] text-white font-bold rounded-2xl hover:bg-[#600000] transition flex items-center justify-center shadow-lg shadow-[#800000]/15"
+              className="w-full py-4 bg-brand-700 text-white font-bold rounded-2xl hover:bg-brand-800 transition flex items-center justify-center shadow-lg shadow-brand-700/15"
             >
               Continue
             </button>
@@ -323,13 +323,13 @@ const NewTipPage: React.FC = () => {
         {/* STEP 3: Confirm Tip */}
         {step === 'confirm' && (
           <div className="space-y-6 text-center">
-            <div className="p-6 bg-amber-50 border border-amber-100 rounded-2xl space-y-4">
-              <h3 className="text-lg font-bold text-amber-800">Confirm Tip</h3>
-              <p className="text-gray-700 text-sm">
-                You are about to give <span className="font-extrabold text-gray-900">Rs. {confirmedAmount}</span> to the finder <span className="font-bold text-gray-900">@{finderId?.username}</span>.
+            <div className="p-6 bg-amber-50 border border-amber-100 rounded-2xl space-y-4 dark:bg-amber-900/25 dark:border-amber-800">
+              <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300">Confirm Tip</h3>
+              <p className="text-gray-700 text-sm dark:text-slate-300">
+                You are about to give <span className="font-extrabold text-gray-900 dark:text-slate-100">Rs. {confirmedAmount}</span> to the finder <span className="font-bold text-gray-900 dark:text-slate-100">@{finderId?.username}</span>.
               </p>
               {thankYouMessage && (
-                <div className="text-left bg-white p-3.5 rounded-xl border border-amber-100 text-xs italic text-gray-600">
+                <div className="text-left bg-white p-3.5 rounded-xl border border-amber-100 text-xs italic text-gray-600 dark:bg-slate-800 dark:border-amber-800 dark:text-slate-300">
                   "{thankYouMessage}"
                 </div>
               )}
@@ -338,7 +338,7 @@ const NewTipPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setStep('form')}
-                className="py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition"
+                className="py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
               >
                 Cancel
               </button>

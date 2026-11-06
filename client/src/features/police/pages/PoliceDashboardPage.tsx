@@ -84,11 +84,11 @@ const PoliceDashboardPage: React.FC = () => {
         </div>
         <div className="relative z-10">
           <div className="flex items-center space-x-3 mb-2">
-            <Building className="w-8 h-8 text-blue-300" />
+            <Building className="w-8 h-8 text-blue-300 dark:text-blue-300" />
             <h1 className="text-3xl font-bold tracking-tight">National Police Dashboard</h1>
           </div>
-          <p className="text-blue-100 text-lg max-w-2xl">
-            Welcome to the official portal for the <span className="font-bold text-white">Sri Lanka Police Force</span>. 
+          <p className="text-blue-100 text-lg max-w-2xl dark:text-blue-300">
+            Welcome to the official portal for the <span className="font-bold text-white">Sri Lanka Police Force</span>.
             Here you can view and manage all physical items that citizens have dropped off at any station nationwide.
           </p>
         </div>
@@ -97,14 +97,14 @@ const PoliceDashboardPage: React.FC = () => {
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Current Station Inventory</h2>
-          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full border border-blue-200">
+          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full border border-blue-200 dark:bg-blue-900/25 dark:text-blue-300 dark:border-blue-800">
             {items.length} Items Registered
           </span>
         </div>
-        
+
         {items.length === 0 ? (
           <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-            <ShieldCheck className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <ShieldCheck className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-slate-400" />
             <p className="text-lg font-medium">No items currently in inventory.</p>
             <p className="text-sm mt-1">Items that users physically hand over to your station will appear here.</p>
           </div>
@@ -124,8 +124,8 @@ const PoliceDashboardPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {items.map((item) => (
-                  <tr 
-                    key={item._id} 
+                  <tr
+                    key={item._id}
                     className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                     onClick={() => navigate(`/items/${item._id}`)}
                   >
@@ -143,7 +143,7 @@ const PoliceDashboardPage: React.FC = () => {
                     </td>
                     <td className="p-4">
                       <div className="text-sm text-gray-900 dark:text-gray-100 font-bold flex items-center">
-                        <Building className="w-4 h-4 mr-1.5 text-blue-600" />
+                        <Building className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-300" />
                         {item.policeStationName || 'Unknown Station'}
                       </div>
                     </td>
@@ -169,29 +169,29 @@ const PoliceDashboardPage: React.FC = () => {
                               <span className={`inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full border ${colorClass} w-fit`}>
                                 {latest.overallStatus === 'VERIFIED' ? '✅ Verified' : latest.overallStatus === 'PARTIALLY_VERIFIED' ? '⚠️ Partial Match' : '❌ Failed'} ({latest.scorePercentage}%)
                               </span>
-                              <span className="text-[10px] text-gray-400 mt-1">
+                              <span className="text-[10px] text-gray-400 mt-1 dark:text-slate-400">
                                 {latest.verifiedCount} of {latest.totalProofs} fields matched
                               </span>
                             </div>
                           );
                         })()
                       ) : (
-                        <span className="text-xs text-gray-400 font-medium">No Digital Claim</span>
+                        <span className="text-xs text-gray-400 font-medium dark:text-slate-400">No Digital Claim</span>
                       )}
                     </td>
                     <td className="p-4">
                       {item.status === 'Claimed' ? (
                         <div className="flex flex-col">
-                          <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 w-fit">
+                          <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 w-fit dark:text-emerald-300 dark:bg-emerald-900/25 dark:border-emerald-800">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Resolved (Returned)
                           </span>
-                          <span className="text-[10px] text-gray-500 mt-1 font-medium">
+                          <span className="text-[10px] text-gray-500 mt-1 font-medium dark:text-slate-400">
                             Returned on: {new Date(item.updatedAt).toLocaleDateString()}
                           </span>
                         </div>
                       ) : (
-                        <span className="inline-flex items-center text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                        <span className="inline-flex items-center text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 dark:text-amber-300 dark:bg-amber-900/25 dark:border-amber-800">
                           At Station
                         </span>
                       )}

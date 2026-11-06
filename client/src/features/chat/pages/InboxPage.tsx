@@ -68,24 +68,24 @@ const InboxPage: React.FC = () => {
   // Interactive Message Parser
   const renderMessageText = (text: string, otherUserId: string) => {
     const itemPathRegex = /\/items\/([a-zA-Z0-9_]+)/g;
-    
+
     if (!itemPathRegex.test(text)) return text;
-    
+
     const parts = text.split(itemPathRegex);
     const matches = text.match(itemPathRegex);
-    
+
     return (
       <span className="block mt-2">
         {parts[0]}
         {matches && matches[0] && (
-          <button 
+          <button
             onClick={(e) => {
               e.stopPropagation();
               // Extract ID from the /items/[ID] string and redirect to chat room
               const id = matches[0].split('/').pop();
               navigate(`/chat/${id}/${otherUserId}`);
             }}
-            className="inline-flex items-center text-xs font-bold text-[#800000] bg-white px-3 py-1.5 rounded-lg shadow-sm border border-red-100 hover:bg-red-50 hover:shadow transition-all ml-1"
+            className="inline-flex items-center text-xs font-bold text-brand-700 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-red-100 hover:bg-red-50 hover:shadow transition-all ml-1 dark:text-brand-300 dark:bg-slate-800 dark:border-red-800"
           >
             Review Match <ArrowRight className="w-3 h-3 ml-1" />
           </button>
@@ -100,8 +100,8 @@ const InboxPage: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-start sm:items-center flex-col sm:flex-row gap-4 mb-8">
         <div className="flex items-center space-x-3">
-          <div className="p-3 bg-[#800000]/10 rounded-2xl">
-            <MessageSquare className="w-8 h-8 text-[#800000]" />
+          <div className="p-3 bg-brand-700/10 rounded-2xl">
+            <MessageSquare className="w-8 h-8 text-brand-700 dark:text-brand-300" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t('inbox.title')}</h1>
@@ -109,9 +109,9 @@ const InboxPage: React.FC = () => {
           </div>
         </div>
         {threads.some(t => !t.isRead && t.receiverId._id === user?._id) && (
-          <button 
+          <button
             onClick={handleMarkAllAsRead}
-            className="text-sm font-semibold text-[#800000] bg-[#800000]/10 hover:bg-[#800000]/20 dark:text-red-400 dark:bg-red-400/10 dark:hover:bg-red-400/20 px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+            className="text-sm font-semibold text-brand-700 bg-brand-700/10 hover:bg-brand-700/20 dark:text-red-400 dark:bg-red-400/10 dark:hover:bg-red-400/20 px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
           >
             Mark all as read
           </button>
@@ -137,7 +137,7 @@ const InboxPage: React.FC = () => {
           <p className="text-slate-500 dark:text-slate-400">{t('inbox.emptyDesc')}</p>
         </div>
       ) : (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
@@ -146,23 +146,23 @@ const InboxPage: React.FC = () => {
             const isAlert = isSystemAlert(thread.text);
             const otherUser = thread.senderId._id === user?._id ? thread.receiverId : thread.senderId;
             const isUnread = !thread.isRead && thread.receiverId._id === user?._id;
-            
+
             return (
-              <div 
+              <div
                 key={thread._id}
                 onClick={() => thread.itemId && navigate(`/chat/${thread.itemId._id}/${otherUser._id}`)}
                 className={`relative flex items-start p-5 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  isAlert 
-                    ? 'bg-amber-50/60 dark:bg-amber-900/20 border-l-4 border-amber-400 shadow-sm hover:bg-amber-50 dark:hover:bg-amber-900/40' 
+                  isAlert
+                    ? 'bg-amber-50/60 dark:bg-amber-900/20 border-l-4 border-amber-400 shadow-sm hover:bg-amber-50 dark:hover:bg-amber-900/40'
                     : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 shadow-sm'
                 }`}
               >
                 {/* Item Thumbnail */}
                 <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700/50 rounded-xl mr-5 flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-200/60 dark:border-slate-600/50">
                   {thread.itemId && thread.itemId.imageUrl ? (
-                    <img 
-                      src={thread.itemId.imageUrl.startsWith('http') ? thread.itemId.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${thread.itemId.imageUrl}`} 
-                      alt={thread.itemId.title} 
+                    <img
+                      src={thread.itemId.imageUrl.startsWith('http') ? thread.itemId.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${thread.itemId.imageUrl}`}
+                      alt={thread.itemId.title}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -180,8 +180,8 @@ const InboxPage: React.FC = () => {
                       {new Date(thread.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
-                  
-                  <div className="text-sm font-medium text-[#800000] dark:text-red-400 mb-1.5 flex items-center">
+
+                  <div className="text-sm font-medium text-brand-700 dark:text-red-400 mb-1.5 flex items-center">
                     {isAlert ? '🤖 SYSTEM_BOT' : `${t('inbox.from')}: ${otherUser.username}`}
                   </div>
 
@@ -189,7 +189,7 @@ const InboxPage: React.FC = () => {
                     {renderMessageText(thread.text, otherUser._id)}
                   </p>
                 </div>
-                
+
                 {/* Unread Notification Dot */}
                 {isUnread && (
                   <div className="absolute top-1/2 -translate-y-1/2 right-6">

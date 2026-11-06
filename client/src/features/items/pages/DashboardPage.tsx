@@ -1,403 +1,455 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Trophy, PackageSearch, AlertCircle, MapPin, List, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  PackageSearch,
+  Search,
+  X,
+} from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import L from 'leaflet';
+import { useTranslation } from 'react-i18next';
 import api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
 import ItemCard, { ItemProps } from '../components/ItemCard';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../context/AuthContext';
-
-// Fix Leaflet marker icon
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconAnchor: [12, 41]
+import 'leaflet/dist/leaflet.css';
+
+L.Marker.prototype.options.icon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconAnchor: [12, 41],
 });
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Helper to center map
-function MapUpdater({ province, district, city }: { province: string, district: string, city: string }) {
-  const map = useMap();
-  useEffect(() => {
-    if (city || district || province) {
-      map.setZoom(8);
-    }
-  }, [province, district, city, map]);
-  return null;
-}
-
-const CATEGORIES = [
-  'Electronics',
-  'Wallets & Bags',
-  'Keys',
-  'Documents',
-  'Jewelry',
-  'Clothing',
-  'Pets',
-  'Other'
-];
+const CATEGORIES = ['Electronics', 'Documents', 'Keys', 'Bags', 'Wallets', 'Pets', 'Others'];
+const PAGE_SIZE = 12;
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const [params, setParams] = useSearchParams();
   const [items, setItems] = useState<ItemProps[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  
-  // Extract filters from URL or use defaults
-  const searchTerm = searchParams.get('q') || '';
-  const isOpenFilter = searchParams.get('openFilter') === 'true';
-  const filterType = (searchParams.get('tab') || 'ALL') as 'ALL' | 'LOST' | 'FOUND' | 'MY_POSTS';
-  
-  // Local Filter State for the Panel
-  const [locationFilter, setLocationFilter] = useState<LocationState>({ province: '', district: '', city: '' });
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [keywordFilter, setKeywordFilter] = useState('');
-  
-  const [resetKey, setResetKey] = useState(0);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
-
-  // Scroll to highlighted item once loaded
-  useEffect(() => {
-    const highlightId = searchParams.get('highlight');
-    if (highlightId && items.length > 0) {
-      setTimeout(() => {
-        const element = document.getElementById(`item-${highlightId}`);
-        if (element) {
-          const y = element.getBoundingClientRect().top + window.scrollY - 120;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-          const params = new URLSearchParams(searchParams);
-          params.delete('highlight');
-          setSearchParams(params, { replace: true });
-        }
-      }, 500);
-    }
-  }, [items, searchParams, setSearchParams]);
-
-  useEffect(() => {
-    api.get('/auth/leaderboard').then(res => {
-      setLeaderboard(res.data.leaderboard);
-    }).catch(err => console.error(err));
-  }, []);
-
-  const fetchItems = async () => {
-    setLoading(true);
-    try {
-      let query = '/items?';
-      if (locationFilter.province) query += `province=${encodeURIComponent(locationFilter.province)}&`;
-      if (locationFilter.district) query += `district=${encodeURIComponent(locationFilter.district)}&`;
-      if (locationFilter.city) query += `city=${encodeURIComponent(locationFilter.city)}&`;
-
-      const response = await api.get(query);
-      setItems(response.data);
-    } catch (error) {
-      console.error("Error fetching items:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchItems();
-    setCurrentPage(1); // Reset to page 1 on new fetch
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locationFilter]);
-
-  // Client-side filtering
-  const filteredItems = items.filter(item => {
-    let matchesType = true;
-    if (filterType === 'MY_POSTS') {
-      matchesType = !!user && (item.createdBy._id === user._id || item.createdBy === user._id);
-    } else {
-      matchesType = filterType === 'ALL' || item.type === filterType;
-    }
-
-    const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
-
-    // Search term from Navbar OR keyword from Filter Panel
-    const searchToUse = keywordFilter || searchTerm;
-    const matchesSearch = searchToUse ? (
-      item.title.toLowerCase().includes(searchToUse.toLowerCase()) || 
-      item.description.toLowerCase().includes(searchToUse.toLowerCase())
-    ) : true;
-    
-    return matchesType && matchesCategory && matchesSearch;
-  });
-
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-  const paginatedItems = filteredItems.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [draft, setDraft] = useState(params.get('q') || '');
+  const [location, setLocation] = useState<LocationState>({ province: '', district: '', city: '' });
+  const [locationKey, setLocationKey] = useState(0);
+  const [page, setPage] = useState(1);
+  const [mapOpen, setMapOpen] = useState(false);
+  const query = params.get('q') || '';
+  const category = params.get('category') || '';
+  const tab = ['ALL', 'LOST', 'FOUND', 'MY_POSTS'].includes(params.get('tab') || '')
+    ? params.get('tab')!
+    : 'ALL';
+  const filtersOpen = params.get('openFilter') === 'true';
+  const activeFilters = Boolean(
+    query || category || location.province || location.district || location.city
   );
 
-  const handleTabChange = (tab: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (tab === filterType && tab !== 'ALL') {
-      params.set('tab', 'ALL');
-    } else {
-      params.set('tab', tab);
-    }
-    setSearchParams(params);
-    setCurrentPage(1);
+  useEffect(() => {
+    setDraft(query);
+  }, [query]);
+  useEffect(() => {
+    setPage(1);
+  }, [query, category, tab, location.province, location.district, location.city]);
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(false);
+    api
+      .get('/items', { params: location, signal: controller.signal })
+      .then((response) => setItems(response.data))
+      .catch(() => {
+        if (!controller.signal.aborted) setError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [location.province, location.district, location.city, retry]);
+
+  const updateParam = (name: string, value: string) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set(name, value);
+    else next.delete(name);
+    setParams(next);
   };
-  
   const resetFilters = () => {
-    setCategoryFilter('');
-    setKeywordFilter('');
-    setResetKey(prev => prev + 1);
-    const params = new URLSearchParams(searchParams);
-    params.delete('q');
-    setSearchParams(params);
+    const next = new URLSearchParams(params);
+    next.delete('q');
+    next.delete('category');
+    next.delete('highlight');
+    setParams(next);
+    setDraft('');
+    setLocation({ province: '', district: '', city: '' });
+    setLocationKey((key) => key + 1);
+    setPage(1);
   };
+  const filtered = items.filter((item) => {
+    const creatorId = typeof item.createdBy === 'object' ? item.createdBy?._id : item.createdBy;
+    const typeMatches =
+      tab === 'MY_POSTS'
+        ? Boolean(user && creatorId === user._id)
+        : tab === 'ALL' || item.type === tab;
+    const words = query.trim().toLocaleLowerCase();
+    return (
+      typeMatches &&
+      (!category || item.category === category) &&
+      (!words ||
+        [
+          item.title,
+          item.description,
+          item.titleSi,
+          item.descriptionSi,
+          item.titleTa,
+          item.descriptionTa,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLocaleLowerCase()
+          .includes(words))
+    );
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  useEffect(() => {
+    const highlight = params.get('highlight');
+    if (!highlight || loading) return;
+    const index = filtered.findIndex((item) => item._id === highlight);
+    if (index < 0) return;
+    setPage(Math.floor(index / PAGE_SIZE) + 1);
+    const timer = window.setTimeout(() => {
+      document
+        .getElementById('item-' + highlight)
+        ?.scrollIntoView({
+          block: 'center',
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 'auto'
+            : 'smooth',
+        });
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [params.get('highlight'), loading, items]);
 
   return (
-    <div className="space-y-6">
-      
-      {/* Search & Filter Panel (Collapsible) */}
-      <AnimatePresence>
-        {isOpenFilter && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
+    <div className="space-y-8 sm:space-y-10">
+      <section
+        className="grid gap-6 border-b border-slate-200 pb-8 dark:border-slate-700 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:gap-12 lg:pb-10"
+        aria-labelledby="browse-heading"
+      >
+        <div className="min-w-0">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-brand-700 dark:text-brand-300">
+            {t('ui.eyebrow')}
+          </p>
+          <h1
+            id="browse-heading"
+            className="max-w-xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]"
           >
-            <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xl shadow-slate-100/70 border border-slate-100 space-y-5 relative z-40">
-              
-              {/* Integrated Map */}
-              <div className="h-64 w-full rounded-xl overflow-hidden shadow-inner border border-gray-200 relative z-0">
-                <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={true} className="h-full w-full">
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-                  <MapUpdater province={locationFilter.province} district={locationFilter.district} city={locationFilter.city} />
-                  
-                  {filteredItems.filter((i: any) => i.latitude && i.longitude).map((item: any) => {
-                     if (item.type === 'FOUND' && item.isFuzzy) {
-                        return (
-                          <Circle 
-                            key={item._id}
-                            center={[item.latitude, item.longitude]}
-                            radius={1000} // 1km radius
-                            pathOptions={{ color: '#059669', fillColor: '#10b981', fillOpacity: 0.4 }}
-                            eventHandlers={{
-                              mouseover: (e) => e.target.openPopup(),
-                              mouseout: (e) => e.target.closePopup(),
-                              click: () => navigate(`/items/${item._id}`)
-                            }}
-                          >
-                            <Popup className="custom-map-popup" offset={[0, -20]} closeButton={false}>
-                              <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
-                                {item.imageUrl ? (
-                                  <div className="h-24 w-full rounded-lg overflow-hidden mb-2">
-                                    <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
-                                  </div>
-                                ) : (
-                                  <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2">
-                                    <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
-                                  </div>
-                                )}
-                                <div className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{item.category}</div>
-                                <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
-                                <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                                <button className="bg-emerald-600 text-white text-[10px] px-2 py-1.5 rounded-lg w-full font-bold hover:bg-emerald-700 transition shadow-sm pointer-events-none">{t('dashboard.reviewMatch')}</button>
-                              </div>
-                            </Popup>
-                          </Circle>
-                        )
-                      }
-                      
-                     return (
-                        <Marker 
-                          key={item._id} 
-                          position={[item.latitude, item.longitude]}
-                          eventHandlers={{
-                            mouseover: (e) => e.target.openPopup(),
-                            mouseout: (e) => e.target.closePopup(),
-                            click: () => navigate(`/items/${item._id}`)
-                          }}
-                        >
-                          <Popup className="custom-map-popup" offset={[0, -40]} closeButton={false}>
-                            <div className="w-48 p-1 cursor-pointer pointer-events-auto" onClick={(e) => { e.stopPropagation(); navigate(`/items/${item._id}`); }}>
-                              {item.imageUrl ? (
-                                <div className="h-24 w-full rounded-lg overflow-hidden mb-2 relative">
-                                  <div className={`absolute top-1 left-1 ${item.type === 'LOST' ? 'bg-rose-500' : 'bg-emerald-500'} text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10`}>
-                                    {item.type}
-                                  </div>
-                                  <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover" />
-                                </div>
-                              ) : (
-                                <div className="h-24 w-full rounded-lg bg-gray-100 flex items-center justify-center mb-2 relative">
-                                  <div className={`absolute top-1 left-1 ${item.type === 'LOST' ? 'bg-rose-500' : 'bg-emerald-500'} text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10`}>
-                                    {item.type}
-                                  </div>
-                                  <span className="text-[10px] text-gray-400 font-medium">{t('dashboard.noImage')}</span>
-                                </div>
-                              )}
-                              <h4 className="font-bold text-gray-900 text-xs mb-0.5 leading-tight line-clamp-1">{item.title}</h4>
-                              <p className="text-[9px] text-gray-500 mb-2 truncate">{item.city}, {item.district}</p>
-                            </div>
-                          </Popup>
-                        </Marker>
-                     );
-                  })}
-                </MapContainer>
-              </div>
-
-              {/* Filter Controls Row */}
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-grow">
-                  <LocationSelector key={resetKey} onLocationChange={setLocationFilter} />
-                </div>
-                
-                <div className="flex flex-col min-w-[200px]">
-                  <label className="text-sm font-semibold text-gray-700 mb-1.5">{t('dashboard.category')}</label>
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none bg-white text-gray-900 transition-all cursor-pointer shadow-sm"
-                  >
-                    <option value="">{t('dashboard.categoryFilter')}</option>
-                    {CATEGORIES.map(c => (
-                      <option key={c} value={c}>{t(`categories.${c}`)}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 items-end">
-                <div className="flex-grow flex flex-col">
-                  <label className="text-sm font-semibold text-gray-700 mb-1.5">{t('dashboard.keyword')}</label>
-                  <input
-                    type="text"
-                    placeholder={t('dashboard.keywordPlaceholder')}
-                    value={keywordFilter}
-                    onChange={(e) => setKeywordFilter(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none transition-all shadow-inner bg-slate-50 focus:bg-white"
-                  />
-                </div>
-                <button 
-                  onClick={resetFilters}
-                  className="px-6 py-2.5 h-[46px] bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors shadow-sm whitespace-nowrap"
-                >
-                  {t('dashboard.resetFilters')}
-                </button>
-              </div>
-
+            {t('ui.heroTitle')}
+          </h1>
+          <p className="ui-muted mt-4 max-w-xl text-base leading-relaxed">
+            {t('ui.heroDescription')}
+          </p>
+        </div>
+        {user?.role !== 'police' && (
+          <div className="ui-panel min-w-0 p-5 sm:p-6">
+            <h2 className="font-semibold">{t('ui.helpStart')}</h2>
+            <p className="ui-muted mt-1 hidden text-sm leading-relaxed sm:block">
+              {t('ui.helpDescription')}
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:gap-3">
+              <Link to="/post?type=LOST" className="ui-primary">
+                <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('ui.reportLost')}
+              </Link>
+              <Link to="/post?type=FOUND" className="ui-secondary">
+                <PackageSearch className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t('ui.reportFound')}
+              </Link>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </section>
 
-      {/* Navigation Tabs */}
-      <div className="flex justify-center border-b border-gray-200 pb-1 overflow-x-auto">
-        <div className="flex space-x-2 sm:space-x-4 px-2">
-          {['ALL', 'LOST', 'FOUND', ...(user && user.role !== 'police' ? ['MY_POSTS'] : [])].map(type => (
-            <button
-              key={type}
-              onClick={() => handleTabChange(type)}
-              className={`px-4 sm:px-6 py-3 font-bold text-sm sm:text-base border-b-2 transition-colors whitespace-nowrap ${
-                filterType === type 
-                  ? 'border-[#800000] text-[#800000]' 
-                  : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
-              }`}
-            >
-              {type === 'ALL' ? t('dashboard.all') : type === 'LOST' ? t('dashboard.lostTab') : type === 'FOUND' ? t('dashboard.foundTab') : t('dashboard.myPostsTab')}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Item Feed */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="animate-pulse bg-white rounded-2xl h-[28rem] border border-gray-100 overflow-hidden">
-               <div className="h-48 bg-gray-200"></div>
-               <div className="p-6 space-y-4">
-                 <div className="h-6 bg-gray-200 rounded-md w-3/4"></div>
-                 <div className="h-4 bg-gray-200 rounded-md w-full"></div>
-                 <div className="h-4 bg-gray-200 rounded-md w-5/6"></div>
-                 <div className="pt-4 mt-auto">
-                    <div className="h-10 bg-gray-200 rounded-xl w-full"></div>
-                 </div>
-               </div>
-            </div>
-          ))}
-        </div>
-      ) : paginatedItems.length > 0 ? (
-        <>
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      <section aria-label={t('ui.searchLabel')} className="space-y-4">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            updateParam('q', draft.trim());
+          }}
+          className="flex flex-wrap gap-3"
+        >
+          <div className="relative min-w-0 flex-1 basis-48">
+            <label htmlFor="item-search" className="sr-only">
+              {t('ui.searchLabel')}
+            </label>
+            <Search
+              className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 text-slate-400"
+              aria-hidden="true"
+            />
+            <input
+              id="item-search"
+              type="search"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder={t('ui.searchPlaceholder')}
+              className="ui-field pl-11"
+            />
+          </div>
+          <button type="submit" className="ui-primary">
+            {t('nav.search')}
+          </button>
+          <button
+            type="button"
+            aria-expanded={filtersOpen}
+            aria-controls="browse-filters"
+            onClick={() => updateParam('openFilter', filtersOpen ? '' : 'true')}
+            className="ui-secondary"
           >
-            {paginatedItems.map(item => (
-              <div key={item._id} id={`item-${item._id}`} className={searchParams.get('highlight') === item._id ? 'ring-4 ring-[#800000] ring-offset-4 rounded-2xl transition-all duration-1000' : ''}>
-                <ItemCard item={item} />
+            <Filter className="h-4 w-4" aria-hidden="true" />
+            {t('ui.filters')}
+            {activeFilters && (
+              <span
+                className="h-2 w-2 rounded-full bg-brand-700 dark:bg-brand-300"
+                aria-label={t('ui.filtersActive')}
+              />
+            )}
+          </button>
+        </form>
+        {filtersOpen && (
+          <div id="browse-filters" className="ui-panel space-y-5 p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold">{t('ui.refineSearch')}</h2>
+              <button
+                type="button"
+                className="ui-quiet h-11 w-11 px-0"
+                aria-label={t('ui.closeFilters')}
+                onClick={() => updateParam('openFilter', '')}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <LocationSelector
+              key={locationKey}
+              initialLocation={location}
+              onLocationChange={setLocation}
+            />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label htmlFor="item-category" className="ui-label">
+                  {t('dashboard.category')}
+                </label>
+                <select
+                  id="item-category"
+                  value={category}
+                  onChange={(event) => updateParam('category', event.target.value)}
+                  className="ui-field"
+                >
+                  <option value="">{t('dashboard.categoryFilter')}</option>
+                  {CATEGORIES.map((value) => (
+                    <option key={value} value={value}>
+                      {t('categories.' + value)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="button" className="ui-secondary" onClick={resetFilters}>
+                {t('dashboard.resetFilters')}
+              </button>
+            </div>
+            <details
+              onToggle={(event) => setMapOpen(event.currentTarget.open)}
+              className="border-t border-slate-200 pt-4 dark:border-slate-700"
+            >
+              <summary className="cursor-pointer rounded-lg text-sm font-semibold">
+                {t('ui.showMap')}
+              </summary>
+              <div className="relative z-0 mt-4 h-64 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600">
+                {mapOpen && (
+                  <MapContainer
+                    center={[7.8731, 80.7718]}
+                    zoom={7}
+                    scrollWheelZoom={false}
+                    className="h-full w-full"
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution="&copy; OpenStreetMap"
+                    />
+                    {filtered
+                      .filter(
+                        (item) =>
+                          typeof item.latitude === 'number' && typeof item.longitude === 'number'
+                      )
+                      .map((item) => {
+                        const popup = (
+                          <Popup>
+                            <Link className="font-semibold" to={'/items/' + item._id}>
+                              {item.title}
+                            </Link>
+                            <p>
+                              {item.city}, {item.district}
+                            </p>
+                          </Popup>
+                        );
+                        return item.type === 'FOUND' && item.isFuzzy ? (
+                          <Circle
+                            key={item._id}
+                            center={[item.latitude!, item.longitude!]}
+                            radius={1000}
+                            pathOptions={{ color: '#047857', fillOpacity: 0.2 }}
+                          >
+                            {popup}
+                          </Circle>
+                        ) : (
+                          <Marker key={item._id} position={[item.latitude!, item.longitude!]}>
+                            {popup}
+                          </Marker>
+                        );
+                      })}
+                  </MapContainer>
+                )}
+              </div>
+            </details>
+          </div>
+        )}
+      </section>
+
+      <section aria-labelledby="reports-heading" aria-busy={loading}>
+        <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <h2 id="reports-heading" className="text-xl font-bold tracking-tight">
+              {t('ui.recentReports')}
+            </h2>
+            <p className="ui-muted mt-1 text-sm" aria-live="polite">
+              {loading ? t('common.loading') : t('ui.results', { count: filtered.length })}
+            </p>
+          </div>
+          <div
+            className="flex flex-wrap gap-1 rounded-xl bg-slate-200/60 p-1 dark:bg-slate-800"
+            role="group"
+            aria-label={t('ui.reportType')}
+          >
+            {['ALL', 'LOST', 'FOUND', ...(user && user.role !== 'police' ? ['MY_POSTS'] : [])].map(
+              (value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={tab === value}
+                  onClick={() => updateParam('tab', value === 'ALL' ? '' : value)}
+                  className={
+                    'min-h-[44px] rounded-lg px-3 py-2 text-sm font-semibold transition-colors ' +
+                    (tab === value
+                      ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-brand-200'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white')
+                  }
+                >
+                  {value === 'ALL'
+                    ? t('ui.allReports')
+                    : value === 'LOST'
+                      ? t('ui.lostReports')
+                      : value === 'FOUND'
+                        ? t('ui.foundReports')
+                        : t('ui.myReports')}
+                </button>
+              )
+            )}
+          </div>
+        </div>
+        {error ? (
+          <div role="alert" className="ui-panel p-8 text-center">
+            <h3 className="font-semibold">{t('ui.loadError')}</h3>
+            <p className="ui-muted mt-2 text-sm">{t('ui.loadErrorHelp')}</p>
+            <button
+              type="button"
+              className="ui-primary mt-5"
+              onClick={() => setRetry((value) => value + 1)}
+            >
+              {t('ui.tryAgain')}
+            </button>
+          </div>
+        ) : loading ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            {[1, 2, 3].map((value) => (
+              <div key={value} className="ui-panel overflow-hidden motion-safe:animate-pulse">
+                <div className="aspect-[3/2] bg-slate-200 dark:bg-slate-700" />
+                <div className="space-y-4 p-5">
+                  <div className="h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-4 rounded bg-slate-100 dark:bg-slate-700" />
+                  <div className="h-11 rounded-xl bg-slate-100 dark:bg-slate-700" />
+                </div>
               </div>
             ))}
-          </motion.div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-2 pt-8">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              
-              <div className="flex space-x-1">
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`w-10 h-10 rounded-lg font-bold text-sm transition-colors ${
-                      currentPage === i + 1 
-                        ? 'bg-[#800000] text-white shadow-md' 
-                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-16 text-center">
-          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <PackageSearch className="w-10 h-10 text-gray-400" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('dashboard.noItemsFound')}</h3>
-          <p className="text-gray-500 max-w-sm mx-auto">{t('dashboard.adjustFilters')}</p>
-        </div>
-      )}
+        ) : visible.length ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((item) => (
+              <div
+                id={'item-' + item._id}
+                key={item._id}
+                className={
+                  'min-w-0 scroll-mt-24 rounded-2xl ' +
+                  (params.get('highlight') === item._id
+                    ? 'ring-2 ring-brand-700 ring-offset-4 dark:ring-brand-300 dark:ring-offset-slate-900'
+                    : '')
+                }
+              >
+                <ItemCard item={item} onChange={() => setRetry((value) => value + 1)} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="ui-panel px-5 py-12 text-center">
+            <PackageSearch className="mx-auto mb-4 h-10 w-10 text-slate-400" aria-hidden="true" />
+            <h3 className="text-lg font-semibold">{t('dashboard.noItemsFound')}</h3>
+            <p className="ui-muted mx-auto mt-2 max-w-md text-sm leading-relaxed">
+              {t('dashboard.adjustFilters')}
+            </p>
+            {activeFilters && (
+              <button type="button" className="ui-secondary mt-5" onClick={resetFilters}>
+                {t('dashboard.resetFilters')}
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
+        {!loading && !error && totalPages > 1 && (
+          <nav
+            aria-label={t('ui.pagination')}
+            className="mt-7 flex items-center justify-center gap-4"
+          >
+            <button
+              type="button"
+              className="ui-secondary h-11 w-11 px-0"
+              disabled={currentPage === 1}
+              aria-label={t('ui.previousPage')}
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <span className="ui-muted text-sm">
+              {t('ui.pageOf', { page: currentPage, total: totalPages })}
+            </span>
+            <button
+              type="button"
+              className="ui-secondary h-11 w-11 px-0"
+              disabled={currentPage === totalPages}
+              aria-label={t('ui.nextPage')}
+              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </nav>
+        )}
+      </section>
     </div>
   );
 };
-
 export default DashboardPage;

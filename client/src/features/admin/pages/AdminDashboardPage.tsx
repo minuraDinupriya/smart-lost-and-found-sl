@@ -283,10 +283,10 @@ const AdminDashboardPage: React.FC = () => {
   if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
-        <ShieldAlert className="w-16 h-16 text-red-500 mb-4 animate-bounce" />
+        <ShieldAlert className="w-16 h-16 text-red-500 mb-4 dark:text-red-300" />
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Denied</h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">You must be logged in as an Administrator to view this page.</p>
-        <Link to="/" className="bg-[#800000] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[#600000] transition">
+        <Link to="/" className="bg-brand-700 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-brand-800 transition">
           Return Home
         </Link>
       </div>
@@ -297,16 +297,16 @@ const AdminDashboardPage: React.FC = () => {
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
       <PageNavigation />
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#800000] via-[#900000] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-brand-700 via-[#900000] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white dark:bg-slate-800/5 skew-x-12 transform pointer-events-none" />
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="inline-flex items-center space-x-2 bg-red-950/60 border border-red-500/30 text-red-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+            <div className="inline-flex items-center space-x-2 bg-red-950/60 border border-red-500/30 text-red-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 dark:text-red-300">
               <Shield className="w-3.5 h-3.5" />
               <span>Admin Control Center</span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight">System Administration</h1>
-            <p className="text-red-100 text-sm mt-1">
+            <p className="text-red-100 text-sm mt-1 dark:text-red-300">
               Control posts, moderate content, monitor analytics, and manage user authorizations.
             </p>
           </div>
@@ -332,7 +332,7 @@ const AdminDashboardPage: React.FC = () => {
             onClick={() => setActiveTab('overview')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap ${
               activeTab === 'overview'
-                ? 'bg-white dark:bg-slate-800 text-[#800000] shadow-md'
+                ? 'bg-white dark:bg-slate-800 text-brand-700 shadow-md'
                 : 'text-white/80 hover:bg-white dark:bg-slate-800/10'
             }`}
           >
@@ -343,7 +343,7 @@ const AdminDashboardPage: React.FC = () => {
             onClick={() => setActiveTab('posts')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap ${
               activeTab === 'posts'
-                ? 'bg-white dark:bg-slate-800 text-[#800000] shadow-md'
+                ? 'bg-white dark:bg-slate-800 text-brand-700 shadow-md'
                 : 'text-white/80 hover:bg-white dark:bg-slate-800/10'
             }`}
           >
@@ -354,7 +354,7 @@ const AdminDashboardPage: React.FC = () => {
             onClick={() => setActiveTab('users')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap ${
               activeTab === 'users'
-                ? 'bg-white dark:bg-slate-800 text-[#800000] shadow-md'
+                ? 'bg-white dark:bg-slate-800 text-brand-700 shadow-md'
                 : 'text-white/80 hover:bg-white dark:bg-slate-800/10'
             }`}
           >
@@ -370,7 +370,7 @@ const AdminDashboardPage: React.FC = () => {
           {statsLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="h-28 bg-gray-200 rounded-2xl"></div>
+                <div key={i} className="h-28 bg-gray-200 rounded-2xl dark:bg-slate-700"></div>
               ))}
             </div>
           ) : stats ? (
@@ -383,12 +383,12 @@ const AdminDashboardPage: React.FC = () => {
                       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Items</p>
                       <h3 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{stats.totalItems}</h3>
                     </div>
-                    <div className="p-3 bg-red-50 text-[#800000] rounded-xl">
+                    <div className="p-3 bg-red-50 text-brand-700 rounded-xl dark:bg-red-900/25 dark:text-brand-300">
                       <FileText className="w-6 h-6" />
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 font-medium">
-                    <span className="text-emerald-600 font-bold">{stats.activeItems} Active</span> | {stats.totalItems - stats.activeItems} Archived
+                    <span className="text-emerald-600 font-bold dark:text-emerald-300">{stats.activeItems} Active</span> | {stats.totalItems - stats.activeItems} Archived
                   </p>
                 </div>
 
@@ -396,9 +396,9 @@ const AdminDashboardPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Claimed Posts</p>
-                      <h3 className="text-3xl font-extrabold text-emerald-600 mt-1">{stats.claimedItems}</h3>
+                      <h3 className="text-3xl font-extrabold text-emerald-600 mt-1 dark:text-emerald-300">{stats.claimedItems}</h3>
                     </div>
-                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl dark:bg-emerald-900/25 dark:text-emerald-300">
                       <CheckCircle className="w-6 h-6" />
                     </div>
                   </div>
@@ -413,11 +413,11 @@ const AdminDashboardPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lost / Found</p>
-                      <h3 className="text-3xl font-extrabold text-amber-600 mt-1">
-                        {stats.lostItems} <span className="text-xs text-gray-400 font-normal">/ {stats.foundItems}</span>
+                      <h3 className="text-3xl font-extrabold text-amber-600 mt-1 dark:text-amber-300">
+                        {stats.lostItems} <span className="text-xs text-gray-400 font-normal dark:text-slate-400">/ {stats.foundItems}</span>
                       </h3>
                     </div>
-                    <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                    <div className="p-3 bg-amber-50 text-amber-600 rounded-xl dark:bg-amber-900/25 dark:text-amber-300">
                       <Tag className="w-6 h-6" />
                     </div>
                   </div>
@@ -430,9 +430,9 @@ const AdminDashboardPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Users</p>
-                      <h3 className="text-3xl font-extrabold text-indigo-600 mt-1">{stats.totalUsers}</h3>
+                      <h3 className="text-3xl font-extrabold text-indigo-600 mt-1 dark:text-indigo-300">{stats.totalUsers}</h3>
                     </div>
-                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl dark:bg-indigo-900/25 dark:text-indigo-300">
                       <Users className="w-6 h-6" />
                     </div>
                   </div>
@@ -446,7 +446,7 @@ const AdminDashboardPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <TrendingUp className="w-5 h-5 text-[#800000] mr-2" />
+                    <TrendingUp className="w-5 h-5 text-brand-700 mr-2 dark:text-brand-300" />
                     System Status Distribution
                   </h3>
                   <div className="space-y-4">
@@ -500,7 +500,7 @@ const AdminDashboardPage: React.FC = () => {
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col justify-between">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center">
-                      <Shield className="w-5 h-5 text-[#800000] mr-2" />
+                      <Shield className="w-5 h-5 text-brand-700 mr-2 dark:text-brand-300" />
                       Admin Quick Actions
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
@@ -510,7 +510,7 @@ const AdminDashboardPage: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => setActiveTab('posts')}
-                      className="w-full flex items-center justify-center space-x-2 bg-[#800000] hover:bg-[#600000] text-white p-3 rounded-xl font-bold transition shadow-sm"
+                      className="w-full flex items-center justify-center space-x-2 bg-brand-700 hover:bg-brand-800 text-white p-3 rounded-xl font-bold transition shadow-sm"
                     >
                       <FileText className="w-4 h-4" />
                       <span>Moderate Posts</span>
@@ -538,14 +538,14 @@ const AdminDashboardPage: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
               {/* Search Bar */}
               <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search posts..."
                   value={itemSearch}
                   onChange={(e) => setItemSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && fetchItems()}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-700/20"
                 />
               </div>
 
@@ -595,7 +595,7 @@ const AdminDashboardPage: React.FC = () => {
 
                 <button
                   onClick={() => fetchItems()}
-                  className="bg-[#800000] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#600000] transition"
+                  className="bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-brand-800 transition"
                 >
                   Search
                 </button>
@@ -607,12 +607,12 @@ const AdminDashboardPage: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
             {itemsLoading ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex justify-center items-center space-x-2">
-                <RefreshCw className="w-5 h-5 animate-spin text-[#800000]" />
+                <RefreshCw className="w-5 h-5 animate-spin text-brand-700 dark:text-brand-300" />
                 <span>Loading system posts...</span>
               </div>
             ) : items.length === 0 ? (
               <div className="p-12 text-center text-gray-500 dark:text-gray-400 space-y-3">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto" />
+                <FileText className="w-12 h-12 text-gray-300 mx-auto dark:text-slate-400" />
                 <p className="font-semibold text-gray-700 dark:text-gray-300">No matching posts found.</p>
               </div>
             ) : (
@@ -644,13 +644,13 @@ const AdminDashboardPage: React.FC = () => {
                                 className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-slate-600"
                               />
                             ) : (
-                              <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-gray-400">
+                              <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-gray-400 dark:text-slate-400">
                                 <Tag className="w-5 h-5" />
                               </div>
                             )}
                             <div>
                               <p className="font-bold text-gray-900 dark:text-gray-100 max-w-[200px] truncate">{item.title}</p>
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-gray-400 dark:text-slate-400">
                                 {new Date(item.createdAt).toLocaleDateString()}
                               </p>
                             </div>
@@ -676,14 +676,14 @@ const AdminDashboardPage: React.FC = () => {
 
                         <td className="py-3.5 px-4">
                           <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{item.city || 'N/A'}</p>
-                          <p className="text-xs text-gray-400">{item.district}</p>
+                          <p className="text-xs text-gray-400 dark:text-slate-400">{item.district}</p>
                         </td>
 
                         <td className="py-3.5 px-4">
                           <select
                             value={item.status}
                             onChange={(e) => handleUpdateStatus(item._id, e.target.value)}
-                            className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-300 px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#800000]"
+                            className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-700 dark:text-gray-300 px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-700"
                           >
                             <option value="Available">Available</option>
                             <option value="Pending Verification">Pending Verification</option>
@@ -691,7 +691,7 @@ const AdminDashboardPage: React.FC = () => {
                             <option value="At Police Station">At Police Station</option>
                           </select>
                           {item.archiveStatus === 'archived' && (
-                            <span className="block mt-1 text-[10px] font-bold text-red-500 uppercase">
+                            <span className="block mt-1 text-[10px] font-bold text-red-500 uppercase dark:text-red-300">
                               [Archived]
                             </span>
                           )}
@@ -730,7 +730,7 @@ const AdminDashboardPage: React.FC = () => {
 
                             <button
                               onClick={() => handleDeletePost(item._id, item.title)}
-                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition dark:text-red-300"
                               title="Delete / Remove Post"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -780,14 +780,14 @@ const AdminDashboardPage: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
               {/* Search Bar */}
               <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search user by name or email..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-700/20"
                 />
               </div>
 
@@ -809,7 +809,7 @@ const AdminDashboardPage: React.FC = () => {
 
                 <button
                   onClick={() => fetchUsers()}
-                  className="bg-[#800000] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#600000] transition"
+                  className="bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-brand-800 transition"
                 >
                   Filter Users
                 </button>
@@ -821,12 +821,12 @@ const AdminDashboardPage: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
             {usersLoading ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex justify-center items-center space-x-2">
-                <RefreshCw className="w-5 h-5 animate-spin text-[#800000]" />
+                <RefreshCw className="w-5 h-5 animate-spin text-brand-700 dark:text-brand-300" />
                 <span>Loading registered users...</span>
               </div>
             ) : users.length === 0 ? (
               <div className="p-12 text-center text-gray-500 dark:text-gray-400 space-y-3">
-                <Users className="w-12 h-12 text-gray-300 mx-auto" />
+                <Users className="w-12 h-12 text-gray-300 mx-auto dark:text-slate-400" />
                 <p className="font-semibold text-gray-700 dark:text-gray-300">No users found.</p>
               </div>
             ) : (
@@ -858,13 +858,13 @@ const AdminDashboardPage: React.FC = () => {
                                 className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-slate-600"
                               />
                             ) : (
-                              <div className="w-9 h-9 bg-[#800000] text-white rounded-full flex items-center justify-center font-bold text-sm">
+                              <div className="w-9 h-9 bg-brand-700 text-white rounded-full flex items-center justify-center font-bold text-sm">
                                 {u.username.charAt(0).toUpperCase()}
                               </div>
                             )}
                             <div>
                               <p className="font-bold text-gray-900 dark:text-gray-100">{u.username}</p>
-                              <p className="text-xs text-gray-400">{u.email || 'No email registered'}</p>
+                              <p className="text-xs text-gray-400 dark:text-slate-400">{u.email || 'No email registered'}</p>
                             </div>
                           </div>
                         </td>
@@ -890,7 +890,7 @@ const AdminDashboardPage: React.FC = () => {
                         </td>
 
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center space-x-1 bg-yellow-50 text-yellow-700 font-bold px-2.5 py-1 rounded-full text-xs border border-yellow-200">
+                          <span className="inline-flex items-center space-x-1 bg-yellow-50 text-yellow-700 font-bold px-2.5 py-1 rounded-full text-xs border border-yellow-200 dark:bg-yellow-900/25 dark:text-yellow-300 dark:border-yellow-800">
                             <Award className="w-3.5 h-3.5" />
                             <span>{u.karmaPoints || 0} pts</span>
                           </span>
@@ -904,7 +904,7 @@ const AdminDashboardPage: React.FC = () => {
                           <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleChangeRole(u)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition"
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition dark:bg-slate-700 dark:text-slate-300"
                             >
                               Edit Role
                             </button>
@@ -912,7 +912,7 @@ const AdminDashboardPage: React.FC = () => {
                             {u._id !== user._id && (
                               <button
                                 onClick={() => handleDeleteUser(u)}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition dark:text-red-300"
                                 title="Delete User Account"
                               >
                                 <Trash2 className="w-4 h-4" />

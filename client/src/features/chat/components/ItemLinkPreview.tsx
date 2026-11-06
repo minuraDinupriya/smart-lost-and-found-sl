@@ -43,16 +43,16 @@ const ItemLinkPreview: React.FC<ItemLinkPreviewProps> = ({ itemId, alignRight })
     : null;
 
   return (
-    <div 
+    <div
       onClick={() => navigate(`/items/${itemId}`)}
       className={`mt-2 flex flex-row items-center rounded-xl p-2 cursor-pointer transition-all active:scale-[0.98] border shadow-sm ${
-        alignRight 
-          ? 'bg-black/10 hover:bg-black/20 border-white/10' 
+        alignRight
+          ? 'bg-black/10 hover:bg-black/20 border-white/10'
           : 'bg-white hover:bg-gray-50 border-gray-200'
       }`}
     >
       {/* Thumbnail */}
-      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-black/5 flex items-center justify-center">
+      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-black/5 flex items-center justify-center dark:bg-slate-700">
         {imgUrl ? (
           <img src={imgUrl} alt={item.title} className="w-full h-full object-cover" />
         ) : (
@@ -65,10 +65,10 @@ const ItemLinkPreview: React.FC<ItemLinkPreviewProps> = ({ itemId, alignRight })
         <h4 className={`text-xs font-bold truncate ${alignRight ? 'text-white' : 'text-gray-800'}`}>
           {item.title}
         </h4>
-        
+
         <div className="flex items-center space-x-2 mt-1">
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-            item.type === 'LOST' 
+            item.type === 'LOST'
               ? (alignRight ? 'bg-red-500/20 text-red-100' : 'bg-red-100 text-red-700')
               : (alignRight ? 'bg-emerald-500/20 text-emerald-100' : 'bg-emerald-100 text-emerald-700')
           }`}>

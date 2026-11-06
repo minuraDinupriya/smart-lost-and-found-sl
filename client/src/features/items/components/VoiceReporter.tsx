@@ -73,7 +73,7 @@ const VoiceReporter: React.FC<VoiceReporterProps> = ({ onApplyResults }) => {
       setErrorMessage('No audio recorded. Please try again.');
       return;
     }
-    
+
     setStatus('processing');
     try {
       const formData = new FormData();
@@ -119,20 +119,20 @@ const VoiceReporter: React.FC<VoiceReporterProps> = ({ onApplyResults }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#800000]/10 p-5 mb-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-brand-700/10 p-5 mb-6 dark:bg-slate-800">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-bold text-gray-800 flex items-center">
-          <Mic className="w-5 h-5 mr-2 text-[#800000]" />
+        <h3 className="text-base font-bold text-gray-800 flex items-center dark:text-slate-100">
+          <Mic className="w-5 h-5 mr-2 text-brand-700 dark:text-brand-300" />
           Smart Voice
         </h3>
-        
+
         {status === 'idle' && (
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-semibold text-gray-500">Language:</span>
-            <select 
+            <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">Language:</span>
+            <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#800000] focus:border-[#800000] p-1.5"
+              className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-brand-700 focus:border-brand-700 p-1.5 dark:bg-slate-900/50 dark:border-slate-700 dark:text-slate-300"
             >
               <option value="en">English</option>
               <option value="si">Sinhala</option>
@@ -144,12 +144,12 @@ const VoiceReporter: React.FC<VoiceReporterProps> = ({ onApplyResults }) => {
 
       <div className="flex flex-col items-center py-4">
         {status === 'idle' && (
-          <button 
+          <button
             type="button"
             onClick={startRecording}
-            className="flex items-center justify-center space-x-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-xl transition-all w-full md:w-auto"
+            className="flex items-center justify-center space-x-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-xl transition-all w-full md:w-auto dark:bg-slate-900/50 dark:border-slate-700 dark:text-slate-100"
           >
-            <Mic className="w-5 h-5 text-red-500" />
+            <Mic className="w-5 h-5 text-red-500 dark:text-red-300" />
             <span>Start Voice Reporting</span>
           </button>
         )}
@@ -158,15 +158,15 @@ const VoiceReporter: React.FC<VoiceReporterProps> = ({ onApplyResults }) => {
           <div className="flex flex-col items-center">
             <div className="flex items-center space-x-3 mb-4">
               <span className="flex h-3 w-3 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
               </span>
-              <span className="font-mono font-medium text-red-600">Recording... {formatTime(recordingTime)}</span>
+              <span className="font-mono font-medium text-red-600 dark:text-red-300">Recording... {formatTime(recordingTime)}</span>
             </div>
-            <button 
+            <button
               type="button"
               onClick={stopRecording}
-              className="flex items-center justify-center space-x-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold py-3 px-6 rounded-xl transition-all"
+              className="flex items-center justify-center space-x-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold py-3 px-6 rounded-xl transition-all dark:bg-red-900/25 dark:border-red-800 dark:text-red-300"
             >
               <Square className="w-5 h-5" fill="currentColor" />
               <span>Stop Recording</span>
@@ -175,22 +175,22 @@ const VoiceReporter: React.FC<VoiceReporterProps> = ({ onApplyResults }) => {
         )}
 
         {status === 'processing' && (
-          <div className="flex flex-col items-center space-y-3 text-gray-600">
-            <Loader2 className="w-8 h-8 animate-spin text-[#800000]" />
+          <div className="flex flex-col items-center space-y-3 text-gray-600 dark:text-slate-300">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-700 dark:text-brand-300" />
             <div className="text-sm font-medium animate-pulse">Converting speech & understanding your report...</div>
           </div>
         )}
 
         {status === 'error' && (
           <div className="flex flex-col items-center w-full">
-            <div className="bg-red-50 text-red-700 p-4 rounded-xl w-full text-center border border-red-100 text-sm mb-4 flex items-center justify-center">
+            <div className="bg-red-50 text-red-700 p-4 rounded-xl w-full text-center border border-red-100 text-sm mb-4 flex items-center justify-center dark:bg-red-900/25 dark:text-red-300 dark:border-red-800">
               <AlertCircle className="w-5 h-5 mr-2" />
               {errorMessage}
             </div>
-            <button 
+            <button
               type="button"
               onClick={reset}
-              className="flex items-center text-sm font-semibold text-gray-600 hover:text-gray-900"
+              className="flex items-center text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-slate-300"
             >
               <RotateCcw className="w-4 h-4 mr-1" />
               Try Again
@@ -199,41 +199,41 @@ const VoiceReporter: React.FC<VoiceReporterProps> = ({ onApplyResults }) => {
         )}
 
         {status === 'success' && extractedData && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="w-full text-left"
           >
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4">
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Recognized Speech</h4>
-              <p className="text-gray-800 text-sm italic">"{transcript}"</p>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4 dark:bg-slate-900/50 dark:border-slate-700">
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 dark:text-slate-400">Recognized Speech</h4>
+              <p className="text-gray-800 text-sm italic dark:text-slate-100">"{transcript}"</p>
             </div>
-            
-            <div className="bg-[#800000]/5 rounded-xl border border-[#800000]/20 p-4 relative overflow-hidden">
-              <h4 className="text-xs font-bold text-[#800000] uppercase tracking-wider mb-3">Extracted Information</h4>
-              
+
+            <div className="bg-brand-700/5 rounded-xl border border-brand-700/20 p-4 relative overflow-hidden">
+              <h4 className="text-xs font-bold text-brand-700 uppercase tracking-wider mb-3 dark:text-brand-300">Extracted Information</h4>
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                <div><span className="text-gray-500 text-xs block">Item Name</span><span className="font-semibold">{extractedData.itemName || '-'}</span></div>
-                <div><span className="text-gray-500 text-xs block">Category</span><span className="font-semibold">{extractedData.category || '-'}</span></div>
-                <div><span className="text-gray-500 text-xs block">Report Type</span><span className="font-semibold">{extractedData.type || '-'}</span></div>
-                <div><span className="text-gray-500 text-xs block">Color</span><span className="font-semibold">{extractedData.color || '-'}</span></div>
-                <div><span className="text-gray-500 text-xs block">Brand</span><span className="font-semibold">{extractedData.brand || '-'}</span></div>
-                <div><span className="text-gray-500 text-xs block">Location</span><span className="font-semibold">{extractedData.location || '-'}</span></div>
+                <div><span className="text-gray-500 text-xs block dark:text-slate-400">Item Name</span><span className="font-semibold">{extractedData.itemName || '-'}</span></div>
+                <div><span className="text-gray-500 text-xs block dark:text-slate-400">Category</span><span className="font-semibold">{extractedData.category || '-'}</span></div>
+                <div><span className="text-gray-500 text-xs block dark:text-slate-400">Report Type</span><span className="font-semibold">{extractedData.type || '-'}</span></div>
+                <div><span className="text-gray-500 text-xs block dark:text-slate-400">Color</span><span className="font-semibold">{extractedData.color || '-'}</span></div>
+                <div><span className="text-gray-500 text-xs block dark:text-slate-400">Brand</span><span className="font-semibold">{extractedData.brand || '-'}</span></div>
+                <div><span className="text-gray-500 text-xs block dark:text-slate-400">Location</span><span className="font-semibold">{extractedData.location || '-'}</span></div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-[#800000]/10 flex flex-col md:flex-row justify-between items-center gap-3">
-                <button 
+              <div className="mt-4 pt-4 border-t border-brand-700/10 flex flex-col md:flex-row justify-between items-center gap-3">
+                <button
                   type="button"
                   onClick={reset}
-                  className="text-sm font-semibold text-gray-500 hover:text-gray-800 flex items-center"
+                  className="text-sm font-semibold text-gray-500 hover:text-gray-800 flex items-center dark:text-slate-400"
                 >
                   <RotateCcw className="w-4 h-4 mr-1" />
                   Discard
                 </button>
-                <button 
+                <button
                   type="button"
                   onClick={applyToForm}
-                  className="bg-[#800000] text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-[#600000] transition-colors flex items-center"
+                  className="bg-brand-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-brand-800 transition-colors flex items-center"
                 >
                   <Check className="w-4 h-4 mr-2" />
                   Apply to Form

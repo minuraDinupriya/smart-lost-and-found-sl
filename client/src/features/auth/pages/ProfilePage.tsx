@@ -156,9 +156,9 @@ const ProfilePage: React.FC = () => {
 
       {/* Profile Header Card */}
       <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden mb-6">
-        <div className="h-32 bg-gradient-to-r from-[#800000] to-[#500000] relative">
-          <div className="absolute right-6 top-6 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 flex items-center text-white space-x-1.5 shadow-sm">
-            <Shield className="w-4 h-4 text-amber-400" />
+        <div className="h-32 bg-gradient-to-r from-brand-700 to-[#500000] relative">
+          <div className="absolute right-6 top-6 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 flex items-center text-white space-x-1.5 shadow-sm dark:bg-slate-800/10">
+            <Shield className="w-4 h-4 text-amber-400 dark:text-amber-300" />
             <span className="text-xs font-extrabold tracking-wider uppercase">{user.role}</span>
           </div>
         </div>
@@ -170,7 +170,7 @@ const ProfilePage: React.FC = () => {
                 {previewUrl ? (
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                 ) : (
-                  <div className="w-full h-full bg-[#800000] text-white flex items-center justify-center font-bold text-4xl">
+                  <div className="w-full h-full bg-brand-700 text-white flex items-center justify-center font-bold text-4xl">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -178,7 +178,7 @@ const ProfilePage: React.FC = () => {
                   <Camera className="w-8 h-8 text-white animate-pulse" />
                 </div>
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-[#800000] text-white p-2 rounded-2xl border-4 border-white dark:border-slate-800 shadow-md group-hover:bg-[#600000] transition-colors">
+              <div className="absolute -bottom-2 -right-2 bg-brand-700 text-white p-2 rounded-2xl border-4 border-white dark:border-slate-800 shadow-md group-hover:bg-brand-800 transition-colors">
                 <Camera className="w-4 h-4" />
               </div>
             </div>
@@ -191,7 +191,7 @@ const ProfilePage: React.FC = () => {
                 <Award className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs text-yellow-600 dark:text-yellow-500 font-bold uppercase tracking-wider">Trust Score</p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-500 font-bold uppercase tracking-wider">Karma points</p>
                 <p className="text-xl font-black text-yellow-700 dark:text-yellow-400">{user.karmaPoints || 0} pts</p>
               </div>
             </div>
@@ -204,7 +204,7 @@ const ProfilePage: React.FC = () => {
         <button
           onClick={() => setActiveTab('profile')}
           className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-            activeTab === 'profile' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+            activeTab === 'profile' ? 'bg-brand-700 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
           }`}
         >
           <User className="w-5 h-5" />
@@ -215,7 +215,7 @@ const ProfilePage: React.FC = () => {
             <button
               onClick={() => setActiveTab('claimed')}
               className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-                activeTab === 'claimed' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                activeTab === 'claimed' ? 'bg-brand-700 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
             >
               <Box className="w-5 h-5" />
@@ -224,7 +224,7 @@ const ProfilePage: React.FC = () => {
             <button
               onClick={() => setActiveTab('returned')}
               className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-                activeTab === 'returned' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                activeTab === 'returned' ? 'bg-brand-700 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
             >
               <Gift className="w-5 h-5" />
@@ -233,7 +233,7 @@ const ProfilePage: React.FC = () => {
             <button
               onClick={() => setActiveTab('bank')}
               className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl font-bold transition-all whitespace-nowrap ${
-                activeTab === 'bank' ? 'bg-[#800000] text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                activeTab === 'bank' ? 'bg-brand-700 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
             >
               <Award className="w-5 h-5" />
@@ -251,7 +251,7 @@ const ProfilePage: React.FC = () => {
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t('profile.username')}</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
+                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none dark:text-slate-400">
                   <User className="w-5 h-5" />
                 </span>
                 <input
@@ -259,17 +259,17 @@ const ProfilePage: React.FC = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-700/15 focus:border-brand-700 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                   required
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-2 font-medium">{t('profile.usernameWarning')}</p>
+              <p className="text-xs text-gray-400 mt-2 font-medium dark:text-slate-400">{t('profile.usernameWarning')}</p>
             </div>
             <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-slate-700">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center justify-center space-x-2 bg-[#800000] hover:bg-[#600000] text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg w-full sm:w-auto"
+                className="flex items-center justify-center space-x-2 bg-brand-700 hover:bg-brand-800 text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg w-full sm:w-auto"
               >
                 {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Saving...</span></> : <><Check className="w-5 h-5" /><span>{t('profile.saveChanges')}</span></>}
               </button>
@@ -285,52 +285,52 @@ const ProfilePage: React.FC = () => {
                 If you successfully return a lost item, the owner has the option to send you a monetary reward. Add your bank account details here so that we can directly transfer any rewards you receive!
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Bank Name</label>
-                <input
+                <label htmlFor="profilepage-1" className="block text-sm font-bold text-gray-700 dark:text-gray-300">Bank Name</label>
+                <input id="profilepage-1"
                   type="text"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="e.g. Commercial Bank"
-                  className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
+                  className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-700/15 focus:border-brand-700 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                   required
                 />
               </div>
               <div className="space-y-1">
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Branch</label>
-                <input
+                <label htmlFor="profilepage-2" className="block text-sm font-bold text-gray-700 dark:text-gray-300">Branch</label>
+                <input id="profilepage-2"
                   type="text"
                   value={branchName}
                   onChange={(e) => setBranchName(e.target.value)}
                   placeholder="e.g. Nugegoda"
-                  className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
+                  className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-700/15 focus:border-brand-700 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Account Name</label>
-              <input
+              <label htmlFor="profilepage-3" className="block text-sm font-bold text-gray-700 dark:text-gray-300">Account Name</label>
+              <input id="profilepage-3"
                 type="text"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 placeholder="e.g. J. Doe"
-                className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
+                className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-700/15 focus:border-brand-700 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Account Number</label>
-              <input
+              <label htmlFor="profilepage-4" className="block text-sm font-bold text-gray-700 dark:text-gray-300">Account Number</label>
+              <input id="profilepage-4"
                 type="text"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
                 placeholder="e.g. 1029384756"
-                className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#800000]/15 focus:border-[#800000] focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
+                className="w-full px-4 py-3 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-700/15 focus:border-brand-700 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-gray-800 dark:text-gray-100"
                 required
               />
             </div>
@@ -339,7 +339,7 @@ const ProfilePage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center justify-center space-x-2 bg-[#800000] hover:bg-[#600000] text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg w-full sm:w-auto"
+                className="flex items-center justify-center space-x-2 bg-brand-700 hover:bg-brand-800 text-white font-extrabold px-8 py-3.5 rounded-2xl shadow-lg w-full sm:w-auto"
               >
                 {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Saving...</span></> : <><Check className="w-5 h-5" /><span>Save Bank Details</span></>}
               </button>
@@ -351,7 +351,7 @@ const ProfilePage: React.FC = () => {
           <div>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Claimed Item History</h2>
             {isLoadingHistory ? (
-              <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 text-[#800000] animate-spin" /></div>
+              <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 text-brand-700 animate-spin dark:text-brand-300" /></div>
             ) : claimedHistory.length === 0 ? (
               <div className="text-center py-16 px-4 bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-gray-100 dark:border-slate-700">
                 <Box className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
@@ -380,20 +380,20 @@ const ProfilePage: React.FC = () => {
                         <td className="py-4 font-medium text-gray-700 dark:text-gray-300">{record.finderId?.username}</td>
                         <td className="py-4 text-gray-500 dark:text-gray-400">{new Date(record.createdAt).toLocaleDateString()}</td>
                         <td className="py-4">
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs uppercase tracking-wider">{record.status}</span>
+                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs uppercase tracking-wider dark:bg-green-900/25 dark:text-green-300">{record.status}</span>
                         </td>
                         <td className="py-4 text-right">
                           {record.tip && (record.tip.paymentStatus === 'paid' || record.tip.paymentStatus === 'completed') ? (
-                            <div className="inline-flex items-center space-x-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl font-bold">
+                            <div className="inline-flex items-center space-x-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl font-bold dark:bg-emerald-900/25 dark:border-emerald-800 dark:text-emerald-300">
                               <Check className="w-4 h-4" />
                               <span>Tip Sent ✓ (Rs. {record.tip.amount})</span>
                             </div>
                           ) : record.tip && record.tip.paymentStatus === 'skipped' ? (
-                            <span className="text-gray-400 font-bold italic">No Tip Given</span>
+                            <span className="text-gray-400 font-bold italic dark:text-slate-400">No Tip Given</span>
                           ) : (
                             <button
                               onClick={() => navigate(`/tips/new/${record._id}`)}
-                              className="bg-[#800000] hover:bg-[#600000] text-white px-4 py-2 rounded-xl font-bold shadow-md transition-all active:scale-95 text-xs inline-flex items-center space-x-1"
+                              className="bg-brand-700 hover:bg-brand-800 text-white px-4 py-2 rounded-xl font-bold shadow-md transition-all text-xs inline-flex items-center space-x-1"
                             >
                               <Gift className="w-4 h-4" />
                               <span>Give Tip</span>
@@ -413,7 +413,7 @@ const ProfilePage: React.FC = () => {
           <div>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Found & Returned History</h2>
             {isLoadingHistory ? (
-              <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 text-[#800000] animate-spin" /></div>
+              <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 text-brand-700 animate-spin dark:text-brand-300" /></div>
             ) : returnedHistory.length === 0 ? (
               <div className="text-center py-16 px-4 bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-gray-100 dark:border-slate-700">
                 <Gift className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
@@ -442,25 +442,25 @@ const ProfilePage: React.FC = () => {
                         <td className="py-4 font-medium text-gray-700 dark:text-gray-300">{record.ownerId?.username}</td>
                         <td className="py-4 text-gray-500 dark:text-gray-400">{new Date(record.createdAt).toLocaleDateString()}</td>
                         <td className="py-4">
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs uppercase tracking-wider">{record.status}</span>
+                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold text-xs uppercase tracking-wider dark:bg-green-900/25 dark:text-green-300">{record.status}</span>
                         </td>
                         <td className="py-4 text-right">
                           {record.tip && (record.tip.paymentStatus === 'paid' || record.tip.paymentStatus === 'completed') ? (
                             record.tip.payoutStatus === 'completed' ? (
-                              <div className="inline-flex items-center space-x-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs">
+                              <div className="inline-flex items-center space-x-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs dark:bg-emerald-900/25 dark:border-emerald-800 dark:text-emerald-300">
                                 <Check className="w-4 h-4" />
                                 <span>Paid to Bank ✓ (Rs. {record.tip.amount})</span>
                               </div>
                             ) : (
-                              <div className="inline-flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-amber-100 transition-colors" onClick={() => setActiveTab('bank')}>
+                              <div className="inline-flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-amber-100 transition-colors dark:bg-amber-900/25 dark:border-amber-800 dark:text-amber-300" onClick={() => setActiveTab('bank')}>
                                 <Award className="w-4 h-4 animate-pulse" />
                                 <span>Payout Pending (Add Bank)</span>
                               </div>
                             )
                           ) : record.tip && record.tip.paymentStatus === 'skipped' ? (
-                            <span className="text-gray-400 font-bold italic text-xs">No Tip</span>
+                            <span className="text-gray-400 font-bold italic text-xs dark:text-slate-400">No Tip</span>
                           ) : (
-                            <span className="text-gray-400 font-bold text-xs">Tip Pending</span>
+                            <span className="text-gray-400 font-bold text-xs dark:text-slate-400">Tip Pending</span>
                           )}
                         </td>
                       </tr>

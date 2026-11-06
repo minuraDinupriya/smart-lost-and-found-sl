@@ -32,13 +32,13 @@ const EditItemPage: React.FC = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [location, setLocation] = useState<LocationState>({ province: '', district: '', city: '' });
   const [mapPosition, setMapPosition] = useState<[number, number] | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [externalLocation, setExternalLocation] = useState<LocationState | null>(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -85,10 +85,10 @@ const EditItemPage: React.FC = () => {
       try {
         const res = await api.get(`/items/${itemId}`);
         const data = res.data;
-        
+
         // Format the date for the HTML date input (YYYY-MM-DD)
         const formattedDate = new Date(data.date).toISOString().split('T')[0];
-        
+
         setFormData({
           title: data.title,
           description: data.description,
@@ -98,30 +98,30 @@ const EditItemPage: React.FC = () => {
           contactNumber: data.contactNumber,
           securityQuestion: data.securityQuestion || ''
         });
-        
+
         setOwnershipProofs(data.ownershipProofs || []);
-        
+
         setLocation({
           province: data.province,
           district: data.district,
           city: data.city
         });
-        
+
         if (data.latitude && data.longitude) {
           setMapPosition([parseFloat(data.latitude), parseFloat(data.longitude)]);
         }
-        
+
         if (data.imageUrl) {
           setExistingImageUrl(data.imageUrl);
         }
-        
+
         setIsLoading(false);
       } catch (error) {
         Swal.fire('Error', 'Failed to fetch item details.', 'error');
         navigate('/');
       }
     };
-    
+
     if (itemId) fetchItem();
   }, [itemId, navigate]);
 
@@ -147,7 +147,7 @@ const EditItemPage: React.FC = () => {
             // Clean up mapping strings to match locations.ts format
             province = province.replace(' Province', '').trim();
             district = district.replace(' District', '').trim();
-            
+
             setExternalLocation({ province, district, city });
           }
         } catch (error) {
@@ -182,12 +182,12 @@ const EditItemPage: React.FC = () => {
       data.append('district', location.district);
       data.append('city', location.city);
       data.append('ownershipProofs', JSON.stringify(ownershipProofs));
-      
+
       if (mapPosition) {
         data.append('latitude', mapPosition[0].toString());
         data.append('longitude', mapPosition[1].toString());
       }
-      
+
       if (imageFile) data.append('image', imageFile);
 
       await api.put(`/items/${itemId}`, data, {
@@ -220,7 +220,7 @@ const EditItemPage: React.FC = () => {
   return (
     <>
     <PageNavigation />
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 sm:p-8"
@@ -232,18 +232,18 @@ const EditItemPage: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">Core Details</h3>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-brand-700 pl-3">Core Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Report Type</label>
-              <select name="type" value={formData.type} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none">
+              <label htmlFor="edititempage-type" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Report Type</label>
+              <select id="edititempage-type" name="type" value={formData.type} onChange={handleInputChange} className="ui-field">
                 <option value="LOST">I Lost Something</option>
                 <option value="FOUND">I Found Something</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Category</label>
-              <select name="category" value={formData.category} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none">
+              <label htmlFor="edititempage-category" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Category</label>
+              <select id="edititempage-category" name="category" value={formData.category} onChange={handleInputChange} className="ui-field">
                 <option value="Electronics">Electronics (Phones, Laptops)</option>
                 <option value="Documents">Official Documents (NIC, Passport)</option>
                 <option value="Keys">Keys</option>
@@ -255,21 +255,21 @@ const EditItemPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Title</label>
-            <input required type="text" name="title" value={formData.title} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
+            <label htmlFor="edititempage-title" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Title</label>
+            <input id="edititempage-title" required type="text" name="title" value={formData.title} onChange={handleInputChange} className="ui-field" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
-            <textarea required rows={4} name="description" value={formData.description} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"></textarea>
+            <label htmlFor="edititempage-description" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <textarea id="edititempage-description" required rows={4} name="description" value={formData.description} onChange={handleInputChange} className="ui-field"></textarea>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Date</label>
-              <input required type="date" name="date" value={formData.date} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
+              <label htmlFor="edititempage-date" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Date</label>
+              <input id="edititempage-date" required type="date" name="date" value={formData.date} onChange={handleInputChange} className="ui-field" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Image Upload (Leave empty to keep current)</label>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#800000]/10 file:text-[#800000] hover:file:bg-[#800000]/20 transition-colors" />
+              <label htmlFor="edititempage-6" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Image Upload (Leave empty to keep current)</label>
+              <input id="edititempage-6" type="file" accept="image/*" onChange={handleImageChange} className="ui-field" />
               {existingImageUrl && (
                 <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span> Current image attached
@@ -280,11 +280,11 @@ const EditItemPage: React.FC = () => {
         </div>
 
         <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">Geographic Registration</h3>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-brand-700 pl-3">Geographic Registration</h3>
           {location && (
             <LocationSelector onLocationChange={setLocation} initialLocation={location} externalLocation={externalLocation} />
           )}
-          
+
           <div className="mt-4">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Pinpoint Exact Location (Optional)</label>
             <div className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-600 z-0 relative shadow-inner">
@@ -300,8 +300,8 @@ const EditItemPage: React.FC = () => {
         {/* Digital Proof of Ownership */}
         <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">Digital Proof of Ownership</h3>
-            <span className="text-xs text-gray-400 font-semibold bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">Confidential Layer</span>
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-brand-700 pl-3">Digital Proof of Ownership</h3>
+            <span className="text-xs text-gray-400 font-semibold bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md dark:text-slate-400">Private details</span>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Add private ownership details (e.g. serial numbers, IMEIs, receipts, or unique physical marks). These details are stored securely and <strong>never shown to the public or finder</strong>. They are only used to verify your ownership when claiming.
@@ -313,7 +313,7 @@ const EditItemPage: React.FC = () => {
               {ownershipProofs.map((proof, index) => (
                 <div key={index} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-xl">
                   <div>
-                    <div className="text-[10px] uppercase font-bold text-gray-400">
+                    <div className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-400">
                       {proof.proofType === 'custom' ? `Custom: ${proof.customLabel}` : proof.proofType}
                     </div>
                     <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
@@ -323,7 +323,7 @@ const EditItemPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setOwnershipProofs(prev => prev.filter((_, i) => i !== index))}
-                    className="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                    className="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 bg-red-50 rounded-lg hover:bg-red-100 transition-colors dark:text-red-300 dark:bg-red-900/25"
                   >
                     Remove
                   </button>
@@ -336,14 +336,14 @@ const EditItemPage: React.FC = () => {
           <div className="bg-gray-50 dark:bg-slate-900/50 border border-dashed border-gray-200 dark:border-slate-600 rounded-2xl p-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Proof Type</label>
-                <select
+                <label htmlFor="edititempage-7" className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Proof Type</label>
+                <select id="edititempage-7"
                   value={newProofType}
                   onChange={(e) => {
                     setNewProofType(e.target.value);
                     if (e.target.value !== 'custom') setNewCustomLabel('');
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-brand-700/20 focus:border-brand-700 outline-none"
                 >
                   <option value="serialNumber">Serial Number</option>
                   <option value="imei">IMEI Number</option>
@@ -357,25 +357,25 @@ const EditItemPage: React.FC = () => {
               </div>
               {newProofType === 'custom' && (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Custom Label Name</label>
-                  <input
+                  <label htmlFor="edititempage-8" className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Custom Label Name</label>
+                  <input id="edititempage-8"
                     type="text"
                     value={newCustomLabel}
                     onChange={(e) => setNewCustomLabel(e.target.value)}
                     placeholder="e.g. Frame Number, Keyring details"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-brand-700/20 focus:border-brand-700 outline-none"
                   />
                 </div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Proof Description/Value</label>
-              <textarea
+              <label htmlFor="edititempage-9" className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Proof Description/Value</label>
+              <textarea id="edititempage-9"
                 rows={2}
                 value={newProofValue}
                 onChange={(e) => setNewProofValue(e.target.value)}
                 placeholder="Enter exact serial/code value, or a detailed description of the mark..."
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none resize-none"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-brand-700/20 focus:border-brand-700 outline-none resize-none"
               />
             </div>
             <button
@@ -389,20 +389,20 @@ const EditItemPage: React.FC = () => {
         </div>
 
         <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-[#800000] pl-3">Verification & Contact</h3>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-brand-700 pl-3">Verification & Contact</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Contact Number</label>
-              <input required type="text" name="contactNumber" value={formData.contactNumber} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
+              <label htmlFor="edititempage-contactNumber" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Contact Number</label>
+              <input id="edititempage-contactNumber" required type="text" name="contactNumber" value={formData.contactNumber} onChange={handleInputChange} className="ui-field" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Security Question</label>
-              <input type="text" name="securityQuestion" value={formData.securityQuestion} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] outline-none" />
+              <label htmlFor="edititempage-securityQuestion" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Ownership question (optional)</label>
+              <input id="edititempage-securityQuestion" type="text" name="securityQuestion" value={formData.securityQuestion} onChange={handleInputChange} className="ui-field" />
             </div>
           </div>
         </div>
 
-        <button type="submit" disabled={isSubmitting} className="w-full bg-[#800000] text-white font-bold py-4 rounded-xl hover:bg-[#600000] transition-all shadow-lg shadow-[#800000]/20 active:scale-[0.99] disabled:opacity-70 mt-8 text-lg">
+        <button type="submit" disabled={isSubmitting} className="w-full bg-brand-700 text-white font-bold py-4 rounded-xl hover:bg-brand-800 transition-all shadow-lg shadow-brand-700/20 active:scale-[0.99] disabled:opacity-70 mt-8 text-lg">
           {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
         </button>
       </form>

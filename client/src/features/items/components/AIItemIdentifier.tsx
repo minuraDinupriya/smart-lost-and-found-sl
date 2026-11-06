@@ -59,7 +59,7 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
     setError(null);
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
+
       // Validate type and size (5MB max)
       if (!file.type.startsWith('image/')) {
         setError('Unsupported file format. Please upload an image (JPG, PNG, WebP).');
@@ -118,7 +118,7 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
   const renderConfidenceBadge = (confidence: number | null, textValue: string) => {
     if (confidence === null || textValue === 'Could not identify') {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-700">
           Could not identify
         </span>
       );
@@ -170,9 +170,9 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-amber-200/60 p-5 mb-6 space-y-4">
-      <h3 className="text-base font-bold text-gray-800 flex items-center">
-        <Sparkles className="w-5 h-5 text-amber-500 mr-2" />
+    <div className="bg-white rounded-2xl shadow-sm border border-amber-200/60 p-5 mb-6 space-y-4 dark:bg-slate-800">
+      <h3 className="text-base font-bold text-gray-800 flex items-center dark:text-slate-100">
+        <Sparkles className="w-5 h-5 text-amber-500 mr-2 dark:text-amber-300" />
         Smart Item Identification
       </h3>
 
@@ -180,14 +180,14 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
       <div className="flex flex-col gap-4">
         <div className="relative">
           {previewUrl ? (
-            <div className="relative rounded-2xl overflow-hidden border-2 border-amber-200 shadow-md group h-56 bg-gray-900 flex items-center justify-center">
+            <div className="relative rounded-2xl overflow-hidden border-2 border-amber-200 shadow-md group h-56 bg-gray-900 flex items-center justify-center dark:border-amber-800">
               <img
                 src={previewUrl}
                 alt="Item Preview"
                 className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center space-x-3">
-                <label className="cursor-pointer bg-white/90 text-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-white transition flex items-center">
+                <label className="cursor-pointer bg-white/90 text-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-white transition flex items-center dark:bg-slate-800/90 dark:text-slate-100">
                   <Upload className="w-3.5 h-3.5 mr-1.5" />
                   Change
                   <input
@@ -208,12 +208,12 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
               </div>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center h-56 rounded-2xl border-2 border-dashed border-amber-300 hover:border-amber-500 bg-white/80 hover:bg-amber-50/40 transition cursor-pointer p-6 text-center shadow-inner group">
-              <div className="p-3 bg-amber-100 rounded-full text-amber-600 mb-3 group-hover:scale-110 transition">
+            <label className="flex flex-col items-center justify-center h-56 rounded-2xl border-2 border-dashed border-amber-300 hover:border-amber-500 bg-white/80 hover:bg-amber-50/40 transition cursor-pointer p-6 text-center shadow-inner group dark:border-amber-800 dark:bg-slate-800/80">
+              <div className="p-3 bg-amber-100 rounded-full text-amber-600 mb-3 group-hover:scale-110 transition dark:bg-amber-900/25 dark:text-amber-300">
                 <ImageIcon className="w-8 h-8" />
               </div>
-              <span className="text-sm font-bold text-gray-800">Upload Photo of Item</span>
-              <span className="text-xs text-gray-500 mt-1">PNG, JPG, WebP up to 5MB</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-slate-100">Upload Photo of Item</span>
+              <span className="text-xs text-gray-500 mt-1 dark:text-slate-400">PNG, JPG, WebP up to 5MB</span>
               <input
                 type="file"
                 accept="image/*"
@@ -230,7 +230,7 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
             type="button"
             disabled={!imageFile || isAnalyzing}
             onClick={handleIdentify}
-            className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-amber-600/20 transition-all flex items-center justify-center space-x-2 active:scale-95"
+            className="ui-primary w-full"
           >
             {isAnalyzing ? (
               <>
@@ -247,8 +247,8 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
 
 
           {error && (
-            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-xs text-rose-700 flex items-start space-x-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-xs text-rose-700 flex items-start space-x-2.5 dark:bg-rose-900/25 dark:border-rose-800 dark:text-rose-300">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5 dark:text-rose-300" />
               <div>
                 <span className="font-bold">Notice:</span> {error}
               </div>
@@ -264,15 +264,15 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white rounded-2xl border border-amber-200/80 shadow-md p-6 space-y-6 mt-4"
+            className="bg-white rounded-2xl border border-amber-200/80 shadow-md p-6 space-y-6 mt-4 dark:bg-slate-800"
           >
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-slate-700">
               <div>
-                <h4 className="text-base font-extrabold text-gray-900 flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 mr-2" />
+                <h4 className="text-base font-extrabold text-gray-900 flex items-center dark:text-slate-100">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 mr-2 dark:text-emerald-300" />
                   AI Identification Results
                 </h4>
-                <p className="text-xs text-amber-700 mt-0.5">
+                <p className="text-xs text-amber-700 mt-0.5 dark:text-amber-300">
                   AI-generated information should be reviewed before submitting.
                 </p>
               </div>
@@ -280,7 +280,7 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditing(!isEditing)}
-                className="inline-flex items-center text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition"
+                className="inline-flex items-center text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition dark:text-amber-300 dark:bg-amber-900/25 dark:border-amber-800"
               >
                 <Edit3 className="w-3.5 h-3.5 mr-1.5" />
                 {isEditing ? 'Done Editing' : 'Edit Details'}
@@ -290,8 +290,8 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
             {/* Grid of Results */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Category */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-gray-500">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 dark:bg-slate-900/50 dark:border-slate-700">
+                <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-slate-400">
                   <span>Category</span>
                   {renderConfidenceBadge(results.categoryConfidence, results.category)}
                 </div>
@@ -299,7 +299,7 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
                   <select
                     value={results.category}
                     onChange={(e) => handleFieldChange('category', e.target.value)}
-                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500"
+                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500 dark:border-slate-700"
                   >
                     <option value="Electronics">Electronics</option>
                     <option value="Documents">Documents</option>
@@ -310,13 +310,13 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
                     <option value="Others">Others</option>
                   </select>
                 ) : (
-                  <p className="text-sm font-bold text-gray-900">{results.category}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{results.category}</p>
                 )}
               </div>
 
               {/* Item Type / Name */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-gray-500">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 dark:bg-slate-900/50 dark:border-slate-700">
+                <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-slate-400">
                   <span>Item Type / Name</span>
                   {renderConfidenceBadge(results.itemNameConfidence, results.itemName)}
                 </div>
@@ -325,16 +325,16 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
                     type="text"
                     value={results.itemName}
                     onChange={(e) => handleFieldChange('itemName', e.target.value)}
-                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500"
+                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500 dark:border-slate-700"
                   />
                 ) : (
-                  <p className="text-sm font-bold text-gray-900">{results.itemName}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{results.itemName}</p>
                 )}
               </div>
 
               {/* Color */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-gray-500">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 dark:bg-slate-900/50 dark:border-slate-700">
+                <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-slate-400">
                   <span>Color</span>
                   {renderConfidenceBadge(results.colorConfidence, results.color)}
                 </div>
@@ -343,16 +343,16 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
                     type="text"
                     value={results.color}
                     onChange={(e) => handleFieldChange('color', e.target.value)}
-                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500"
+                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500 dark:border-slate-700"
                   />
                 ) : (
-                  <p className="text-sm font-bold text-gray-900">{results.color}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{results.color}</p>
                 )}
               </div>
 
               {/* Brand */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-gray-500">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 dark:bg-slate-900/50 dark:border-slate-700">
+                <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-slate-400">
                   <span>Brand</span>
                   {renderConfidenceBadge(results.brandConfidence, results.brand)}
                 </div>
@@ -361,16 +361,16 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
                     type="text"
                     value={results.brand}
                     onChange={(e) => handleFieldChange('brand', e.target.value)}
-                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500"
+                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500 dark:border-slate-700"
                   />
                 ) : (
-                  <p className="text-sm font-bold text-gray-900">{results.brand}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{results.brand}</p>
                 )}
               </div>
 
               {/* Possible Model */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 sm:col-span-2">
-                <div className="flex items-center justify-between text-xs font-bold text-gray-500">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 sm:col-span-2 dark:bg-slate-900/50 dark:border-slate-700">
+                <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-slate-400">
                   <span>Possible Model</span>
                   {renderConfidenceBadge(results.modelConfidence, results.model)}
                 </div>
@@ -379,25 +379,25 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
                     type="text"
                     value={results.model}
                     onChange={(e) => handleFieldChange('model', e.target.value)}
-                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500"
+                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500 dark:border-slate-700"
                   />
                 ) : (
-                  <p className="text-sm font-bold text-gray-900">{results.model}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{results.model}</p>
                 )}
               </div>
 
               {/* Suggested Description */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 sm:col-span-2">
-                <span className="text-xs font-bold text-gray-500 block">Suggested Description</span>
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1 sm:col-span-2 dark:bg-slate-900/50 dark:border-slate-700">
+                <span className="text-xs font-bold text-gray-500 block dark:text-slate-400">Suggested Description</span>
                 {isEditing ? (
                   <textarea
                     rows={3}
                     value={results.description}
                     onChange={(e) => handleFieldChange('description', e.target.value)}
-                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500 resize-none"
+                    className="w-full mt-1 p-2 text-sm font-semibold rounded-lg border border-gray-300 outline-none focus:border-amber-500 resize-none dark:border-slate-700"
                   />
                 ) : (
-                  <p className="text-sm text-gray-700 italic">{results.description}</p>
+                  <p className="text-sm text-gray-700 italic dark:text-slate-300">{results.description}</p>
                 )}
               </div>
             </div>
@@ -407,7 +407,7 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
               <button
                 type="button"
                 onClick={handleIdentify}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center"
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition flex items-center dark:text-slate-300 dark:bg-slate-700"
               >
                 <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                 Analyze Again
@@ -416,9 +416,9 @@ const AIItemIdentifier: React.FC<AIItemIdentifierProps> = ({
               <button
                 type="button"
                 onClick={handleApply}
-                className="px-6 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#800000] hover:bg-[#600000] transition shadow-md shadow-[#800000]/20 flex items-center active:scale-95"
+                className="px-6 py-2.5 rounded-xl text-xs font-extrabold text-white bg-brand-700 hover:bg-brand-800 transition shadow-md shadow-brand-700/20 flex items-center"
               >
-                <CheckCircle2 className="w-4 h-4 mr-1.5 text-amber-300" />
+                <CheckCircle2 className="w-4 h-4 mr-1.5 text-amber-300 dark:text-amber-300" />
                 Use These Details
               </button>
             </div>
