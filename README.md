@@ -69,6 +69,8 @@ GitHub Actions runs these checks for pull requests and pushes to `main`. Passing
 
 ## Development seed scripts
 
+Return completion and direct claims use a shared MongoDB transaction to update item status, return records, and karma together. Repeating the same completion succeeds without another award; competing return flows cannot both award points. MongoDB must run as a replica set (Atlas supports this); standalone local MongoDB does not support these transactions. Run `npm run test:integration --prefix server` to test retries, concurrent requests, and rollback against an automatically created disposable replica set. It never uses `MONGO_URI` or loads `.env`; the first run may download the pinned MongoDB 8.2.6 test binary.
+
 Both `server/scripts/seed.js` and `server/scripts/seedPolice.js` require `MONGO_URI` in `server/.env` or the environment. They exit with an error before connecting if it is missing or blank. There is no embedded remote database fallback.
 
 The item seed script deletes existing reports other than smart tags before creating sample data. Run it only against a disposable development database whose contents you intend to replace.
