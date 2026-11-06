@@ -1,3 +1,4 @@
+const { validateProofs, scoreProof } = require('../utils/ownershipProofs');
 const { getJwtSecret } = require('../config/security');
 const Item = require('../models/Item');
 const Message = require('../models/Message');
@@ -37,10 +38,14 @@ const createItem = async (req, res) => {
       try {
         ownershipProofsParsed = JSON.parse(itemData.ownershipProofs);
       } catch (e) {
-        ownershipProofsParsed = [];
+        return res.status(400).json({ message: 'Invalid ownership proofs JSON.' });
       }
     } else if (itemData.ownershipProofs && Array.isArray(itemData.ownershipProofs)) {
       ownershipProofsParsed = itemData.ownershipProofs;
+    }
+
+    if (!Array.isArray(ownershipProofsParsed) || (ownershipProofsParsed.length && !validateProofs(ownershipProofsParsed))) {
+      return res.status(400).json({ message: 'Invalid ownership proofs.' });
     }
 
     let titleSi, titleTa, descriptionSi, descriptionTa;
@@ -63,7 +68,6 @@ const createItem = async (req, res) => {
       ownershipProofs: ownershipProofsParsed,
       aiIdentified: itemData.aiIdentified === 'true' || itemData.aiIdentified === true,
       aiIdentification: aiIdentificationParsed || undefined,
-      ownershipProofs: ownershipProofsParsed,
       titleSi,
       titleTa,
       descriptionSi,
@@ -322,10 +326,14 @@ const updateItem = async (req, res) => {
       try {
         ownershipProofsParsed = JSON.parse(updateData.ownershipProofs);
       } catch (e) {
-        ownershipProofsParsed = [];
+        return res.status(400).json({ message: 'Invalid ownership proofs JSON.' });
       }
     } else if (updateData.ownershipProofs && Array.isArray(updateData.ownershipProofs)) {
       ownershipProofsParsed = updateData.ownershipProofs;
+    }
+
+    if (Object.hasOwn(updateData, 'ownershipProofs') && (!Array.isArray(ownershipProofsParsed) || (ownershipProofsParsed.length && !validateProofs(ownershipProofsParsed)))) {
+      return res.status(400).json({ message: 'Invalid ownership proofs.' });
     }
 
     if (updateData.ownershipProofs) {
@@ -601,8 +609,8 @@ const verifyOwnership = async (req, res) => {
     const { itemId } = req.params;
     const { submittedProofs } = req.body;
     
-    if (!submittedProofs || !Array.isArray(submittedProofs)) {
-      return res.status(400).json({ message: 'Submitted proofs array is required.' });
+    if (!validateProofs(submittedProofs)) {
+      return res.status(400).json({ message: 'Provide 1–20 proofs with a non-empty type and value; custom proofs also require a label.' });
     }
 
     // Proofs are private by default and must be explicitly loaded for comparison.
@@ -615,31 +623,6 @@ const verifyOwnership = async (req, res) => {
       return res.status(400).json({ message: 'This item does not have any registered ownership proofs to verify against.' });
     }
 
-    const stringSimilarity = require('string-similarity');
-
-    const compareValues = (val1, val2) => {
-      if (!val1 || !val2) return 0;
-
-      const norm1 = val1.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-      const norm2 = val2.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-
-      // Exact match after normalization
-      if (norm1 === norm2 && norm1.length > 0) {
-        return 1.0;
-      }
-
-      // Substring match for description/custom details
-      if (norm1.length >= 6 && norm2.length >= 6) {
-        if (norm1.includes(norm2) || norm2.includes(norm1)) {
-          return 0.9;
-        }
-      }
-
-      // String similarity using Dice's coefficient
-      const sim = stringSimilarity.compareTwoStrings(val1.toLowerCase().trim(), val2.toLowerCase().trim());
-      return sim;
-    };
-
     let verifiedCount = 0;
     const details = [];
 
@@ -648,17 +631,7 @@ const verifyOwnership = async (req, res) => {
       let bestScore = 0;
       
       for (const submitted of submittedProofs) {
-        // Match by proofType, or by customLabel if custom
-        const typeMatches = 
-          stored.proofType?.toLowerCase() === submitted.proofType?.toLowerCase() ||
-          (stored.proofType === 'custom' && stored.customLabel?.toLowerCase() === submitted.customLabel?.toLowerCase());
-
-        if (typeMatches) {
-          const score = compareValues(stored.proofValue, submitted.proofValue);
-          if (score > bestScore) {
-            bestScore = score;
-          }
-        }
+        bestScore = Math.max(bestScore, scoreProof(stored, submitted));
       }
 
       // If the match confidence is high (e.g. >= 0.8), we count it as verified
@@ -739,7 +712,9 @@ const verifyOwnership = async (req, res) => {
     res.status(200).json({
       success: true,
       status: overallStatus,
-      scorePercentage
+      scorePercentage,
+      verifiedCount,
+      totalProofs: storedProofs.length
     });
   } catch (error) {
     console.error('Error verifying ownership:', error);

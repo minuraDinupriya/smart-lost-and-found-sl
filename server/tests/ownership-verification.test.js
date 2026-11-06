@@ -36,6 +36,7 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
     },
   };
   const dependencies = {
+    '../utils/ownershipProofs': require('../utils/ownershipProofs'),
     '../config/security': { getJwtSecret: () => 'test-only-secret-not-used-by-mocked-jwt' },
     '../models/Item': Item,
     '../models/Message': {

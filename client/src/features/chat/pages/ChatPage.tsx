@@ -158,11 +158,11 @@ const ChatPage: React.FC = () => {
         proofType: p.proofType,
         customLabel: p.customLabel,
         proofValue: verificationInputs[p._id] || ''
-      }));
+      })).filter((proof: { proofValue: string }) => proof.proofValue.trim());
 
       const res = await api.post(`/items/${itemId}/verify-ownership`, { submittedProofs });
       
-      const { overallStatus, scorePercentage, verifiedCount, totalProofs } = res.data;
+      const { status: overallStatus, scorePercentage, verifiedCount, totalProofs } = res.data;
 
       Swal.fire({
         title: overallStatus === 'VERIFIED' ? 'Verification Successful!' : overallStatus === 'PARTIALLY_VERIFIED' ? 'Partial Verification' : 'Verification Failed',
@@ -178,7 +178,7 @@ const ChatPage: React.FC = () => {
       const itemRes = await api.get(`/items/${itemId}`);
       setItem(itemRes.data);
 
-      const msgRes = await api.get(`/messages/${itemId}`);
+      const msgRes = await api.get(`/messages/${itemId}/${otherUserId}`);
       setMessages(msgRes.data);
     } catch (err: any) {
       Swal.fire('Error', err.response?.data?.message || 'Verification failed.', 'error');

@@ -60,4 +60,5 @@ jobs:
         with:
           node-version-file: .nvmrc
       # Isolated tests use Node built-ins and replace external calls.
+      - run: npm ci --omit=dev --prefix server
       - run: npm test --prefix server
