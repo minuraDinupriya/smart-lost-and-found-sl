@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dev": "node index.js",
     "check:syntax": "node scripts/check-syntax.js",
-    "test": "node --test tests/seed-credentials.test.js"
+    "test": "node --test tests/seed-credentials.test.js tests/ownership-verification.test.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

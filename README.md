@@ -63,7 +63,7 @@ npm run check:syntax --prefix server
 npm test --prefix server
 ```
 
-The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. The server tests run the seed scripts with database, translation, hashing, environment loading, and process exits replaced by test doubles. They verify missing-configuration failures and explicit credential handling without loading `.env`, accessing a database, or contacting external services.
+The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. The server tests cover seed configuration and ownership-verification handlers with external dependencies replaced by test doubles. They do not load `.env`, access a database, or contact external services. Ownership tests model the private-field projection and verify result handling and response privacy; they do not exercise MongoDB, real JWT validation, or the fuzzy-match algorithm.
 
 GitHub Actions runs these checks for pull requests and pushes to `main`. Passing them does **not** establish API correctness, integration availability, or production readiness. Frontend linting still needs an ESLint configuration; it is not part of the CI gate yet. Legacy scripts under `server/scripts/test_*.js` remain manual development scripts that may write to the configured database; `npm test` does not run them.
 

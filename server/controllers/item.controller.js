@@ -216,7 +216,8 @@ const getAnalytics = async (req, res) => {
 
 const getItemById = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.itemId).populate('createdBy', 'username');
+    // Load labels for the claim form; proof values are stripped below for non-creators.
+    const item = await Item.findById(req.params.itemId).select('+ownershipProofs').populate('createdBy', 'username');
     if (!item) return res.status(404).json({ message: 'Item not found' });
     
     // Fetch associated return record (if exists) populated with usernames
@@ -619,7 +620,8 @@ const verifyOwnership = async (req, res) => {
       return res.status(400).json({ message: 'Submitted proofs array is required.' });
     }
 
-    const item = await Item.findById(itemId);
+    // Proofs are private by default and must be explicitly loaded for comparison.
+    const item = await Item.findById(itemId).select('+ownershipProofs');
     if (!item) return res.status(404).json({ message: 'Item not found.' });
 
     const storedProofs = item.ownershipProofs || [];
