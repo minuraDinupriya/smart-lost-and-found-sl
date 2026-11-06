@@ -1,0 +1,27 @@
+1
+00:00:00,000 --> 00:00:06,000
+Sri Lanka Smart Lost & Found: local demo with synthetic reports.
+
+2
+00:00:06,000 --> 00:00:12,000
+Owners and finders coordinate through an authorized private conversation.
+
+3
+00:00:12,000 --> 00:00:18,000
+The claim form displays labels while saved answers remain private.
+
+4
+00:00:18,000 --> 00:00:24,000
+A one-character identifier mismatch is rejected: 0 of 2 details matched.
+
+5
+00:00:24,000 --> 00:00:30,000
+Exact synthetic details verify successfully: 2 of 2 details matched.
+
+6
+00:00:30,000 --> 00:00:36,000
+The return is completed through the API; the UI shows the completed handover.
+
+7
+00:00:36,000 --> 00:00:42,000
+12 concurrent receipt requests award 50 points once: the demo score moves from 100 to 150.

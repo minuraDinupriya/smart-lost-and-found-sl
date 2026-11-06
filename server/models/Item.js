@@ -55,28 +55,6 @@ const itemSchema = new mongoose.Schema(
       rawSuggestedDescription: String,
       timestamp: Date,
     },
-    // Digital Proof of Ownership Fields (Strictly Confidential)
-    ownershipProofs: [
-      {
-        proofType: {
-          type: String,
-          trim: true,
-        },
-        customLabel: {
-          type: String,
-          trim: true,
-        },
-        proofValue: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
     verificationHistory: [
       {
         verifierId: {
@@ -172,8 +150,10 @@ const itemSchema = new mongoose.Schema(
     // Private Digital Proofs of Ownership
     ownershipProofs: {
       type: [{
-        proofType: { type: String, required: true },
-        proofValue: { type: String, required: true }
+        proofType: { type: String, required: true, trim: true },
+        customLabel: { type: String, trim: true },
+        proofValue: { type: String, required: true, trim: true },
+        createdAt: { type: Date, default: Date.now }
       }],
       select: false, // Ensures this is NEVER returned by default in standard queries
       default: []

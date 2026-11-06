@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import ItemLinkPreview from '../components/ItemLinkPreview';
 import HandoverBanner from '../components/HandoverBanner';
 import PageNavigation from '../../../components/common/PageNavigation';
+import toast from 'react-hot-toast';
 interface Message {
   _id: string;
   senderId: any;
@@ -24,6 +25,7 @@ const ChatPage: React.FC = () => {
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [receiverId, setReceiverId] = useState<string | null>(null);
   const [receiverName, setReceiverName] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -83,8 +85,8 @@ const ChatPage: React.FC = () => {
         setLoading(false);
       }
     };
-    if (itemId) initChat();
-  }, [itemId]);
+    if (itemId && user?._id) initChat();
+  }, [itemId, otherUserId, user?._id]);
 
   // Hook into WebSocket Real-Time Broadcasts
   useEffect(() => {
@@ -93,10 +95,13 @@ const ChatPage: React.FC = () => {
       const roomId = [user._id, otherUserId].sort().join('_') + '_' + itemId;
       
       // Fire immediately (will buffer if not connected)
-      socket.emit('join_room', roomId);
+      const joinRoom = () => socket.emit('join_room', roomId, (result: { ok: boolean; message?: string }) => {
+        if (!result.ok) toast.error(result.message || 'Unable to join conversation');
+      });
+      joinRoom();
 
       // Crucial: Re-join room automatically if socket drops and reconnects
-      const onConnect = () => socket.emit('join_room', roomId);
+      const onConnect = joinRoom;
       socket.on('connect', onConnect);
 
       socket.on('receive_message', (newMessage: Message) => {
@@ -110,6 +115,7 @@ const ChatPage: React.FC = () => {
       });
 
       return () => {
+        socket.emit('leave_room', roomId);
         socket.off('connect', onConnect);
         socket.off('receive_message');
       };
@@ -122,7 +128,7 @@ const ChatPage: React.FC = () => {
 
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputText.trim() && socket && itemId && receiverId) {
+    if (inputText.trim() && socket && itemId && receiverId && !isSending) {
       const messageData = {
         itemId,
         receiverId,
@@ -130,8 +136,15 @@ const ChatPage: React.FC = () => {
       };
       
       // Dispatch securely over Socket connection
-      socket.emit('send_message', messageData);
-      setInputText('');
+      setIsSending(true);
+      socket.timeout(10000).emit('send_message', messageData, (error: Error | null, result: { ok: boolean; message?: string }) => {
+        setIsSending(false);
+        if (error || !result?.ok) {
+          toast.error(error ? 'Message confirmation timed out. Check the conversation before retrying.' : result.message || 'Unable to send message');
+          return;
+        }
+        setInputText(current => current === messageData.text ? '' : current);
+      });
     }
   };
 
@@ -145,11 +158,11 @@ const ChatPage: React.FC = () => {
         proofType: p.proofType,
         customLabel: p.customLabel,
         proofValue: verificationInputs[p._id] || ''
-      }));
+      })).filter((proof: { proofValue: string }) => proof.proofValue.trim());
 
       const res = await api.post(`/items/${itemId}/verify-ownership`, { submittedProofs });
       
-      const { overallStatus, scorePercentage, verifiedCount, totalProofs } = res.data;
+      const { status: overallStatus, scorePercentage, verifiedCount, totalProofs } = res.data;
 
       Swal.fire({
         title: overallStatus === 'VERIFIED' ? 'Verification Successful!' : overallStatus === 'PARTIALLY_VERIFIED' ? 'Partial Verification' : 'Verification Failed',
@@ -165,7 +178,7 @@ const ChatPage: React.FC = () => {
       const itemRes = await api.get(`/items/${itemId}`);
       setItem(itemRes.data);
 
-      const msgRes = await api.get(`/messages/${itemId}`);
+      const msgRes = await api.get(`/messages/${itemId}/${otherUserId}`);
       setMessages(msgRes.data);
     } catch (err: any) {
       Swal.fire('Error', err.response?.data?.message || 'Verification failed.', 'error');
@@ -238,9 +251,9 @@ const ChatPage: React.FC = () => {
           <div className="text-xs text-gray-700 dark:text-gray-300">
             <span className={`font-bold uppercase block mb-1 ${isVerified ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
               <ShieldQuestion className="w-3 h-3 inline mr-1" />
-              Blind Claim Protocol {isVerified ? '(Verified)' : '(Locked)'}
+              Ownership details {isVerified ? '(Verified)' : '(Not yet verified)'}
             </span>
-            This item has {item.ownershipProofs.length} security question(s) registered.
+            This item has {item.ownershipProofs.length} private ownership detail(s) registered.
             {item.verificationHistory && item.verificationHistory.length > 0 ? (
               <span className="text-gray-500 block mt-1">
                 Last attempt: <strong className={isVerified ? 'text-green-700' : 'text-red-600'}>{item.verificationHistory[item.verificationHistory.length - 1].overallStatus} ({item.verificationHistory[item.verificationHistory.length - 1].scorePercentage}% Match)</strong>
@@ -254,7 +267,7 @@ const ChatPage: React.FC = () => {
               onClick={() => setIsVerificationModalOpen(true)}
               className="bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-amber-700 transition active:scale-95 shadow-sm animate-bounce"
             >
-              Answer Security Question to Unlock Chat
+              Verify item details
             </button>
           )}
         </div>
@@ -361,7 +374,7 @@ const ChatPage: React.FC = () => {
           />
           <button 
             type="submit"
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || isSending}
             className="p-3 bg-[#800000] text-white rounded-xl hover:bg-[#600000] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#800000]/20 flex items-center justify-center h-12 w-12 flex-shrink-0 active:scale-95"
           >
             <Send className="w-5 h-5 ml-0.5" />

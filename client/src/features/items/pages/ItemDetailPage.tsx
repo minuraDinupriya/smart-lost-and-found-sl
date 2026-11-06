@@ -134,17 +134,17 @@ const ItemDetailPage: React.FC = () => {
     if (formValues) {
       try {
         const res = await api.post(`/items/${item._id}/verify-ownership`, {
-          proofs: [formValues]
+          submittedProofs: [formValues]
         });
         
-        if (res.data.status === 'Verified') {
+        if (res.data.status === 'VERIFIED') {
           Swal.fire({
             title: 'Verified!',
             text: 'Ownership successfully verified! You provided a matching proof.',
             icon: 'success',
             confirmButtonColor: '#800000'
           });
-        } else if (res.data.status === 'Partially Verified') {
+        } else if (res.data.status === 'PARTIALLY_VERIFIED') {
           Swal.fire({
             title: 'Partially Verified',
             text: 'You provided a valid proof, but there are other proofs on this item.',

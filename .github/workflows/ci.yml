@@ -60,4 +60,25 @@ jobs:
         with:
           node-version-file: .nvmrc
       # Isolated tests use Node built-ins and replace external calls.
+      - run: npm ci --omit=dev --prefix server
       - run: npm test --prefix server
+
+  server-integration:
+    name: Server integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - uses: actions/cache@v4
+        with:
+          path: server/node_modules/.cache/mongodb-memory-server
+          key: mongodb-${{ runner.os }}-8.2.6
+      - run: npm ci --ignore-scripts --prefix server
+      - run: npm run test:integration --prefix server

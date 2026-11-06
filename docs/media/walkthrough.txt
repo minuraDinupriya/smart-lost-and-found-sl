@@ -1,0 +1,15 @@
+file '01-dashboard.jpg'
+duration 6
+file '02-chat.jpg'
+duration 6
+file '03-proof-form.jpg'
+duration 6
+file '04-near-match-rejected.jpg'
+duration 6
+file '05-exact-match-verified.jpg'
+duration 6
+file '06-return-completed.jpg'
+duration 6
+file '07-trust-score.jpg'
+duration 6
+file '07-trust-score.jpg'

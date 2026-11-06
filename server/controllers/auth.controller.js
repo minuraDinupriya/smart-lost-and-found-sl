@@ -1,3 +1,4 @@
+const { getJwtSecret } = require('../config/security');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -59,7 +60,7 @@ const login = async (req, res) => {
     }
 
     // 3. Sign JWT containing the user's id
-    const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
+    const secret = getJwtSecret();
     const token = jwt.sign({ id: user._id }, secret, { expiresIn: '7d' });
 
     // 4. Return token, username, and userId
@@ -118,7 +119,7 @@ const googleLogin = async (req, res) => {
     }
 
     // Sign JWT
-    const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
+    const secret = getJwtSecret();
     const jwtToken = jwt.sign({ id: user._id }, secret, { expiresIn: '7d' });
 
     res.status(200).json({

@@ -2,6 +2,14 @@
 
 A web application for reporting lost and found items in Sri Lanka and coordinating their return. It includes English, Sinhala, and Tamil interfaces, location filtering, maps, real-time chat, and ownership verification workflows.
 
+## Demo and engineering walkthrough
+
+![Local demo dashboard with synthetic reports](docs/media/01-dashboard.jpg)
+
+[Watch the 42-second walkthrough](docs/media/demo-walkthrough.mp4) · [Run the isolated demo](docs/DEMO.md) · [Architecture and engineering decisions](docs/ENGINEERING.md)
+
+The walkthrough uses synthetic data. The engineering focus is server-enforced conversation access, private ownership checks, retry-safe return rewards, and reproducible tests. See the engineering notes for evidence and remaining limitations.
+
 ## Project status
 
 This project is under active development. The source includes AI-assisted image and voice reporting, QR tags, police and admin workflows, handover PDFs, analytics, and reward tips. External integrations require their own configuration.
@@ -63,11 +71,15 @@ npm run check:syntax --prefix server
 npm test --prefix server
 ```
 
-The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. The server tests cover seed configuration and ownership-verification handlers with external dependencies replaced by test doubles. They do not load `.env`, access a database, or contact external services. Ownership tests model the private-field projection and verify result handling and response privacy; they do not exercise MongoDB, real JWT validation, or the fuzzy-match algorithm.
+The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. `npm test --prefix server` runs isolated tests for chat, security configuration, proof matching, ownership handlers, and seed configuration. `npm run test:integration --prefix server` starts disposable MongoDB replica sets and a loopback HTTP/Socket.IO server to test actual projections, response privacy, JWT validation, messaging authorization, concurrent awards, and rollback. Neither suite loads `.env` or uses `MONGO_URI`; integration tests may download MongoDB 8.2.6 on first use. CI runs both suites as separate jobs.
 
 GitHub Actions runs these checks for pull requests and pushes to `main`. Passing them does **not** establish API correctness, integration availability, or production readiness. Frontend linting still needs an ESLint configuration; it is not part of the CI gate yet. Legacy scripts under `server/scripts/test_*.js` remain manual development scripts that may write to the configured database; `npm test` does not run them.
 
 ## Development seed scripts
+
+Ownership identifiers (serial numbers, IMEIs, product/receipt codes, custom and unknown fields) require exact matches after Unicode normalization, outer-whitespace trimming, and case folding. Punctuation and internal whitespace remain significant. Approximate matching is limited to descriptive marks, special features, and engraving. Custom fields must match their label as well as their value. Verification accepts 1–20 non-empty, bounded string proofs and returns counts without returning private values.
+
+Return completion and direct claims use a shared MongoDB transaction to update item status, return records, and karma together. Repeating the same completion succeeds without another award; competing return flows cannot both award points. MongoDB must run as a replica set (Atlas supports this); standalone local MongoDB does not support these transactions. Run `npm run test:integration --prefix server` to test retries, concurrent requests, and rollback against an automatically created disposable replica set. It never uses `MONGO_URI` or loads `.env`; the first run may download the pinned MongoDB 8.2.6 test binary.
 
 Both `server/scripts/seed.js` and `server/scripts/seedPolice.js` require `MONGO_URI` in `server/.env` or the environment. They exit with an error before connecting if it is missing or blank. There is no embedded remote database fallback.
 
@@ -82,6 +94,8 @@ node scripts/seedPolice.js
 Changing this setting does not reset an existing account's password. Previously exposed database credentials and the previous default police-account password must be rotated separately if they are still in use. Removing them from source does not invalidate them or remove them from Git history.
 
 ## Frontend deployments
+
+Production startup requires a unique `JWT_SECRET` of at least 32 characters and `CLIENT_URL` containing the primary frontend origin. Optional `CLIENT_ORIGINS` contains additional exact origins separated by commas. Configure both in Render before deploying authentication hardening. Changing the signing secret invalidates existing login tokens. Localhost origins are automatically allowed only outside production. CORS is applied to HTTP and WebSocket handshakes; authenticated chat operations also enforce item-creator participation on the server.
 
 `client/vercel.json` enables automatic Git deployments only for `main`. Feature-branch pushes and pull requests still run GitHub CI, but do not automatically create Vercel previews when their branch contains this configuration. The `**` pattern covers branch names containing slashes; the explicit `main: true` rule enables main because Vercel deploys when any matching rule is true.
 

@@ -1,3 +1,4 @@
+const { getJwtSecret } = require('../config/security');
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
@@ -12,13 +13,16 @@ const verifyToken = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    // 3. Verify the token using environment secret or hardcoded fallback
-    const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
-    const decoded = jwt.verify(token, secret);
+    // 3. Verify using the explicitly configured signing secret
+    const secret = getJwtSecret();
+    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
     
     // 4. Bind the decoded user ID to the request object
     // Assuming the payload contains the ID in either 'userId' or 'id'
     req.userId = decoded.userId || decoded.id; 
+    if (typeof req.userId !== 'string' || !/^[a-f0-9]{24}$/.test(req.userId)) {
+      return res.status(401).json({ message: 'Invalid token identity.' });
+    }
     
     next();
   } catch (error) {

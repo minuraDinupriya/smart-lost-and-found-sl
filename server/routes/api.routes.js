@@ -5,6 +5,7 @@ const Item = require('../models/Item');
 const User = require('../models/User');
 const { verifyToken } = require('../middleware/auth.middleware');
 const { generatePoliceHandoverPDF } = require('../services/pdf.service');
+const { authorizeConversation } = require('../services/chat.service');
 
 // @route   GET /api/messages/unread-count
 // @desc    Get total count of unread messages for the logged-in user
@@ -70,6 +71,9 @@ router.get('/messages/inbox', verifyToken, async (req, res) => {
 // @access  Private
 router.get('/messages/:itemId/:otherUserId', verifyToken, async (req, res) => {
   try {
+    if (!await authorizeConversation(req.userId, req.params.otherUserId, req.params.itemId)) {
+      return res.status(403).json({ message: 'Conversation access denied.' });
+    }
     // Auto-read protocol: Mark all messages in this room sent to the user as read
     await Message.updateMany(
       { itemId: req.params.itemId, senderId: req.params.otherUserId, receiverId: req.userId, isRead: false },
