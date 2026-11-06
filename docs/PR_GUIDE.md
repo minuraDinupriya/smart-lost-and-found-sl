@@ -1,6 +1,6 @@
 # Review and submit this batch
 
-The work is organized into five focused commits and intermediate branches. For a single delivery, open the combined branch `feat/recovery-workflow-hardening` against `main` and review the commits in the order below. No hosted settings are changed by pushing these branches, and no production credentials are stored in them.
+The work is organized into five focused implementation groups plus a configuration-review follow-up and intermediate branches. For a single delivery, open the combined branch `feat/recovery-workflow-hardening` against `main` and review the commits in the order below. No hosted settings are changed by pushing these branches, and no production credentials are stored in them.
 
 ## Combined PR
 
@@ -40,7 +40,7 @@ This batch enforces conversation access on the server, requires explicit authent
 
 ## Deployment requirements and limitations
 
-Before deploying, configure Render JWT_SECRET as a unique random value of at least 32 characters and CLIENT_URL as the exact frontend origin(s), comma-separated. Existing sessions are invalidated if the secret changes. Localhost is not automatically allowed in production.
+Before deploying, configure Render JWT_SECRET as a unique random value of at least 32 characters and CLIENT_URL as the primary frontend origin. Optional CLIENT_ORIGINS lists additional exact origins, comma-separated. Existing sessions are invalidated if the secret changes. Localhost is not automatically allowed in production.
 
 MongoDB must support transactions through a replica set; Atlas is suitable. Review the new Server integration CI job before merging. Local integration tests use MongoDB 8.2.6 and synthetic credentials, never the configured production database.
 
@@ -55,7 +55,9 @@ Finder payouts remain simulated. Live external integrations, production load, an
 4. `test/database-and-socket-integration` — `test: exercise database privacy sockets and return transactions in CI`. Review actual HTTP/JWT/socket tests and their disposable database setup.
 5. `docs/recruiter-demo` — `docs: add an isolated recovery demo and engineering walkthrough`. Review the reproducible fixture, screenshots, video, and browser-discovered UI fixes.
 
-The intermediate branches are stacked snapshots, not five independent changes based on main. If you choose to open separate PRs instead, target each branch at the preceding branch, starting the first at main. Squash-merging an earlier PR requires rebasing the remaining stack before merging it; the combined PR avoids that extra coordination for this batch.
+The intermediate branches are stacked snapshots, not five independent changes based on main. If you choose to open separate PRs instead, target each branch at the preceding branch, starting the first at main, then target `feat/recovery-workflow-hardening` at `docs/recruiter-demo` for the configuration follow-up. Squash-merging an earlier PR requires rebasing the remaining stack before merging it; the combined PR avoids that extra coordination for this batch.
+
+A final configuration-review commit keeps the primary frontend URL separate from additional CORS origins, because payment redirects also use CLIENT_URL.
 
 ## Before merging
 

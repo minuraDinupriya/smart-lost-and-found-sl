@@ -16,6 +16,8 @@ test('production CORS allows only configured exact origins', () => {
     assert.equal(isAllowedOrigin(origin, origins), false);
   }
   assert.equal(isAllowedOrigin(undefined, origins), true);
+  const previewOrigins = getAllowedOrigins({ NODE_ENV: 'production', CLIENT_URL: 'https://lost-found.example', CLIENT_ORIGINS: 'https://approved-preview.vercel.app' });
+  assert.equal(isAllowedOrigin('https://approved-preview.vercel.app', previewOrigins), true);
   assert.throws(() => getAllowedOrigins({ NODE_ENV: 'production' }), /CLIENT_URL/);
   assert.throws(() => getAllowedOrigins({ CLIENT_URL: 'https://site.test/path' }));
 });

@@ -7,9 +7,9 @@ const getJwtSecret = (env = process.env) => {
 };
 
 const getAllowedOrigins = (env = process.env) => {
-  const configured = (env.CLIENT_URL || '').split(',').map(value => value.trim()).filter(Boolean);
-  if (env.NODE_ENV === 'production' && configured.length === 0) {
-    throw new Error('CLIENT_URL must list the allowed frontend origins in production.');
+  const configured = [env.CLIENT_URL || '', ...(env.CLIENT_ORIGINS || '').split(',')].map(value => value.trim()).filter(Boolean);
+  if (env.NODE_ENV === 'production' && !env.CLIENT_URL?.trim()) {
+    throw new Error('CLIENT_URL must specify the frontend origin in production.');
   }
   const origins = configured.map(value => {
     const url = new URL(value);
