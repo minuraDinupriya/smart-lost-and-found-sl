@@ -27,7 +27,11 @@ const titles = {
 
 const seedDatabase = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb+srv://admin:Uf7H0jJ0QGkE8K6p@cluster0.sfy6b3v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+    const mongoUri = process.env.MONGO_URI?.trim();
+    // Seeding deletes existing reports, so the target must be explicitly configured.
+    if (!mongoUri) {
+      throw new Error('MONGO_URI must be set before seeding.');
+    }
     await mongoose.connect(mongoUri);
     console.log('MongoDB Connected for Seeding...');
 

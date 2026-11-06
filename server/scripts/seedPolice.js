@@ -9,14 +9,23 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const seedPolice = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://minuradinupriya:V1yEib7vIu02hG5k@cluster0.k2qg7.mongodb.net/lost-and-found', {
+    const mongoUri = process.env.MONGO_URI?.trim();
+    if (!mongoUri) {
+      throw new Error('MONGO_URI must be set before seeding.');
+    }
+
+    const password = process.env.SEED_POLICE_PASSWORD;
+    if (!password?.trim()) {
+      throw new Error('SEED_POLICE_PASSWORD must be set before seeding a police account.');
+    }
+
+    await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     console.log('MongoDB Connected for Seeding');
 
     const username = 'national_police';
-    const password = 'slpolice119';
     const stationName = 'National Police Headquarters';
 
     const existingPolice = await User.findOne({ username });

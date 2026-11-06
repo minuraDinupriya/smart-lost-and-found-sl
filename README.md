@@ -60,11 +60,26 @@ From the repository root:
 ```sh
 npm run build --prefix client
 npm run check:syntax --prefix server
+npm test --prefix server
 ```
 
-The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server command parses JavaScript without starting the API, connecting to a database, or running seed scripts.
+The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. The server tests run the seed scripts with database, translation, hashing, environment loading, and process exits replaced by test doubles. They verify missing-configuration failures and explicit credential handling without loading `.env`, accessing a database, or contacting external services.
 
-GitHub Actions runs these checks for pull requests and pushes to `main`. Passing them does **not** establish API correctness, integration availability, or production readiness. Frontend linting still needs an ESLint configuration; it is not part of the CI gate yet. Existing server test scripts are manual development scripts, not an isolated automated test suite, and some write to the configured database.
+GitHub Actions runs these checks for pull requests and pushes to `main`. Passing them does **not** establish API correctness, integration availability, or production readiness. Frontend linting still needs an ESLint configuration; it is not part of the CI gate yet. Legacy scripts under `server/scripts/test_*.js` remain manual development scripts that may write to the configured database; `npm test` does not run them.
+
+## Development seed scripts
+
+Both `server/scripts/seed.js` and `server/scripts/seedPolice.js` require `MONGO_URI` in `server/.env` or the environment. They exit with an error before connecting if it is missing or blank. There is no embedded remote database fallback.
+
+The item seed script deletes existing reports other than smart tags before creating sample data. Run it only against a disposable development database whose contents you intend to replace.
+
+The police-account seed also requires `SEED_POLICE_PASSWORD`. It creates `national_police` with the supplied password after hashing it; an existing account is left unchanged. Set this value locally and run the script from the `server` directory:
+
+```sh
+node scripts/seedPolice.js
+```
+
+Changing this setting does not reset an existing account's password. Previously exposed database credentials and the previous default police-account password must be rotated separately if they are still in use. Removing them from source does not invalidate them or remove them from Git history.
 
 ## Contributing
 
