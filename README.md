@@ -81,6 +81,16 @@ node scripts/seedPolice.js
 
 Changing this setting does not reset an existing account's password. Previously exposed database credentials and the previous default police-account password must be rotated separately if they are still in use. Removing them from source does not invalidate them or remove them from Git history.
 
+## Frontend deployments
+
+`client/vercel.json` enables automatic Git deployments only for `main`. Feature-branch pushes and pull requests still run GitHub CI, but do not automatically create Vercel previews when their branch contains this configuration. The `**` pattern covers branch names containing slashes; the explicit `main: true` rule enables main because Vercel deploys when any matching rule is true.
+
+Use local development for routine changes. When a hosted preview is needed for UI review, request an intentional manual deployment through Vercel rather than enabling previews for every commit. Git deployment rules do not disable manual deployments. Branches created before this policy must first incorporate it to suppress their automatic previews.
+
+Keep the Vercel project's Root Directory set to `client` and its production branch set to `main`. GitHub status checks are configured separately in `.github/workflows/ci.yml`; deployment is not a substitute for those checks. This policy does not make production deployment wait for CI to finish, and merging a docs-only or backend-only change into main can still trigger a frontend deployment.
+
+See [Vercel Git configuration](https://vercel.com/docs/project-configuration/git-configuration) for branch-pattern behavior.
+
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, PR examples, testing expectations, and review guidance. The workflow follows [GitHub flow](https://docs.github.com/en/get-started/using-github/github-flow); the CI setup uses GitHub's [Node.js workflow guidance](https://docs.github.com/en/actions/tutorials/build-and-test-code/nodejs).
