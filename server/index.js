@@ -1,4 +1,4 @@
-require('dotenv').config();
+if (process.env.DEMO_MODE !== 'true') require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');

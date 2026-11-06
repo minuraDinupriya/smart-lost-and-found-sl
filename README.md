@@ -2,6 +2,14 @@
 
 A web application for reporting lost and found items in Sri Lanka and coordinating their return. It includes English, Sinhala, and Tamil interfaces, location filtering, maps, real-time chat, and ownership verification workflows.
 
+## Demo and engineering walkthrough
+
+![Local demo dashboard with synthetic reports](docs/media/01-dashboard.jpg)
+
+[Watch the 42-second walkthrough](docs/media/demo-walkthrough.mp4) · [Run the isolated demo](docs/DEMO.md) · [Architecture and engineering decisions](docs/ENGINEERING.md)
+
+The walkthrough uses synthetic data. The engineering focus is server-enforced conversation access, private ownership checks, retry-safe return rewards, and reproducible tests. See the engineering notes for evidence and remaining limitations.
+
 ## Project status
 
 This project is under active development. The source includes AI-assisted image and voice reporting, QR tags, police and admin workflows, handover PDFs, analytics, and reward tips. External integrations require their own configuration.

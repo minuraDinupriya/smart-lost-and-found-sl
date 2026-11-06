@@ -85,8 +85,8 @@ const ChatPage: React.FC = () => {
         setLoading(false);
       }
     };
-    if (itemId) initChat();
-  }, [itemId]);
+    if (itemId && user?._id) initChat();
+  }, [itemId, otherUserId, user?._id]);
 
   // Hook into WebSocket Real-Time Broadcasts
   useEffect(() => {
@@ -251,9 +251,9 @@ const ChatPage: React.FC = () => {
           <div className="text-xs text-gray-700 dark:text-gray-300">
             <span className={`font-bold uppercase block mb-1 ${isVerified ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
               <ShieldQuestion className="w-3 h-3 inline mr-1" />
-              Blind Claim Protocol {isVerified ? '(Verified)' : '(Locked)'}
+              Ownership details {isVerified ? '(Verified)' : '(Not yet verified)'}
             </span>
-            This item has {item.ownershipProofs.length} security question(s) registered.
+            This item has {item.ownershipProofs.length} private ownership detail(s) registered.
             {item.verificationHistory && item.verificationHistory.length > 0 ? (
               <span className="text-gray-500 block mt-1">
                 Last attempt: <strong className={isVerified ? 'text-green-700' : 'text-red-600'}>{item.verificationHistory[item.verificationHistory.length - 1].overallStatus} ({item.verificationHistory[item.verificationHistory.length - 1].scorePercentage}% Match)</strong>
@@ -267,7 +267,7 @@ const ChatPage: React.FC = () => {
               onClick={() => setIsVerificationModalOpen(true)}
               className="bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-amber-700 transition active:scale-95 shadow-sm animate-bounce"
             >
-              Answer Security Question to Unlock Chat
+              Verify item details
             </button>
           )}
         </div>
