@@ -36,6 +36,7 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
     },
   };
   const dependencies = {
+    '../config/security': { getJwtSecret: () => 'test-only-secret-not-used-by-mocked-jwt' },
     '../models/Item': Item,
     '../models/Message': {
       create: async (message) => { state.messages.push(message); return message; },

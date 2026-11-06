@@ -6,22 +6,23 @@ const path = require('path');
 const connectDB = require('./config/db');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
-const Message = require('./models/Message');
+const User = require('./models/User');
+const { getJwtSecret, getAllowedOrigins, isAllowedOrigin } = require('./config/security');
+const { validId, registerChatHandlers } = require('./services/chat.service');
+const jwtSecret = getJwtSecret();
 const socketService = require('./services/socket.service');
 const { startArchiveCron } = require('./services/archiveCron.service');
 
 // Initialize Express application
 const app = express();
-connectDB();
+
 
 // Middlewares
-const allowedOrigins = process.env.CLIENT_URL
-  ? [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174']
-  : ['http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = getAllowedOrigins();
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+    if (isAllowedOrigin(origin, allowedOrigins)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -56,9 +57,10 @@ const server = http.createServer(app);
 
 // ----- WEB SOCKET REAL-TIME CHAT INTEGRATION -----
 const io = new Server(server, {
+  allowRequest: (req, callback) => callback(null, isAllowedOrigin(req.headers.origin, allowedOrigins)),
   cors: {
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+      if (isAllowedOrigin(origin, allowedOrigins)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -70,14 +72,14 @@ const io = new Server(server, {
 });
 
 // Middleware to authenticate socket connections via JWT
-io.use((socket, next) => {
+io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Authentication error: No token provided'));
 
   try {
-    const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
     socket.userId = decoded.id || decoded.userId;
+    if (!validId(socket.userId) || !await User.exists({ _id: socket.userId })) return next(new Error('Authentication error: Invalid user'));
     next();
   } catch (err) {
     next(new Error('Authentication error: Invalid token'));
@@ -88,40 +90,11 @@ io.use((socket, next) => {
 socketService.setIo(io);
 
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.userId} on socket ${socket.id}`);
   socketService.addUserSocket(socket.userId, socket.id);
 
-  // Join isolated negotiation room
-  socket.on('join_room', (roomId) => {
-    socket.join(roomId);
-    console.log(`User ${socket.userId} joined room: ${roomId}`);
-  });
-
-  // Handle bi-directional real-time messaging
-  socket.on('send_message', async (data) => {
-    try {
-      const { itemId, receiverId, text } = data;
-      const senderId = socket.userId;
-
-      // Persist the message to MongoDB
-      const newMessage = new Message({ itemId, senderId, receiverId, text });
-      const savedMessage = await newMessage.save();
-
-      // Secure deterministic room ID matching the frontend algorithm
-      const roomId = [senderId.toString(), receiverId.toString()].sort().join('_') + '_' + itemId;
-
-      // Broadcast exclusively to users inside the specific 1-on-1 negotiation room
-      io.to(roomId).emit('receive_message', savedMessage);
-
-      // Trigger a global notification to the receiver for the Navbar badge
-      socketService.emitGlobalNotification(receiverId, savedMessage);
-    } catch (error) {
-      console.error('Socket DB persistence error:', error);
-    }
-  });
+  registerChatHandlers(io, socket);
 
   socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.userId}`);
     socketService.removeUserSocket(socket.userId);
   });
 });
@@ -129,8 +102,11 @@ io.on('connection', (socket) => {
 app.get('/', (req, res) => res.send('SL-SLFMS API & Socket Server Active...'));
 
 const PORT = process.env.PORT || 5001;
-server.listen(PORT, () => {
+connectDB().then(() => server.listen(PORT, () => {
   console.log(`Server and WebSockets running synchronously on port ${PORT}`);
   // Start the Item Expiry & Auto Archive daily cron job
   startArchiveCron();
+})).catch(() => {
+  console.error('Server startup failed.');
+  process.exitCode = 1;
 });

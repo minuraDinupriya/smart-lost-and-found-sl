@@ -83,6 +83,8 @@ Changing this setting does not reset an existing account's password. Previously 
 
 ## Frontend deployments
 
+Production startup requires a unique `JWT_SECRET` of at least 32 characters and `CLIENT_URL` containing the exact frontend origin(s), separated by commas. Configure both in Render before deploying authentication hardening. Changing the signing secret invalidates existing login tokens. Localhost origins are automatically allowed only outside production. CORS is applied to HTTP and WebSocket handshakes; authenticated chat operations also enforce item-creator participation on the server.
+
 `client/vercel.json` enables automatic Git deployments only for `main`. Feature-branch pushes and pull requests still run GitHub CI, but do not automatically create Vercel previews when their branch contains this configuration. The `**` pattern covers branch names containing slashes; the explicit `main: true` rule enables main because Vercel deploys when any matching rule is true.
 
 Use local development for routine changes. When a hosted preview is needed for UI review, request an intentional manual deployment through Vercel rather than enabling previews for every commit. Git deployment rules do not disable manual deployments. Branches created before this policy must first incorporate it to suppress their automatic previews.

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import ItemLinkPreview from '../components/ItemLinkPreview';
 import HandoverBanner from '../components/HandoverBanner';
 import PageNavigation from '../../../components/common/PageNavigation';
+import toast from 'react-hot-toast';
 interface Message {
   _id: string;
   senderId: any;
@@ -24,6 +25,7 @@ const ChatPage: React.FC = () => {
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [receiverId, setReceiverId] = useState<string | null>(null);
   const [receiverName, setReceiverName] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -93,10 +95,13 @@ const ChatPage: React.FC = () => {
       const roomId = [user._id, otherUserId].sort().join('_') + '_' + itemId;
       
       // Fire immediately (will buffer if not connected)
-      socket.emit('join_room', roomId);
+      const joinRoom = () => socket.emit('join_room', roomId, (result: { ok: boolean; message?: string }) => {
+        if (!result.ok) toast.error(result.message || 'Unable to join conversation');
+      });
+      joinRoom();
 
       // Crucial: Re-join room automatically if socket drops and reconnects
-      const onConnect = () => socket.emit('join_room', roomId);
+      const onConnect = joinRoom;
       socket.on('connect', onConnect);
 
       socket.on('receive_message', (newMessage: Message) => {
@@ -110,6 +115,7 @@ const ChatPage: React.FC = () => {
       });
 
       return () => {
+        socket.emit('leave_room', roomId);
         socket.off('connect', onConnect);
         socket.off('receive_message');
       };
@@ -122,7 +128,7 @@ const ChatPage: React.FC = () => {
 
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputText.trim() && socket && itemId && receiverId) {
+    if (inputText.trim() && socket && itemId && receiverId && !isSending) {
       const messageData = {
         itemId,
         receiverId,
@@ -130,8 +136,15 @@ const ChatPage: React.FC = () => {
       };
       
       // Dispatch securely over Socket connection
-      socket.emit('send_message', messageData);
-      setInputText('');
+      setIsSending(true);
+      socket.timeout(10000).emit('send_message', messageData, (error: Error | null, result: { ok: boolean; message?: string }) => {
+        setIsSending(false);
+        if (error || !result?.ok) {
+          toast.error(error ? 'Message confirmation timed out. Check the conversation before retrying.' : result.message || 'Unable to send message');
+          return;
+        }
+        setInputText(current => current === messageData.text ? '' : current);
+      });
     }
   };
 
@@ -361,7 +374,7 @@ const ChatPage: React.FC = () => {
           />
           <button 
             type="submit"
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || isSending}
             className="p-3 bg-[#800000] text-white rounded-xl hover:bg-[#600000] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#800000]/20 flex items-center justify-center h-12 w-12 flex-shrink-0 active:scale-95"
           >
             <Send className="w-5 h-5 ml-0.5" />

@@ -1,3 +1,4 @@
+const { getJwtSecret } = require('../config/security');
 const Item = require('../models/Item');
 const Message = require('../models/Message');
 const translate = require('google-translate-api-x');
@@ -238,8 +239,8 @@ const getItemById = async (req, res) => {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       try {
-        const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
-        const decoded = jwt.verify(token, secret);
+        const secret = getJwtSecret();
+        const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
         const currentUserId = decoded.userId || decoded.id;
 
         if (item.createdBy && item.createdBy._id.toString() === currentUserId.toString()) {

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const Item = require('../models/Item');
 const connectDB = require('../config/db');
+const { getJwtSecret } = require('../config/security');
 
 async function runTests() {
   console.log('\n======================================================');
@@ -22,7 +23,7 @@ async function runTests() {
 
     // 2. Synthesize JWT Auth Token to simulate a live secure session
     process.stdout.write('➡️  Synthesizing Security Tokens... ');
-    const secret = process.env.JWT_SECRET || 'fallback_secret_for_usjp_lost_and_found_dev';
+    const secret = getJwtSecret();
     const token = jwt.sign({ id: user._id, userId: user._id }, secret);
     console.log('✅ [PASS]');
 
