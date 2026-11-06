@@ -63,7 +63,7 @@ npm run check:syntax --prefix server
 npm test --prefix server
 ```
 
-The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. The server tests cover seed configuration and ownership-verification handlers with external dependencies replaced by test doubles. They do not load `.env`, access a database, or contact external services. Ownership tests model the private-field projection and verify result handling and response privacy; they do not exercise MongoDB, real JWT validation, or the fuzzy-match algorithm.
+The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. `npm test --prefix server` runs isolated tests for chat, security configuration, proof matching, ownership handlers, and seed configuration. `npm run test:integration --prefix server` starts disposable MongoDB replica sets and a loopback HTTP/Socket.IO server to test actual projections, response privacy, JWT validation, messaging authorization, concurrent awards, and rollback. Neither suite loads `.env` or uses `MONGO_URI`; integration tests may download MongoDB 8.2.6 on first use. CI runs both suites as separate jobs.
 
 GitHub Actions runs these checks for pull requests and pushes to `main`. Passing them does **not** establish API correctness, integration availability, or production readiness. Frontend linting still needs an ESLint configuration; it is not part of the CI gate yet. Legacy scripts under `server/scripts/test_*.js` remain manual development scripts that may write to the configured database; `npm test` does not run them.
 

@@ -5,11 +5,10 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
-const User = require('./models/User');
 const { getJwtSecret, getAllowedOrigins, isAllowedOrigin } = require('./config/security');
-const { validId, registerChatHandlers } = require('./services/chat.service');
-const jwtSecret = getJwtSecret();
+const { registerChatHandlers } = require('./services/chat.service');
+getJwtSecret();
+const { authenticateSocket } = require('./middleware/socket.middleware');
 const socketService = require('./services/socket.service');
 const { startArchiveCron } = require('./services/archiveCron.service');
 
@@ -71,20 +70,7 @@ const io = new Server(server, {
   }
 });
 
-// Middleware to authenticate socket connections via JWT
-io.use(async (socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) return next(new Error('Authentication error: No token provided'));
-
-  try {
-    const decoded = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
-    socket.userId = decoded.id || decoded.userId;
-    if (!validId(socket.userId) || !await User.exists({ _id: socket.userId })) return next(new Error('Authentication error: Invalid user'));
-    next();
-  } catch (err) {
-    next(new Error('Authentication error: Invalid token'));
-  }
-});
+io.use(authenticateSocket);
 
 // Track active connections
 socketService.setIo(io);

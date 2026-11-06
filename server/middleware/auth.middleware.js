@@ -20,6 +20,9 @@ const verifyToken = (req, res, next) => {
     // 4. Bind the decoded user ID to the request object
     // Assuming the payload contains the ID in either 'userId' or 'id'
     req.userId = decoded.userId || decoded.id; 
+    if (typeof req.userId !== 'string' || !/^[a-f0-9]{24}$/.test(req.userId)) {
+      return res.status(401).json({ message: 'Invalid token identity.' });
+    }
     
     next();
   } catch (error) {
