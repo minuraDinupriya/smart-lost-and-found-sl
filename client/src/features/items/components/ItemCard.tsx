@@ -1,10 +1,21 @@
-import React from 'react';
-import { MapPin, Calendar, Phone, Image as ImageIcon, CheckCircle, ShieldCheck, ImageOff, ShieldQuestion, User } from 'lucide-react';
-import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
-import api from '../../../services/api';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  ImageOff,
+  MapPin,
+  MessageSquare,
+  MoreHorizontal,
+  PackageSearch,
+  Search,
+  ShieldCheck,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
+import api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 
 export interface ItemProps {
   _id: string;
@@ -30,248 +41,261 @@ export interface ItemProps {
   archiveStatus?: 'active' | 'archived';
   expiresAt?: string;
   createdAt?: string;
+  latitude?: number;
+  longitude?: number;
+  isFuzzy?: boolean;
 }
 
-const ItemCard: React.FC<{ item: ItemProps }> = ({ item }) => {
+const ItemCard: React.FC<{ item: ItemProps; onChange?: () => void }> = ({ item, onChange }) => {
   const { t, i18n } = useTranslation();
-  const isLost = item.type === 'LOST';
-  const isSmartTag = item.type === 'SMART_TAG';
-  const navigate = useNavigate();
   const { user, fetchMe } = useAuth();
+  const navigate = useNavigate();
+  const [working, setWorking] = useState(false);
+  const creatorId = typeof item.createdBy === 'object' ? item.createdBy?._id : item.createdBy;
+  const isOwner = Boolean(user?._id && user._id === creatorId);
+  const isReturned = item.status === 'Claimed';
+  const isArchived = item.archiveStatus === 'archived';
+  const title =
+    i18n.language === 'si' && item.titleSi
+      ? item.titleSi
+      : i18n.language === 'ta' && item.titleTa
+        ? item.titleTa
+        : item.title;
+  const description =
+    i18n.language === 'si' && item.descriptionSi
+      ? item.descriptionSi
+      : i18n.language === 'ta' && item.descriptionTa
+        ? item.descriptionTa
+        : item.description;
+  const imageURL = item.imageUrl?.startsWith('http')
+    ? item.imageUrl
+    : item.imageUrl
+      ? (import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001') +
+        '/uploads/' +
+        item.imageUrl
+      : '';
+  const refresh = () => {
+    if (onChange) onChange();
+    else window.location.reload();
+  };
 
-  const createdById = typeof item.createdBy === 'object' ? item.createdBy?._id : item.createdBy;
-  const isOwner = user?._id === createdById;
-
-  const handleDelete = () => {
-    Swal.fire({
-      title: 'Delete Item?',
-      text: 'Are you sure you want to permanently delete this report?',
+  const remove = async () => {
+    const result = await Swal.fire({
+      title: t('ui.deleteTitle'),
+      text: t('ui.deleteDescription'),
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#800000',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete it!'
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await api.delete(`/items/${item._id}`);
-          Swal.fire('Deleted!', 'Your item has been removed from the national network.', 'success').then(() => {
-            window.location.reload();
-          });
-        } catch (error: any) {
-          Swal.fire('Error', error.response?.data?.message || 'Failed to delete item.', 'error');
-        }
-      }
+      confirmButtonText: t('common.delete'),
+      cancelButtonText: t('ui.cancel'),
+      focusCancel: true,
     });
-  };
-
-  const handleClaimInitiation = () => {
-    Swal.fire({
-      title: 'Initiate Blind Claim',
-      text: 'To claim this item, you must initiate verification to prove ownership. Do you wish to proceed?',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonColor: '#800000',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, proceed to verification',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Verification Room Initiated',
-          text: 'You will now be connected to a secure Socket.io chat room to communicate with the poster.',
-          icon: 'success',
-          confirmButtonColor: '#800000'
-        }).then(() => {
-          navigate(`/chat/${item._id}/${createdById}`);
-        });
-      }
-    });
-  };
-
-  const handleMarkAsClaimed = async () => {
+    if (!result.isConfirmed) return;
+    setWorking(true);
     try {
-      await api.put(`/items/${item._id}/claim`);
-      
-      if (item.type === 'FOUND') {
-        Swal.fire({
-          title: 'Thank You Hero!',
-          text: 'You successfully returned this item and earned +50 Trust Score!',
-          icon: 'success',
-          confirmButtonColor: '#10b981'
-        }).then(() => {
-          fetchMe();
-          window.location.reload();
-        });
-      } else {
-        Swal.fire({
-          title: 'Resolved!',
-          text: 'This lost item has been marked as claimed.',
-          icon: 'success',
-          confirmButtonColor: '#800000'
-        }).then(() => {
-          window.location.reload();
-        });
-      }
+      await api.delete('/items/' + item._id);
+      refresh();
     } catch (error: any) {
-      Swal.fire('Error', error.response?.data?.message || 'Failed to claim item.', 'error');
+      Swal.fire(t('ui.actionError'), error.response?.data?.message || t('ui.tryAgain'), 'error');
+    } finally {
+      setWorking(false);
     }
+  };
+  const markReturned = async () => {
+    const result = await Swal.fire({
+      title: t('ui.returnTitle'),
+      text: t('ui.returnDescription'),
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: t('ui.confirmReturn'),
+      cancelButtonText: t('ui.cancel'),
+      focusCancel: true,
+    });
+    if (!result.isConfirmed) return;
+    setWorking(true);
+    try {
+      await api.put('/items/' + item._id + '/claim');
+      await fetchMe();
+      refresh();
+    } catch (error: any) {
+      Swal.fire(t('ui.actionError'), error.response?.data?.message || t('ui.tryAgain'), 'error');
+    } finally {
+      setWorking(false);
+    }
+  };
+  const contact = () => {
+    if (!user) {
+      navigate('/login', { state: { from: '/chat/' + item._id + '/' + creatorId } });
+      return;
+    }
+    navigate('/chat/' + item._id + '/' + creatorId);
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 dark:border-slate-700 overflow-hidden hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
-      {/* Image Banner & Dynamic Type Badge */}
-      <div className="relative h-56 bg-gray-100 dark:bg-slate-700 flex-shrink-0 overflow-hidden group">
-        {item.imageUrl ? (
-          <img src={item.imageUrl.startsWith('http') ? item.imageUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/uploads/${item.imageUrl}`} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <article className="ui-panel flex h-full flex-col overflow-hidden transition-colors hover:border-slate-300 dark:hover:border-slate-500">
+      <Link
+        to={'/items/' + item._id}
+        className="relative block aspect-[3/2] overflow-hidden bg-slate-100 dark:bg-slate-900"
+        aria-label={t('ui.viewNamedReport', { title })}
+      >
+        {imageURL ? (
+          <img
+            src={imageURL}
+            alt={title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-            <ImageOff className="w-10 h-10 mb-2 opacity-50" />
-            <span className="text-sm font-medium opacity-75">{t('item.noImage')}</span>
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-400">
+            <ImageOff className="h-9 w-9" aria-hidden="true" />
+            <span className="text-xs">{t('item.noImage')}</span>
           </div>
         )}
-        
-        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
-          {item.status === 'Claimed' && (
-            <span className="bg-emerald-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-emerald-400/50 shadow-sm flex items-center">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              {t('item.claimed')}
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          {isReturned ? (
+            <span className="ui-badge ui-success border border-emerald-200 dark:border-emerald-800">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {t('ui.returned')}
             </span>
-          )}
-          {isSmartTag ? (
-            <span className="bg-indigo-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-indigo-400/50 shadow-sm flex items-center">
-              <ShieldCheck className="w-3 h-3 mr-1" />
-              {t('item.smartTag')}
+          ) : isArchived ? (
+            <span className="ui-badge bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+              {t('nav.archivedItems')}
             </span>
           ) : (
-            <span className={`text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border shadow-sm ${
-              isLost ? 'bg-rose-500/90 border-rose-400/50' : 'bg-emerald-500/90 border-emerald-400/50'
-            }`}>
-              {isLost ? t('item.lost') : t('item.found')}
-            </span>
-          )}
-          {item.handedToPolice && item.status === 'At Police Station' && (
-            <span className="bg-blue-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-blue-400/50 shadow-sm flex items-center">
-              <ShieldCheck className="w-3 h-3 mr-1" />
-              At Police Station
-            </span>
-          )}
-          {item.archiveStatus === 'archived' && (
-            <span className="bg-slate-600/95 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm border border-slate-500/50 shadow-sm flex items-center">
-              Archived
-            </span>
-          )}
-        </div>
-        
-        {isOwner && (
-          <div className="absolute top-4 right-4 bg-slate-900 text-white font-medium text-xs tracking-wider px-2.5 py-0.5 rounded-full shadow-sm flex items-center">
-            <span className="w-2 h-2 rounded-full bg-white mr-2 animate-pulse"></span>
-            {t('item.yourPost')}
-          </div>
-        )}
-      </div>
-
-      {/* Content Section */}
-      <div className="p-6 flex-grow flex flex-col">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight line-clamp-1 pr-2">
-            {i18n.language === 'si' && item.titleSi ? item.titleSi : (i18n.language === 'ta' && item.titleTa ? item.titleTa : item.title)}
-          </h3>
-          <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-xs px-2.5 py-1 rounded-md font-semibold whitespace-nowrap">
-            {t(`categories.${item.category}`, { defaultValue: item.category })}
-          </span>
-        </div>
-        
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-5 line-clamp-2 flex-grow leading-relaxed">
-          {i18n.language === 'si' && item.descriptionSi ? item.descriptionSi : (i18n.language === 'ta' && item.descriptionTa ? item.descriptionTa : item.description)}
-        </p>
-
-        {/* Structured Metadata block */}
-        <div className="space-y-2.5 mb-5 bg-gray-50 dark:bg-slate-700/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
-          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-            <User className="w-4 h-4 mr-2.5 text-[#800000]" />
-            <span>{typeof item.createdBy === 'object' && item.createdBy?.username ? `@${item.createdBy.username}` : 'Unknown User'}</span>
-          </div>
-          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-            <MapPin className="w-4 h-4 mr-2.5 text-[#800000]" />
-            <span className="truncate">{item.city}, {item.district}</span>
-          </div>
-          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-            <Calendar className="w-4 h-4 mr-2.5 text-[#800000]" />
-            <span>{new Date(item.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-          </div>
-          <div className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
-            <Phone className="w-4 h-4 mr-2.5 text-[#800000]" />
-            <span>{item.contactNumber}</span>
-          </div>
-          {item.handedToPolice && item.policeStationName && (
-            <div className="flex items-center text-sm font-bold text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg mt-2">
-              <ShieldCheck className="w-4 h-4 mr-2 text-blue-600" />
-              Available to pick up at {item.policeStationName}
-            </div>
-          )}
-          {item.createdAt && (
-            <div className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 border-t border-gray-200/50 dark:border-slate-600/50 pt-2.5 mt-2.5">
-              <Calendar className="w-4 h-4 mr-2.5 text-gray-500" />
-              <span>
-                Uploaded on: {new Date(item.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        {/* Blind Claim Indicator Banner */}
-        {item.securityQuestion && !isLost && (
-           <div className="mb-5 flex items-center text-xs font-bold tracking-wide text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-200/60 dark:border-amber-700/50">
-             <ShieldQuestion className="w-4 h-4 mr-2" />
-             {t('item.blindClaimVerification')}
-           </div>
-        )}
-
-        {/* Contextual Action Button */}
-        {isOwner ? (
-          <div className="mt-auto flex flex-col gap-2">
-            {item.status !== 'Claimed' && item.archiveStatus !== 'archived' && (
-              <button 
-                onClick={handleMarkAsClaimed}
-                className="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-sm"
-              >
-                {t('item.markAsClaimed')}
-              </button>
-            )}
-            <div className="flex gap-2">
-              {item.archiveStatus !== 'archived' && (
-                <button 
-                  onClick={() => navigate(`/edit/${item._id}`)}
-                  className="flex-1 py-2 rounded-xl border-2 border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-300 dark:hover:border-slate-500 transition-colors text-sm"
-                >
-                  {t('common.edit')}
-                </button>
+            <span
+              className={
+                'ui-badge border ' +
+                (item.type === 'LOST'
+                  ? 'ui-pending border-amber-200 dark:border-amber-800'
+                  : 'ui-success border-emerald-200 dark:border-emerald-800')
+              }
+            >
+              {item.type === 'LOST' ? (
+                <Search className="h-3.5 w-3.5" />
+              ) : (
+                <PackageSearch className="h-3.5 w-3.5" />
               )}
-              <button 
-                onClick={handleDelete}
-                className={`py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors text-sm ${item.archiveStatus === 'archived' ? 'w-full' : 'flex-1'}`}
-              >
-                Delete Post
-              </button>
-            </div>
-          </div>
-        ) : user?.role !== 'police' && item.archiveStatus !== 'archived' ? (
-          <button 
-            onClick={handleClaimInitiation}
-            className="w-full mt-auto py-3 rounded-xl border-2 border-[#800000] dark:border-red-400 text-[#800000] dark:text-red-400 font-bold hover:bg-[#800000] dark:hover:bg-red-400 hover:text-white dark:hover:text-slate-900 transition-colors active:scale-[0.98]"
+              {item.type === 'SMART_TAG'
+                ? t('item.smartTag')
+                : item.type === 'LOST'
+                  ? t('ui.lostReports')
+                  : t('ui.foundReports')}
+            </span>
+          )}
+        </div>
+      </Link>
+      <div className="flex flex-1 flex-col p-5">
+        <div className="mb-2 flex items-center justify-between gap-2 text-xs">
+          <span className="ui-muted">
+            {t('categories.' + item.category, { defaultValue: item.category })}
+          </span>
+          {isOwner && (
+            <span className="font-medium text-brand-700 dark:text-brand-300">
+              {t('ui.yourReport')}
+            </span>
+          )}
+        </div>
+        <h3 className="min-h-[3rem] text-lg font-semibold leading-6 tracking-tight">
+          <Link
+            to={'/items/' + item._id}
+            className="line-clamp-2 rounded hover:text-brand-700 dark:hover:text-brand-300"
           >
-            {isLost ? 'I Have This Item' : 'Claim This Item'}
-          </button>
-        ) : item.archiveStatus === 'archived' ? (
-          <div className="w-full mt-auto py-3 text-center rounded-xl bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-gray-500 font-bold text-sm select-none border border-gray-200 dark:border-slate-600">
-            Archived
+            {title}
+          </Link>
+        </h3>
+        <p className="ui-muted mt-2 line-clamp-2 text-sm leading-6">{description}</p>
+        <div className="ui-muted mt-5 space-y-2 text-sm">
+          <p className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">
+              {item.city}, {item.district}
+            </span>
+          </p>
+          {item.date && (
+            <p className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <time dateTime={item.date}>
+                {new Date(item.date).toLocaleDateString(i18n.language, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </time>
+            </p>
+          )}
+          {item.handedToPolice && item.policeStationName && (
+            <p className="flex items-start gap-2 text-emerald-800 dark:text-emerald-300">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{item.policeStationName}</span>
+            </p>
+          )}
+        </div>
+        <p className="ui-muted mt-4 text-xs">
+          {t('ui.reportedBy')}{' '}
+          <span className="font-medium">
+            {typeof item.createdBy === 'object' && item.createdBy?.username
+              ? '@' + item.createdBy.username
+              : t('ui.communityMember')}
+          </span>
+        </p>
+        <div className="mt-auto pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+            <Link
+              to={'/items/' + item._id}
+              className="ui-quiet -ml-2 gap-1 px-2 text-brand-700 dark:text-brand-300"
+            >
+              {t('ui.viewReport')}
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            {isOwner ? (
+              <details className="relative">
+                <summary
+                  className="ui-secondary flex list-none cursor-pointer px-3 [&::-webkit-details-marker]:hidden"
+                  aria-label={t('ui.reportActions', { title })}
+                >
+                  <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+                  <span className="sr-only">{t('ui.reportActions', { title })}</span>
+                </summary>
+                <div className="ui-panel absolute bottom-full right-0 z-10 mb-2 w-52 p-1.5 shadow-lg">
+                  {!isArchived && (
+                    <Link className="ui-quiet w-full justify-start" to={'/edit/' + item._id}>
+                      {t('common.edit')}
+                    </Link>
+                  )}
+                  {!isReturned && !isArchived && (
+                    <button
+                      type="button"
+                      className="ui-quiet w-full justify-start"
+                      disabled={working}
+                      onClick={markReturned}
+                    >
+                      {t('ui.markReturned')}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="ui-quiet w-full justify-start text-red-700 dark:text-red-300"
+                    disabled={working}
+                    onClick={remove}
+                  >
+                    {working ? t('common.loading') : t('common.delete')}
+                  </button>
+                </div>
+              </details>
+            ) : (
+              !isReturned &&
+              !isArchived &&
+              user?.role !== 'police' && (
+                <button type="button" className="ui-secondary px-3" onClick={contact}>
+                  <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                  {t('ui.contact')}
+                </button>
+              )
+            )}
           </div>
-        ) : null}
+        </div>
       </div>
-    </div>
+    </article>
   );
 };
-
 export default ItemCard;

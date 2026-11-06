@@ -1,4 +1,5 @@
 import React from 'react';
+import { MotionConfig } from 'framer-motion';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/layout/Navbar';
@@ -28,12 +29,14 @@ import TipHistoryPage from './features/tips/pages/TipHistoryPage';
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-sans flex flex-col tracking-tight antialiased transition-colors duration-200">
+    <MotionConfig reducedMotion="user">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans flex flex-col antialiased transition-colors duration-200">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-brand-700 focus:px-4 focus:py-3 focus:text-white">Skip to content</a>
       {/* Global Hot Toast Configuration */}
       <Toaster
         position="top-right"
         toastOptions={{
-          className: 'rounded-xl shadow-lg font-medium border border-gray-100',
+          className: 'rounded-xl shadow-lg font-medium border border-slate-200 dark:border-slate-700 dark:!bg-slate-800 dark:!text-slate-100',
           duration: 4000,
         }}
       />
@@ -42,7 +45,7 @@ const App: React.FC = () => {
       <Navbar />
 
       {/* Main Routing View */}
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main id="main-content" tabIndex={-1} className="flex-grow w-full max-w-7xl mx-auto [overflow-wrap:anywhere] px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/post" element={<PostItemPage />} />
@@ -57,7 +60,7 @@ const App: React.FC = () => {
 
           {/* Analytics Route */}
           <Route path="/analytics" element={<AnalyticsPage />} />
-          
+
           {/* Hotspots Route */}
           <Route path="/hotspots" element={<HotspotMapPage />} />
 
@@ -86,6 +89,7 @@ const App: React.FC = () => {
         </Routes>
       </main>
     </div>
+    </MotionConfig>
   );
 };
 

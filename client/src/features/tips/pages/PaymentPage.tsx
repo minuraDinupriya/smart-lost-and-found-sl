@@ -48,7 +48,7 @@ const PaymentPage: React.FC = () => {
   }, [tipId, isMock, reference, navigate]);
 
   if (loading) {
-    return <div className="flex justify-center p-20 text-gray-500 font-medium animate-pulse">Loading mock payment portal...</div>;
+    return <div className="flex justify-center p-20 text-gray-500 font-medium animate-pulse dark:text-slate-400">Loading mock payment portal...</div>;
   }
 
   const handleMockPay = async (e: React.FormEvent) => {
@@ -88,11 +88,11 @@ const PaymentPage: React.FC = () => {
       {/* Top Secure Header */}
       <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/40">
         <div className="flex items-center space-x-2">
-          <Shield className="w-5 h-5 text-emerald-400" />
+          <Shield className="w-5 h-5 text-emerald-400 dark:text-emerald-300" />
           <span className="text-xs uppercase font-bold tracking-wider text-slate-400">Smart Gateway Sandbox</span>
         </div>
         <div className="flex items-center space-x-1 text-slate-400 text-xs font-semibold">
-          <Lock className="w-3.5 h-3.5 text-emerald-400" />
+          <Lock className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-300" />
           <span>SSL Secured</span>
         </div>
       </div>
@@ -102,12 +102,12 @@ const PaymentPage: React.FC = () => {
         <div className="text-center mb-8">
           <p className="text-slate-400 text-sm font-medium">Paying Reward Tip to @{tip?.finderId?.username}</p>
           <h2 className="text-4xl font-extrabold mt-1 text-white">Rs. {tip?.amount?.toLocaleString()}</h2>
-          <p className="text-slate-500 text-xs mt-1.5">For returning: <span className="font-semibold text-slate-300">"{tip?.returnRecordId?.itemId?.title}"</span></p>
+          <p className="text-slate-500 text-xs mt-1.5 dark:text-slate-400">For returning: <span className="font-semibold text-slate-300 dark:text-slate-400">"{tip?.returnRecordId?.itemId?.title}"</span></p>
         </div>
 
         {/* Credit Card Graphic */}
         <div className="bg-gradient-to-br from-red-800 to-rose-950 p-6 rounded-2xl shadow-lg border border-red-700/30 relative overflow-hidden mb-8">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-8 -translate-y-8 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full transform translate-x-8 -translate-y-8 pointer-events-none dark:bg-slate-800/5" />
           <div className="flex justify-between items-start mb-10">
             <CreditCard className="w-10 h-10 text-white/80" />
             <span className="text-xs font-black tracking-widest text-white/60">VISA MOCK</span>
@@ -130,47 +130,47 @@ const PaymentPage: React.FC = () => {
         {/* Form fields */}
         <form onSubmit={handleMockPay} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Card Number</label>
-            <input
+            <label htmlFor="paymentpage-1" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Card Number</label>
+            <input id="paymentpage-1"
               type="text"
               value={cardNumber}
               onChange={(e) => setCardNumber(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-[#800000] focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-mono"
+              className="w-full bg-slate-950 border border-slate-800 focus:border-brand-700 focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-mono"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Expiry Date</label>
-              <input
+              <label htmlFor="paymentpage-2" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Expiry Date</label>
+              <input id="paymentpage-2"
                 type="text"
                 value={expiry}
                 onChange={(e) => setExpiry(e.target.value)}
                 placeholder="MM/YY"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-[#800000] focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-mono"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-brand-700 focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-mono"
                 required
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">CVC</label>
-              <input
+              <label htmlFor="paymentpage-3" className="text-xs font-bold text-slate-400 uppercase tracking-wider">CVC</label>
+              <input id="paymentpage-3"
                 type="text"
                 value={cvv}
                 onChange={(e) => setCvv(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-[#800000] focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-mono"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-brand-700 focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-mono"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1.5 pb-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Holder Name</label>
-            <input
+            <label htmlFor="paymentpage-4" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Holder Name</label>
+            <input id="paymentpage-4"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-[#800000] focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-semibold"
+              className="w-full bg-slate-950 border border-slate-800 focus:border-brand-700 focus:ring-0 rounded-xl px-4 py-3 text-sm text-white font-semibold"
               required
             />
           </div>
@@ -178,7 +178,7 @@ const PaymentPage: React.FC = () => {
           <button
             type="submit"
             disabled={paying}
-            className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 active:scale-98 transition-all rounded-xl text-slate-950 font-bold text-base flex items-center justify-center space-x-2 focus:outline-none"
+            className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 active:scale-98 transition-all rounded-xl text-slate-950 font-bold text-base flex items-center justify-center space-x-2 focus:outline-none dark:text-slate-100"
           >
             <span>{paying ? 'Processing Sandbox Payment...' : `Authorize Payment of Rs. ${tip?.amount}`}</span>
             {!paying && <ArrowRight className="w-5 h-5" />}

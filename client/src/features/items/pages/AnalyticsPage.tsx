@@ -38,12 +38,12 @@ const AnalyticsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#800000]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-700"></div>
       </div>
     );
   }
 
-  if (!data) return <div className="text-center p-10 font-bold text-gray-500">Failed to load analytics data.</div>;
+  if (!data) return <div className="text-center p-10 font-bold text-gray-500 dark:text-slate-400">Failed to load analytics data.</div>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
@@ -55,9 +55,9 @@ const AnalyticsPage: React.FC = () => {
         </div>
         <div className="relative z-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 flex items-center">
-            National Analytics Dashboard <Activity className="ml-3 w-8 h-8 text-yellow-400" />
+            National Analytics Dashboard <Activity className="ml-3 w-8 h-8 text-yellow-400 dark:text-yellow-300" />
           </h1>
-          <p className="text-gray-300 text-lg max-w-2xl">
+          <p className="text-gray-300 text-lg max-w-2xl dark:text-slate-400">
             Live, nationwide statistics on the Lost & Found ecosystem. See what is being lost, where it's happening, and how effectively our community is recovering items.
           </p>
         </div>
@@ -65,43 +65,43 @@ const AnalyticsPage: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700">
           <div>
-            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Total Active</p>
-            <h2 className="text-4xl font-black text-gray-900">{data.totalItems}</h2>
+            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1 dark:text-slate-400">Total Active</p>
+            <h2 className="text-4xl font-black text-gray-900 dark:text-slate-100">{data.totalItems}</h2>
           </div>
-          <div className="bg-gray-50 p-4 rounded-2xl text-gray-400">
+          <div className="bg-gray-50 p-4 rounded-2xl text-gray-400 dark:bg-slate-900/50 dark:text-slate-400">
              <BarChart3 className="w-8 h-8" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-emerald-100 flex items-center justify-between hover:shadow-md transition-shadow">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-emerald-100 flex items-center justify-between hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-emerald-800">
           <div>
-            <p className="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-1">Successfully Recovered</p>
-            <h2 className="text-4xl font-black text-emerald-700">{data.totalRecovered}</h2>
+            <p className="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-1 dark:text-emerald-300">Successfully Recovered</p>
+            <h2 className="text-4xl font-black text-emerald-700 dark:text-emerald-300">{data.totalRecovered}</h2>
           </div>
-          <div className="bg-emerald-50 p-4 rounded-2xl text-emerald-500">
+          <div className="bg-emerald-50 p-4 rounded-2xl text-emerald-500 dark:bg-emerald-900/25 dark:text-emerald-300">
              <CheckCircle className="w-8 h-8" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-red-100 flex items-center justify-between hover:shadow-md transition-shadow">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-red-100 flex items-center justify-between hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-red-800">
           <div>
-            <p className="text-sm font-bold text-red-500 uppercase tracking-wider mb-1">Currently Lost</p>
-            <h2 className="text-4xl font-black text-red-600">{data.totalLost}</h2>
+            <p className="text-sm font-bold text-red-500 uppercase tracking-wider mb-1 dark:text-red-300">Currently Lost</p>
+            <h2 className="text-4xl font-black text-red-600 dark:text-red-300">{data.totalLost}</h2>
           </div>
-          <div className="bg-red-50 p-4 rounded-2xl text-red-400">
+          <div className="bg-red-50 p-4 rounded-2xl text-red-400 dark:bg-red-900/25 dark:text-red-300">
              <Search className="w-8 h-8" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-blue-100 flex items-center justify-between hover:shadow-md transition-shadow">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-blue-100 flex items-center justify-between hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-blue-800">
           <div>
-            <p className="text-sm font-bold text-blue-500 uppercase tracking-wider mb-1">Currently Found</p>
-            <h2 className="text-4xl font-black text-blue-600">{data.totalFound}</h2>
+            <p className="text-sm font-bold text-blue-500 uppercase tracking-wider mb-1 dark:text-blue-300">Currently Found</p>
+            <h2 className="text-4xl font-black text-blue-600 dark:text-blue-300">{data.totalFound}</h2>
           </div>
-          <div className="bg-blue-50 p-4 rounded-2xl text-blue-400">
+          <div className="bg-blue-50 p-4 rounded-2xl text-blue-400 dark:bg-blue-900/25 dark:text-blue-300">
              <Map className="w-8 h-8" />
           </div>
         </div>
@@ -110,17 +110,17 @@ const AnalyticsPage: React.FC = () => {
 
       {/* Main Charts Area */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         {/* Category Chart */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Lost & Found by Category</h3>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 dark:bg-slate-800 dark:border-slate-700">
+          <h3 className="text-lg font-bold text-gray-900 mb-6 dark:text-slate-100">Lost & Found by Category</h3>
           <div className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.itemsByCategory} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
-                <Tooltip 
+                <Tooltip
                   cursor={{fill: '#f9fafb'}}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
@@ -131,8 +131,8 @@ const AnalyticsPage: React.FC = () => {
         </div>
 
         {/* Province Heatmap / Pie Chart */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Provincial Distribution</h3>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 dark:bg-slate-800 dark:border-slate-700">
+          <h3 className="text-lg font-bold text-gray-900 mb-6 dark:text-slate-100">Provincial Distribution</h3>
           <div className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -149,7 +149,7 @@ const AnalyticsPage: React.FC = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -161,8 +161,8 @@ const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* Timeline Chart */}
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-10">
-        <h3 className="text-lg font-bold text-gray-900 mb-6">Monthly Incident Timeline</h3>
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-10 dark:bg-slate-800 dark:border-slate-700">
+        <h3 className="text-lg font-bold text-gray-900 mb-6 dark:text-slate-100">Monthly Incident Timeline</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.timelineData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -175,7 +175,7 @@ const AnalyticsPage: React.FC = () => {
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
               <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
               <Area type="monotone" dataKey="value" stroke="#800000" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />

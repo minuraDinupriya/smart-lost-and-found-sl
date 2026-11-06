@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 interface User {
@@ -36,20 +35,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
+  const location = useLocation();
+  // Only restore internal destinations supplied by the page that required sign-in.
+  const requestedPath = location.state?.from;
+  const returnTo =
+    typeof requestedPath === 'string' &&
+    requestedPath.startsWith('/') &&
+    !requestedPath.startsWith('//') &&
+    !requestedPath.includes('\\')
+      ? requestedPath
+      : '/';
 
   const fetchMe = async () => {
     try {
       const response = await api.get('/auth/me');
       if (response.data && response.data.user) {
-          setUser({ 
-            username: response.data.user.username, 
-            _id: response.data.user._id,
-            karmaPoints: response.data.user.karmaPoints,
-            role: response.data.user.role,
-            policeStationName: response.data.user.policeStationName,
-            profilePicture: response.data.user.profilePicture,
-            bankDetails: response.data.user.bankDetails
-          });
+        setUser({
+          username: response.data.user.username,
+          _id: response.data.user._id,
+          karmaPoints: response.data.user.karmaPoints,
+          role: response.data.user.role,
+          policeStationName: response.data.user.policeStationName,
+          profilePicture: response.data.user.profilePicture,
+          bankDetails: response.data.user.bankDetails,
+        });
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -61,132 +70,78 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const storedToken = localStorage.getItem('token');
     const storedUsername = localStorage.getItem('username');
     const storedUserId = localStorage.getItem('userId');
-    
+
     if (storedToken && storedUsername) {
       let decodedId = storedUserId;
       if (!decodedId && storedToken) {
         try {
           decodedId = JSON.parse(atob(storedToken.split('.')[1])).id;
-        } catch(e) {}
+        } catch (e) {}
       }
       setToken(storedToken);
       setUser({ username: storedUsername, _id: decodedId || undefined });
-      
-      // Fetch latest profile to get Karma Points
-      api.get('/auth/me', { headers: { Authorization: `Bearer ${storedToken}` } })
-        .then(res => {
+
+      // Fetch latest profile to get Karma points
+      api
+        .get('/auth/me', { headers: { Authorization: `Bearer ${storedToken}` } })
+        .then((res) => {
           if (res.data && res.data.user) {
-            setUser({ 
-              username: res.data.user.username, 
+            setUser({
+              username: res.data.user.username,
               _id: res.data.user._id,
               karmaPoints: res.data.user.karmaPoints,
               role: res.data.user.role,
               policeStationName: res.data.user.policeStationName,
               profilePicture: res.data.user.profilePicture,
-              bankDetails: res.data.user.bankDetails
+              bankDetails: res.data.user.bankDetails,
             });
           }
         })
-        .catch(err => console.error('Failed to fetch user:', err));
+        .catch((error) => {
+          if (error.response?.status !== 401 && error.response?.status !== 403) return;
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
+          localStorage.removeItem('userId');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    
-    setLoading(false);
   }, []);
 
   const registerUser = async (username: string, password: string) => {
-    try {
-      await api.post('/auth/register', { username, password });
-      
-      Swal.fire({
-        title: 'Registration Successful!',
-        text: 'You can now login with your credentials.',
-        icon: 'success',
-        confirmButtonColor: '#800000', // Maroon Brand Color
-      });
-      
-      navigate('/login');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Registration failed. Please try again.';
-      Swal.fire({
-        title: 'Error!',
-        text: message,
-        icon: 'error',
-        confirmButtonColor: '#800000',
-      });
-      throw error;
-    }
+    await api.post('/auth/register', { username, password });
+    navigate('/login', { replace: true, state: { registered: true, from: returnTo } });
+  };
+
+  const completeLogin = async (data: any) => {
+    const {
+      token: receivedToken,
+      username,
+      userId,
+      role,
+      policeStationName,
+      profilePicture,
+    } = data;
+    localStorage.setItem('token', receivedToken);
+    localStorage.setItem('username', username);
+    if (userId) localStorage.setItem('userId', userId);
+    setToken(receivedToken);
+    setUser({ username, _id: userId, role, policeStationName, profilePicture });
+    await fetchMe();
+    navigate(returnTo, { replace: true });
   };
 
   const loginUser = async (username: string, password: string) => {
-    try {
-      const response = await api.post('/auth/login', { username, password });
-      const { token: receivedToken, username: receivedUsername, userId, role, policeStationName, profilePicture } = response.data;
-
-      // Update local state (karma will be 0 initially or updated via fetchMe)
-      setToken(receivedToken);
-      setUser({ username: receivedUsername, _id: userId, role, policeStationName, profilePicture });
-      fetchMe(); // fetch karma points
-
-      // Persist in localStorage
-      localStorage.setItem('token', receivedToken);
-      localStorage.setItem('username', receivedUsername);
-      if (userId) localStorage.setItem('userId', userId);
-
-      Swal.fire({
-        title: 'Welcome Back!',
-        text: `Successfully logged in as ${receivedUsername}.`,
-        icon: 'success',
-        confirmButtonColor: '#800000',
-        timer: 2000,
-        showConfirmButton: false
-      });
-
-      navigate('/');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Invalid credentials.';
-      Swal.fire({
-        title: 'Login Failed!',
-        text: message,
-        icon: 'error',
-        confirmButtonColor: '#800000',
-      });
-      throw error;
-    }
+    const response = await api.post('/auth/login', { username, password });
+    await completeLogin(response.data);
   };
 
   const loginWithGoogle = async (googleToken: string) => {
-    try {
-      const response = await api.post('/auth/google', { token: googleToken });
-      const { token: receivedToken, username: receivedUsername, userId, role, policeStationName, profilePicture } = response.data;
-
-      setToken(receivedToken);
-      setUser({ username: receivedUsername, _id: userId, role, policeStationName, profilePicture });
-      fetchMe();
-
-      localStorage.setItem('token', receivedToken);
-      localStorage.setItem('username', receivedUsername);
-      if (userId) localStorage.setItem('userId', userId);
-
-      Swal.fire({
-        title: 'Welcome Back!',
-        text: `Successfully logged in with Google as ${receivedUsername}.`,
-        icon: 'success',
-        confirmButtonColor: '#800000',
-        timer: 2000,
-        showConfirmButton: false
-      });
-
-      navigate('/');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Google Login failed.';
-      Swal.fire({
-        title: 'Error!',
-        text: message,
-        icon: 'error',
-        confirmButtonColor: '#800000',
-      });
-      throw error;
-    }
+    const response = await api.post('/auth/google', { token: googleToken });
+    await completeLogin(response.data);
   };
 
   const logout = () => {
@@ -197,12 +152,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Wipe persistent storage
     localStorage.removeItem('token');
     localStorage.removeItem('username');
+    localStorage.removeItem('userId');
 
     navigate('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, loginUser, registerUser, loginWithGoogle, fetchMe, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, loginUser, registerUser, loginWithGoogle, fetchMe, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

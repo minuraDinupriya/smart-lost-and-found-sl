@@ -39,7 +39,7 @@ const TipHistoryPage: React.FC = () => {
   }, [user]);
 
   if (loading) {
-    return <div className="flex justify-center p-20 text-gray-500 font-medium animate-pulse">Loading tip logs...</div>;
+    return <div className="flex justify-center p-20 text-gray-500 font-medium animate-pulse dark:text-slate-400">Loading tip logs...</div>;
   }
 
   const currentTips = activeTab === 'sent' ? sentTips : receivedTips;
@@ -49,29 +49,29 @@ const TipHistoryPage: React.FC = () => {
     <PageNavigation />
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Page Header */}
-      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 dark:bg-slate-800 dark:border-slate-700">
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center border border-amber-100">
-            <Wallet className="w-6 h-6 text-amber-600" />
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center border border-amber-100 dark:bg-amber-900/25 dark:border-amber-800">
+            <Wallet className="w-6 h-6 text-amber-600 dark:text-amber-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Reward Tip History</h1>
-            <p className="text-gray-500 text-sm font-medium">View the record of monetary tips sent and received.</p>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight dark:text-slate-100">Reward Tip History</h1>
+            <p className="text-gray-500 text-sm font-medium dark:text-slate-400">View the record of monetary tips sent and received.</p>
           </div>
         </div>
 
         {/* Quick Stats Summary */}
-        <div className="flex items-center space-x-6 text-sm bg-gray-50 border border-gray-100 px-5 py-3 rounded-2xl">
+        <div className="flex items-center space-x-6 text-sm bg-gray-50 border border-gray-100 px-5 py-3 rounded-2xl dark:bg-slate-900/50 dark:border-slate-700">
           <div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Sent</p>
-            <p className="font-extrabold text-gray-900 mt-0.5">
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider dark:text-slate-400">Total Sent</p>
+            <p className="font-extrabold text-gray-900 mt-0.5 dark:text-slate-100">
               Rs. {sentTips.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
             </p>
           </div>
-          <div className="border-l border-gray-200 h-8" />
+          <div className="border-l border-gray-200 h-8 dark:border-slate-700" />
           <div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Received</p>
-            <p className="font-extrabold text-emerald-600 mt-0.5">
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider dark:text-slate-400">Total Received</p>
+            <p className="font-extrabold text-emerald-600 mt-0.5 dark:text-emerald-300">
               Rs. {receivedTips.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
             </p>
           </div>
@@ -79,7 +79,7 @@ const TipHistoryPage: React.FC = () => {
       </div>
 
       {/* Tabs Selector */}
-      <div className="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200/50 max-w-sm">
+      <div className="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200/50 max-w-sm dark:bg-slate-700">
         <button
           onClick={() => setActiveTab('sent')}
           className={`flex-grow py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center space-x-2 focus:outline-none ${
@@ -88,7 +88,7 @@ const TipHistoryPage: React.FC = () => {
               : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          <ArrowUpRight className="w-4 h-4 text-red-500" />
+          <ArrowUpRight className="w-4 h-4 text-red-500 dark:text-red-300" />
           <span>Tips Sent ({sentTips.length})</span>
         </button>
         <button
@@ -99,7 +99,7 @@ const TipHistoryPage: React.FC = () => {
               : 'text-gray-500 hover:text-emerald-600'
           }`}
         >
-          <ArrowDownLeft className="w-4 h-4 text-emerald-500" />
+          <ArrowDownLeft className="w-4 h-4 text-emerald-500 dark:text-emerald-300" />
           <span>Tips Received ({receivedTips.length})</span>
         </button>
       </div>
@@ -107,10 +107,10 @@ const TipHistoryPage: React.FC = () => {
       {/* List Feed */}
       <div className="space-y-4">
         {currentTips.length === 0 ? (
-          <div className="text-center p-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
-            <Gift className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-semibold">No transactions found.</p>
-            <p className="text-gray-400 text-xs mt-1">Tips sent or received will appear here after a successful payment verification.</p>
+          <div className="text-center p-20 bg-white rounded-3xl border border-gray-100 shadow-sm dark:bg-slate-800 dark:border-slate-700">
+            <Gift className="w-12 h-12 text-gray-300 mx-auto mb-3 dark:text-slate-400" />
+            <p className="text-gray-500 font-semibold dark:text-slate-400">No transactions found.</p>
+            <p className="text-gray-400 text-xs mt-1 dark:text-slate-400">Tips sent or received will appear here after a successful payment verification.</p>
           </div>
         ) : (
           currentTips.map((tip) => {
@@ -125,7 +125,7 @@ const TipHistoryPage: React.FC = () => {
             return (
               <div
                 key={tip._id}
-                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:border-gray-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:border-gray-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 dark:bg-slate-800 dark:border-slate-700"
               >
                 {/* Left side details */}
                 <div className="flex items-start space-x-4">
@@ -133,16 +133,16 @@ const TipHistoryPage: React.FC = () => {
                     <img
                       src={item.imageUrl.startsWith('http') ? item.imageUrl : `http://localhost:5000/uploads/${item.imageUrl}`}
                       alt={item.title}
-                      className="w-14 h-14 rounded-xl object-cover border border-gray-100 flex-shrink-0"
+                      className="w-14 h-14 rounded-xl object-cover border border-gray-100 flex-shrink-0 dark:border-slate-700"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+                    <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0 dark:bg-slate-700 dark:text-slate-400">
                       <Gift className="w-5 h-5" />
                     </div>
                   )}
                   <div className="space-y-1">
-                    <h4 className="font-bold text-gray-900 text-base">{item?.title || 'Returned Item'}</h4>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-gray-500">
+                    <h4 className="font-bold text-gray-900 text-base dark:text-slate-100">{item?.title || 'Returned Item'}</h4>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-gray-500 dark:text-slate-400">
                       <span className="flex items-center">
                         <Calendar className="w-3.5 h-3.5 mr-1" />
                         {formattedDate}
@@ -150,12 +150,12 @@ const TipHistoryPage: React.FC = () => {
                       <span className="flex items-center">
                         <User className="w-3.5 h-3.5 mr-1" />
                         {activeTab === 'sent' ? 'To: ' : 'From: '}
-                        <span className="font-bold text-gray-700">@{targetUser?.username}</span>
+                        <span className="font-bold text-gray-700 dark:text-slate-300">@{targetUser?.username}</span>
                       </span>
                     </div>
                     {tip.thankYouMessage && (
-                      <p className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100 flex items-start max-w-lg mt-2">
-                        <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-gray-400 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100 flex items-start max-w-lg mt-2 dark:text-slate-300 dark:bg-slate-900/50 dark:border-slate-700">
+                        <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-gray-400 flex-shrink-0 mt-0.5 dark:text-slate-400" />
                         <span className="italic">"{tip.thankYouMessage}"</span>
                       </p>
                     )}
@@ -163,13 +163,13 @@ const TipHistoryPage: React.FC = () => {
                 </div>
 
                 {/* Right side amount */}
-                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 border-gray-100 pt-4 md:pt-0">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider md:hidden">Amount</span>
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 border-gray-100 pt-4 md:pt-0 dark:border-slate-700">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider md:hidden dark:text-slate-400">Amount</span>
                   <div className="flex flex-col items-end">
                     <span className={`text-xl font-black ${activeTab === 'sent' ? 'text-gray-900' : 'text-emerald-600'}`}>
                       {activeTab === 'sent' ? '-' : '+'} Rs. {tip.amount.toLocaleString()}
                     </span>
-                    <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full mt-1 border border-emerald-100">
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full mt-1 border border-emerald-100 dark:bg-emerald-900/25 dark:text-emerald-300 dark:border-emerald-800">
                       Paid
                     </span>
                   </div>

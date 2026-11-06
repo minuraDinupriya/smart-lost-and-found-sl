@@ -2,15 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Shared controls stay in Tailwind's component layer so individual pages can extend them. */
+@layer components {
+  .ui-panel { @apply rounded-2xl border border-slate-200 bg-white shadow-card dark:border-slate-700 dark:bg-slate-800; }
+  .ui-button { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
+  .ui-primary { @apply ui-button bg-brand-700 text-white hover:bg-brand-800 dark:bg-brand-700 dark:hover:bg-brand-800; }
+  .ui-secondary { @apply ui-button border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700; }
+  .ui-quiet { @apply ui-button text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800; }
+  .ui-field { @apply min-h-[46px] w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder-slate-500 transition-colors focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-700/20 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-brand-300 dark:focus:ring-brand-300/25 dark:disabled:bg-slate-800; }
+  .ui-label { @apply mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200; }
+  .ui-muted { @apply text-slate-600 dark:text-slate-400; }
+  .ui-badge { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .ui-success { @apply bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300; }
+  .ui-pending { @apply bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200; }
+}
+
 @layer base {
-  body {
-  font-family: 'Inter', sans-serif;
-  background-color: #F9FAFB;
+  html { @apply scroll-smooth; color-scheme: light; }
+  html.dark { color-scheme: dark; }
+  body { @apply bg-slate-50 font-sans text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100; }
+  :where(a, button, input, select, textarea, summary):focus-visible { @apply outline outline-2 outline-offset-4 outline-brand-700 dark:outline-brand-300; }
+  :where(input, select, textarea) { @apply accent-brand-700; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  ::selection { @apply bg-brand-100 text-brand-900; }
 }
-.dark body {
-  background-color: #020617;
-  color: #f3f4f6;
+
+/* Third-party dialogs and map surfaces do not inherit the React control styles. */
+.swal2-popup { @apply rounded-2xl border border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 !important; }
+.swal2-title { @apply text-slate-900 dark:text-slate-100 !important; }
+.swal2-html-container { @apply text-slate-600 dark:text-slate-300 !important; }
+.swal2-input, .swal2-textarea, .swal2-select { @apply ui-field mx-0 my-2 max-w-full !important; }
+.swal2-html-container label { @apply ui-label text-left; }
+.swal2-confirm { @apply ui-primary shadow-none !important; }
+.swal2-cancel { @apply ui-secondary shadow-none !important; }
+.swal2-validation-message { @apply bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200 !important; }
+.dark .leaflet-popup-content-wrapper, .dark .leaflet-popup-tip { @apply bg-slate-800 text-slate-100; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+@layer base {
 
 /* Leaflet Customizations for Map Cards */
 .custom-map-popup .leaflet-popup-content-wrapper {
