@@ -33,6 +33,10 @@ jobs:
           cache-dependency-path: client/package-lock.json
       - run: npm ci
       - run: npm run build
+      - name: Install headless Chromium
+        run: npm exec -- playwright install --with-deps --only-shell chromium
+      - name: Run client browser tests
+        run: npm test
 
   server-syntax:
     name: Server syntax

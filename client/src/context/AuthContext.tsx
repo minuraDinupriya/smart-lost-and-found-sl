@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { isAxiosError } from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
@@ -15,6 +16,15 @@ interface User {
     accountName: string;
     accountNumber: string;
   };
+}
+
+interface LoginResponse {
+  token: string;
+  username: string;
+  userId?: string;
+  role?: User['role'];
+  policeStationName?: string;
+  profilePicture?: string;
 }
 
 interface AuthContextType {
@@ -34,6 +44,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const profileRequest = useRef<AbortController | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   // Only restore internal destinations supplied by the page that required sign-in.
@@ -46,26 +57,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ? requestedPath
       : '/';
 
-  const fetchMe = async () => {
-    try {
-      const response = await api.get('/auth/me');
-      if (response.data && response.data.user) {
-        setUser({
-          username: response.data.user.username,
-          _id: response.data.user._id,
-          karmaPoints: response.data.user.karmaPoints,
-          role: response.data.user.role,
-          policeStationName: response.data.user.policeStationName,
-          profilePicture: response.data.user.profilePicture,
-          bankDetails: response.data.user.bankDetails,
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
+  const clearSession = useCallback(() => {
+    profileRequest.current?.abort();
+    profileRequest.current = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('userId');
+    setToken(null);
+    setUser(null);
+    setLoading(false);
+  }, []);
 
-  // On mount, check if token exists in localStorage to maintain persistence
+  const fetchMe = useCallback(async () => {
+    if (!localStorage.getItem('token')) return;
+
+    // A profile response belongs to the session that started the request.
+    profileRequest.current?.abort();
+    const request = new AbortController();
+    profileRequest.current = request;
+
+    try {
+      const { data } = await api.get<{ user: User | null }>('/auth/me', { signal: request.signal });
+      if (request.signal.aborted || !data?.user) return;
+
+      const { username, _id, karmaPoints, role, policeStationName, profilePicture, bankDetails } = data.user;
+      setUser({ username, _id, karmaPoints, role, policeStationName, profilePicture, bankDetails });
+    } catch (error) {
+      if (request.signal.aborted) return;
+
+      const status = isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 401 || status === 403) {
+        clearSession();
+      } else {
+        console.error('Unable to refresh account details.');
+      }
+    } finally {
+      if (profileRequest.current === request) {
+        profileRequest.current = null;
+        setLoading(false);
+      }
+    }
+  }, [clearSession]);
+
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUsername = localStorage.getItem('username');
@@ -73,50 +106,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (storedToken && storedUsername) {
       let decodedId = storedUserId;
-      if (!decodedId && storedToken) {
+      if (!decodedId) {
         try {
           decodedId = JSON.parse(atob(storedToken.split('.')[1])).id;
-        } catch (e) {}
+        } catch {
+          // The profile request can supply the ID for older saved sessions.
+        }
       }
       setToken(storedToken);
       setUser({ username: storedUsername, _id: decodedId || undefined });
-
-      // Fetch latest profile to get Karma points
-      api
-        .get('/auth/me', { headers: { Authorization: `Bearer ${storedToken}` } })
-        .then((res) => {
-          if (res.data && res.data.user) {
-            setUser({
-              username: res.data.user.username,
-              _id: res.data.user._id,
-              karmaPoints: res.data.user.karmaPoints,
-              role: res.data.user.role,
-              policeStationName: res.data.user.policeStationName,
-              profilePicture: res.data.user.profilePicture,
-              bankDetails: res.data.user.bankDetails,
-            });
-          }
-        })
-        .catch((error) => {
-          if (error.response?.status !== 401 && error.response?.status !== 403) return;
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('token');
-          localStorage.removeItem('username');
-          localStorage.removeItem('userId');
-        })
-        .finally(() => setLoading(false));
+      void fetchMe();
     } else {
       setLoading(false);
     }
-  }, []);
+
+    return () => {
+      profileRequest.current?.abort();
+      profileRequest.current = null;
+    };
+  }, [fetchMe]);
 
   const registerUser = async (username: string, password: string) => {
     await api.post('/auth/register', { username, password });
     navigate('/login', { replace: true, state: { registered: true, from: returnTo } });
   };
 
-  const completeLogin = async (data: any) => {
+  const completeLogin = (data: LoginResponse) => {
     const {
       token: receivedToken,
       username,
@@ -128,31 +143,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('token', receivedToken);
     localStorage.setItem('username', username);
     if (userId) localStorage.setItem('userId', userId);
+    else localStorage.removeItem('userId');
     setToken(receivedToken);
     setUser({ username, _id: userId, role, policeStationName, profilePicture });
-    await fetchMe();
+    setLoading(false);
+    void fetchMe();
     navigate(returnTo, { replace: true });
   };
 
   const loginUser = async (username: string, password: string) => {
-    const response = await api.post('/auth/login', { username, password });
-    await completeLogin(response.data);
+    const response = await api.post<LoginResponse>('/auth/login', { username, password });
+    completeLogin(response.data);
   };
 
   const loginWithGoogle = async (googleToken: string) => {
-    const response = await api.post('/auth/google', { token: googleToken });
-    await completeLogin(response.data);
+    const response = await api.post<LoginResponse>('/auth/google', { token: googleToken });
+    completeLogin(response.data);
   };
 
   const logout = () => {
-    // Clear state arrays
-    setToken(null);
-    setUser(null);
-
-    // Wipe persistent storage
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('userId');
+    clearSession();
 
     navigate('/');
   };
