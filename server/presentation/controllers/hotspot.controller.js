@@ -1,4 +1,4 @@
-const Item = require('../models/Item');
+const Item = require('../../data-access/models/Item');
 
 // Helper to calculate distance in km between two lat/lng points (Haversine formula)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {

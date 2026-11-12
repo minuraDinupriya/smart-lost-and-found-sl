@@ -4,6 +4,14 @@ The portal connects people reporting lost and found items with a workflow for pr
 
 ## Architecture
 
+The backend groups its three layers under `server/`:
+
+- `presentation/` contains routes, controllers, and middleware for HTTP and Socket.IO.
+- `business/services/` contains workflow logic, including return confirmation, ownership verification, and conversation authorization.
+- `data-access/` contains Mongoose models and repositories. Some older endpoints still access models directly.
+
+`index.js` wires the layers together. Shared configuration, utilities, scripts, and tests sit alongside them.
+
 ```mermaid
 flowchart LR
   Browser["React + TypeScript PWA"] -->|"HTTP + JWT"| API["Express routes and controllers"]
@@ -30,6 +38,8 @@ A JWT establishes identity; it does not by itself grant access to a room. Room n
 The server requires an explicit signing secret and an exact frontend origin allowlist. CORS alone is not access control: non-browser clients can omit Origin, so the API and socket handlers still authenticate and authorize actions. The frontend retains message text when acknowledgement fails; a timeout tells the user to inspect the conversation before retrying because a timeout does not prove that persistence failed.
 
 ## Ownership data
+
+The item controller validates submitted proof fields and maps the verification result to HTTP. The ownership service scores proofs and records the outcome. The ownership repository explicitly selects the private proof values for that workflow. The HTTP route and Socket.IO handlers delegate to the chat service, which shares one conversation authorization rule and uses the chat repository for message queries.
 
 Mongoose excludes proof values from ordinary queries. The verification handler explicitly selects them for comparison; the item-detail handler selects them to expose field labels and strips values for non-creators. Serial numbers and other identifiers use exact comparisons after documented normalization. Descriptive matching remains approximate and is not legal proof of ownership. Human confirmation still governs the physical return.
 
@@ -64,7 +74,7 @@ The item document is the shared contention point across direct claims and multip
 ## Validation
 
 - 32 isolated tests cover configuration, chat handlers, input shape, exact identifiers, public/private response behavior, and seed-script configuration.
-- 17 integration tests use real MongoDB replica sets, HTTP requests, signed/expired tokens, and Socket.IO connections. They test projections, custom-field persistence, authorization, concurrency, transaction rollback, and duplicate award prevention.
+- 18 integration tests use real MongoDB replica sets, HTTP requests, signed/expired tokens, and Socket.IO connections. They test projections, custom-field persistence, authorization, conversation read state, concurrency, transaction rollback, and duplicate award prevention.
 - The browser walkthrough verifies message acknowledgement, rejects near-matching identifiers, accepts exact details, and displays completed returns and the awarded score.
 - `npm run demo:check --prefix server` runs real HTTP smoke checks against a local synthetic fixture. Repeating it after completion awards zero further points.
 - TypeScript/Vite/PWA builds and JavaScript parsing are separate checks. They complement behavioral tests rather than replace them.

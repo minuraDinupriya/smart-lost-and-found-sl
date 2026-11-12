@@ -1,17 +1,5 @@
-const Item = require('../models/Item');
-const User = require('../models/User');
-const Message = require('../models/Message');
-const socketService = require('./socket.service');
-
-const validId = value => typeof value === 'string' && /^[a-f0-9]{24}$/.test(value);
-const roomFor = (first, second, itemId) => [first, second].sort().join('_') + '_' + itemId;
-
-const authorizeConversation = async (userId, otherUserId, itemId) => {
-  if (![userId, otherUserId, itemId].every(validId) || userId === otherUserId) return false;
-  const item = await Item.findById(itemId).select('createdBy');
-  if (!item || ![userId, otherUserId].includes(item.createdBy.toString())) return false;
-  return Boolean(await User.exists({ _id: otherUserId }));
-};
+const { roomFor, authorizeConversation, sendMessage } = require('../../business/services/chat.service');
+const socketService = require('../../business/services/socket.service');
 
 const registerChatHandlers = (io, socket) => {
   socket.on('join_room', async (roomId, ack) => {
@@ -40,9 +28,10 @@ const registerChatHandlers = (io, socket) => {
     try {
       const { itemId, receiverId, text } = data || {};
       if (typeof text !== 'string' || !text.trim() || text.length > 2000) return respond({ ok: false, message: 'Message must contain 1–2000 characters.' });
-      if (!await authorizeConversation(socket.userId, receiverId, itemId)) return respond({ ok: false, message: 'Conversation access denied.' });
+
       // Sender identity always comes from the authenticated connection.
-      const saved = await Message.create({ itemId, senderId: socket.userId, receiverId, text: text.trim() });
+      const saved = await sendMessage({ itemId, senderId: socket.userId, receiverId, text: text.trim() });
+      if (!saved) return respond({ ok: false, message: 'Conversation access denied.' });
       io.to(roomFor(socket.userId, receiverId, itemId)).emit('receive_message', saved);
       socketService.emitGlobalNotification(receiverId, saved);
       respond({ ok: true, message: saved });
@@ -52,4 +41,4 @@ const registerChatHandlers = (io, socket) => {
   });
 };
 
-module.exports = { validId, roomFor, authorizeConversation, registerChatHandlers };
+module.exports = { registerChatHandlers };

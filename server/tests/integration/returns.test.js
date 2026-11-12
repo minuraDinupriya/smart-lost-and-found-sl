@@ -3,10 +3,10 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const mongoose = require('mongoose');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
-const Item = require('../../models/Item');
-const User = require('../../models/User');
-const ReturnRecord = require('../../models/ReturnRecord');
-const { claimDirect, completeReturn } = require('../../services/return.service');
+const Item = require('../../data-access/models/Item');
+const User = require('../../data-access/models/User');
+const ReturnRecord = require('../../data-access/models/ReturnRecord');
+const { claimDirect, completeReturn } = require('../../business/services/return.service');
 let database;
 
 before(async () => {
@@ -76,7 +76,7 @@ test('an unrelated creator cannot claim or award karma', async () => {
 test('repeating owner confirmation cannot reopen a completed return', async () => {
   const { args, record } = await fixture();
   await completeReturn(args);
-  const controller = require('../../controllers/handover.controller');
+  const controller = require('../../presentation/controllers/handover.controller');
   const response = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
   await controller.confirmOwner({ params: { itemId: args.itemId, otherUserId: args.finderId }, userId: args.ownerId }, response);
   assert.equal(response.code, 200);

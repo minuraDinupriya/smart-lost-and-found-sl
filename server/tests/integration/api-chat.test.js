@@ -9,16 +9,17 @@ const jwt = require('jsonwebtoken');
 const { Server } = require('socket.io');
 const { io: connectSocket } = require('socket.io-client');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
-const Item = require('../../models/Item');
-const User = require('../../models/User');
-const Message = require('../../models/Message');
-const ReturnRecord = require('../../models/ReturnRecord');
+const Item = require('../../data-access/models/Item');
+const User = require('../../data-access/models/User');
+const Message = require('../../data-access/models/Message');
+const ReturnRecord = require('../../data-access/models/ReturnRecord');
 const { getAllowedOrigins, isAllowedOrigin } = require('../../config/security');
-const { authenticateSocket } = require('../../middleware/socket.middleware');
-const { registerChatHandlers, roomFor } = require('../../services/chat.service');
-const { verifyToken } = require('../../middleware/auth.middleware');
-const controller = require('../../controllers/item.controller');
-const socketService = require('../../services/socket.service');
+const { authenticateSocket } = require('../../presentation/middleware/socket.middleware');
+const { registerChatHandlers } = require('../../presentation/controllers/chat.socket');
+const { roomFor } = require('../../business/services/chat.service');
+const { verifyToken } = require('../../presentation/middleware/auth.middleware');
+const controller = require('../../presentation/controllers/item.controller');
+const socketService = require('../../business/services/socket.service');
 let database, server, io, baseURL;
 const sockets = [];
 const privateValue = 'DEMO-SERIAL-123456789';
@@ -36,8 +37,8 @@ before(async () => {
   app.use(express.json());
   app.get('/api/items/:itemId', controller.getItemById);
   app.post('/api/items/:itemId/verify-ownership', verifyToken, controller.verifyOwnership);
-  app.use('/api/handovers', require('../../routes/handover.routes'));
-  app.use('/api', require('../../routes/api.routes'));
+  app.use('/api/handovers', require('../../presentation/routes/handover.routes'));
+  app.use('/api', require('../../presentation/routes/api.routes'));
   server = http.createServer(app);
   io = new Server(server, { allowRequest: (req, callback) => callback(null, isAllowedOrigin(req.headers.origin, origins)) });
   io.use(authenticateSocket);
@@ -91,6 +92,21 @@ test('the receipt endpoint enforces the owner role and returns the completed rec
     assert.equal(response.body.status, 'RETURN_COMPLETED');
   }
   assert.equal((await User.findById(claimant._id)).karmaPoints, 50);
+});
+
+test('chat history returns the participants’ messages and marks incoming messages read', async () => {
+  const { item, owner, claimant, stranger } = await fixture();
+  const incoming = await Message.create({
+    itemId: item._id, senderId: claimant._id, receiverId: owner._id, text: 'I found it',
+  });
+  const otherConversation = await Message.create({
+    itemId: item._id, senderId: stranger._id, receiverId: owner._id, text: 'Another conversation',
+  });
+  const response = await request(`/api/messages/${item._id}/${claimant._id}`, { token: tokenFor(owner) });
+  assert.equal(response.code, 200);
+  assert.deepEqual(response.body.map(message => message._id), [incoming._id.toString()]);
+  assert.equal((await Message.findById(incoming._id)).isRead, true);
+  assert.equal((await Message.findById(otherConversation._id)).isRead, false);
 });
 
 test('MongoDB projections hide values by default and preserve custom labels for explicit selection', async () => {

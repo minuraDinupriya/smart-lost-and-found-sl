@@ -1,4 +1,4 @@
-const Item = require('../models/Item');
+const Item = require('../../data-access/models/Item');
 
 /**
  * Item Expiry & Auto Archive Feature

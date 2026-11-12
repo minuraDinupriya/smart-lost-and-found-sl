@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const User = require('../../data-access/models/User');
 
 const verifyAdmin = async (req, res, next) => {
   try {

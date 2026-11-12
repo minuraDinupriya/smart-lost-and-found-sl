@@ -1,8 +1,8 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const connectDB = require('../config/db');
-const User = require('../models/User');
-const Item = require('../models/Item');
+const User = require('../data-access/models/User');
+const Item = require('../data-access/models/Item');
 
 async function runTests() {
   console.log('\n======================================================');

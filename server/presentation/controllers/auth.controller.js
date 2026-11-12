@@ -1,5 +1,5 @@
-const { getJwtSecret } = require('../config/security');
-const User = require('../models/User');
+const { getJwtSecret } = require('../../config/security');
+const User = require('../../data-access/models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
@@ -274,10 +274,10 @@ const updateBankDetails = async (req, res) => {
 
     // After updating bank details, check if there are any tips stuck in pending payout
     // and initiate the payout!
-    const Tip = require('../models/Tip');
-    const paymentService = require('../services/payment.service');
-    const Notification = require('../models/Notification');
-    const { emitGlobalNotification } = require('../services/socket.service');
+    const Tip = require('../../data-access/models/Tip');
+    const paymentService = require('../../business/services/payment.service');
+    const Notification = require('../../data-access/models/Notification');
+    const { emitGlobalNotification } = require('../../business/services/socket.service');
 
     const pendingTips = await Tip.find({ finderId: userId, paymentStatus: 'paid', payoutStatus: 'pending' });
     

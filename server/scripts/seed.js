@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
-const Item = require('../models/Item');
-const User = require('../models/User');
+const Item = require('../data-access/models/Item');
+const User = require('../data-access/models/User');
 const translate = require('google-translate-api-x');
 
 // Load env vars

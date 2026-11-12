@@ -1,5 +1,5 @@
-const Item = require('../models/Item');
-const User = require('../models/User');
+const Item = require('../../data-access/models/Item');
+const User = require('../../data-access/models/User');
 
 // @desc    Get system-wide statistics for Admin Dashboard
 // @route   GET /api/admin/stats

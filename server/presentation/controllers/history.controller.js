@@ -1,5 +1,5 @@
-const ReturnRecord = require('../models/ReturnRecord');
-const Tip = require('../models/Tip');
+const ReturnRecord = require('../../data-access/models/ReturnRecord');
+const Tip = require('../../data-access/models/Tip');
 
 // @desc    Get Claimed Item History (Owner)
 // @route   GET /api/history/owner

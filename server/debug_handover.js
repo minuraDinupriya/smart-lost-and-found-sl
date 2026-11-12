@@ -1,8 +1,8 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { confirmFinder } = require('./controllers/handover.controller');
-const Item = require('./models/Item');
-const User = require('./models/User');
+const { confirmFinder } = require('./presentation/controllers/handover.controller');
+const Item = require('./data-access/models/Item');
+const User = require('./data-access/models/User');
 
 const dbConfig = require('./config/db');
 
