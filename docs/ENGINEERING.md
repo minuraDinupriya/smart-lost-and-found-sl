@@ -31,6 +31,8 @@ The server requires an explicit signing secret and an exact frontend origin allo
 
 ## Ownership data
 
+The item controller validates submitted proof fields and maps the verification result to HTTP. The ownership service scores proofs and records the outcome. The ownership repository explicitly selects the private proof values for that workflow. The HTTP route and Socket.IO handlers delegate to the chat service, which shares one conversation authorization rule and uses the chat repository for message queries.
+
 Mongoose excludes proof values from ordinary queries. The verification handler explicitly selects them for comparison; the item-detail handler selects them to expose field labels and strips values for non-creators. Serial numbers and other identifiers use exact comparisons after documented normalization. Descriptive matching remains approximate and is not legal proof of ownership. Human confirmation still governs the physical return.
 
 The earlier schema declared `ownershipProofs` twice, so JavaScript overwrote the first declaration. Consolidating it preserved privacy defaults and restored custom-label persistence. Both UI callers now send `submittedProofs` and consume the same result fields.
@@ -64,7 +66,7 @@ The item document is the shared contention point across direct claims and multip
 ## Validation
 
 - 32 isolated tests cover configuration, chat handlers, input shape, exact identifiers, public/private response behavior, and seed-script configuration.
-- 17 integration tests use real MongoDB replica sets, HTTP requests, signed/expired tokens, and Socket.IO connections. They test projections, custom-field persistence, authorization, concurrency, transaction rollback, and duplicate award prevention.
+- 18 integration tests use real MongoDB replica sets, HTTP requests, signed/expired tokens, and Socket.IO connections. They test projections, custom-field persistence, authorization, conversation read state, concurrency, transaction rollback, and duplicate award prevention.
 - The browser walkthrough verifies message acknowledgement, rejects near-matching identifiers, accepts exact details, and displays completed returns and the awarded score.
 - `npm run demo:check --prefix server` runs real HTTP smoke checks against a local synthetic fixture. Repeating it after completion awards zero further points.
 - TypeScript/Vite/PWA builds and JavaScript parsing are separate checks. They complement behavioral tests rather than replace them.

@@ -11,12 +11,18 @@ const setup = (userId) => {
     '../models/Item': { findById: () => ({ select: async () => ({ createdBy: owner }) }) },
     '../models/User': { exists: async () => true },
     '../models/Message': { create: async data => { messages.push(data); return data; } },
-    './socket.service': { emitGlobalNotification() {} },
+    '../services/socket.service': { emitGlobalNotification() {} },
   };
+  const repositoryContext = { module: { exports: {} }, require: name => dependencies[name] };
+  vm.runInNewContext(fs.readFileSync(path.resolve(__dirname, '../repositories/chat.repository.js'), 'utf8'), repositoryContext);
+  dependencies['../repositories/chat.repository'] = repositoryContext.module.exports;
   const context = { module: { exports: {} }, require: name => dependencies[name] };
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname, '../services/chat.service.js'), 'utf8'), context);
+  dependencies['../services/chat.service'] = context.module.exports;
+  const handlerContext = { module: { exports: {} }, require: name => dependencies[name] };
+  vm.runInNewContext(fs.readFileSync(path.resolve(__dirname, '../controllers/chat.socket.js'), 'utf8'), handlerContext);
   const socket = { userId, on: (name, handler) => { events[name] = handler; }, join: async room => joined.push(room), leave() {} };
-  context.module.exports.registerChatHandlers({ to: room => ({ emit: (event, data) => broadcasts.push({ room, event, data }) }) }, socket);
+  handlerContext.module.exports.registerChatHandlers({ to: room => ({ emit: (event, data) => broadcasts.push({ room, event, data }) }) }, socket);
   return { events, joined, messages, broadcasts, room: context.module.exports.roomFor(owner, claimant, itemId) };
 };
 

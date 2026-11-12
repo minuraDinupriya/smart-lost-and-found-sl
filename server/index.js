@@ -6,7 +6,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 const { Server } = require('socket.io');
 const { getJwtSecret, getAllowedOrigins, isAllowedOrigin } = require('./config/security');
-const { registerChatHandlers } = require('./services/chat.service');
+const { registerChatHandlers } = require('./controllers/chat.socket');
 getJwtSecret();
 const { authenticateSocket } = require('./middleware/socket.middleware');
 const socketService = require('./services/socket.service');

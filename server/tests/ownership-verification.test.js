@@ -62,6 +62,16 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
       return dependencies[name];
     },
   };
+  const loadModule = relativePath => {
+    const filename = path.resolve(__dirname, relativePath);
+    const moduleContext = { ...context, module: { exports: {} } };
+    vm.runInNewContext(fs.readFileSync(filename, 'utf8'), moduleContext, { filename });
+    return moduleContext.module.exports;
+  };
+  dependencies['./socket.service'] = dependencies['../services/socket.service'];
+  dependencies['../repositories/ownership.repository'] = loadModule('../repositories/ownership.repository.js');
+  dependencies['../repositories/chat.repository'] = loadModule('../repositories/chat.repository.js');
+  dependencies['../services/ownership.service'] = loadModule('../services/ownership.service.js');
   const controllerPath = path.resolve(__dirname, '../controllers/item.controller.js');
   vm.runInNewContext(fs.readFileSync(controllerPath, 'utf8'), context, { filename: controllerPath });
 

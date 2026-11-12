@@ -15,7 +15,8 @@ const Message = require('../../models/Message');
 const ReturnRecord = require('../../models/ReturnRecord');
 const { getAllowedOrigins, isAllowedOrigin } = require('../../config/security');
 const { authenticateSocket } = require('../../middleware/socket.middleware');
-const { registerChatHandlers, roomFor } = require('../../services/chat.service');
+const { registerChatHandlers } = require('../../controllers/chat.socket');
+const { roomFor } = require('../../services/chat.service');
 const { verifyToken } = require('../../middleware/auth.middleware');
 const controller = require('../../controllers/item.controller');
 const socketService = require('../../services/socket.service');
@@ -91,6 +92,21 @@ test('the receipt endpoint enforces the owner role and returns the completed rec
     assert.equal(response.body.status, 'RETURN_COMPLETED');
   }
   assert.equal((await User.findById(claimant._id)).karmaPoints, 50);
+});
+
+test('chat history returns the participants’ messages and marks incoming messages read', async () => {
+  const { item, owner, claimant, stranger } = await fixture();
+  const incoming = await Message.create({
+    itemId: item._id, senderId: claimant._id, receiverId: owner._id, text: 'I found it',
+  });
+  const otherConversation = await Message.create({
+    itemId: item._id, senderId: stranger._id, receiverId: owner._id, text: 'Another conversation',
+  });
+  const response = await request(`/api/messages/${item._id}/${claimant._id}`, { token: tokenFor(owner) });
+  assert.equal(response.code, 200);
+  assert.deepEqual(response.body.map(message => message._id), [incoming._id.toString()]);
+  assert.equal((await Message.findById(incoming._id)).isRead, true);
+  assert.equal((await Message.findById(otherConversation._id)).isRead, false);
 });
 
 test('MongoDB projections hide values by default and preserve custom labels for explicit selection', async () => {

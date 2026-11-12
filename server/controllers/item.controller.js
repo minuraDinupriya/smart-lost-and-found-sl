@@ -1,4 +1,5 @@
-const { validateProofs, scoreProof } = require('../utils/ownershipProofs');
+const { validateProofs } = require('../utils/ownershipProofs');
+const ownershipService = require('../services/ownership.service');
 const { getJwtSecret } = require('../config/security');
 const Item = require('../models/Item');
 const Message = require('../models/Message');
@@ -607,115 +608,17 @@ const analyzeVoiceReportController = async (req, res) => {
 const verifyOwnership = async (req, res) => {
   try {
     const { itemId } = req.params;
-    const { submittedProofs } = req.body;
-    
+    const { submittedProofs } = req.body || {};
     if (!validateProofs(submittedProofs)) {
       return res.status(400).json({ message: 'Provide 1–20 proofs with a non-empty type and value; custom proofs also require a label.' });
     }
 
-    // Proofs are private by default and must be explicitly loaded for comparison.
-    const item = await Item.findById(itemId).select('+ownershipProofs');
-    if (!item) return res.status(404).json({ message: 'Item not found.' });
-
-    const storedProofs = item.ownershipProofs || [];
-
-    if (storedProofs.length === 0) {
+    const result = await ownershipService.verifyOwnership({ itemId, verifierId: req.userId, submittedProofs });
+    if (result.error === 'ITEM_NOT_FOUND') return res.status(404).json({ message: 'Item not found.' });
+    if (result.error === 'NO_REGISTERED_PROOFS') {
       return res.status(400).json({ message: 'This item does not have any registered ownership proofs to verify against.' });
     }
-
-    let verifiedCount = 0;
-    const details = [];
-
-    for (const stored of storedProofs) {
-      let matched = false;
-      let bestScore = 0;
-      
-      for (const submitted of submittedProofs) {
-        bestScore = Math.max(bestScore, scoreProof(stored, submitted));
-      }
-
-      // If the match confidence is high (e.g. >= 0.8), we count it as verified
-      if (bestScore >= 0.8) {
-        verifiedCount++;
-        matched = true;
-      }
-
-      details.push({
-        _id: stored._id,
-        proofType: stored.proofType,
-        customLabel: stored.customLabel,
-        matched,
-        score: bestScore
-      });
-    }
-
-    const scorePercentage = Math.round((verifiedCount / storedProofs.length) * 100);
-    
-    let overallStatus = 'NOT_VERIFIED';
-    if (scorePercentage === 100) {
-      overallStatus = 'VERIFIED';
-    } else if (scorePercentage >= 50) {
-      overallStatus = 'PARTIALLY_VERIFIED';
-    }
-
-    // Add to verificationHistory
-    const verificationRecord = {
-      verifierId: req.userId,
-      verifyingType: 'CLAIM_VERIFICATION',
-      overallStatus,
-      scorePercentage,
-      verifiedCount,
-      totalProofs: storedProofs.length,
-      timestamp: new Date()
-    };
-
-    item.verificationHistory.push(verificationRecord);
-
-    // If verification was successful (VERIFIED or PARTIALLY_VERIFIED), and the item status is 'Available',
-    // update status to 'Pending Verification'.
-    if (overallStatus !== 'NOT_VERIFIED' && item.status === 'Available') {
-      item.status = 'Pending Verification';
-    }
-
-    await item.save();
-
-    // Automatically drop a system message in the secure chat room
-    try {
-      const User = require('../models/User');
-      const verifierUser = await User.findById(req.userId);
-      const verifierName = verifierUser ? verifierUser.username : 'A claimant';
-      
-      let systemAlertMessage = `🤖 DIGITAL OWNERSHIP VERIFICATION RESULT:\nUser @${verifierName} has completed verification.\nMatch Result: ${overallStatus} (${scorePercentage}% score)\nVerified fields: ${verifiedCount} of ${storedProofs.length}.`;
-      
-      // Let's find if a chat partner exists to send message to
-      const Message = require('../models/Message');
-      const { emitGlobalNotification } = require('../services/socket.service');
-      
-      const senderId = req.userId;
-      const receiverId = item.createdBy.toString();
-
-      if (senderId !== receiverId) {
-        const systemMsg = await Message.create({
-          itemId: item._id,
-          senderId,
-          receiverId,
-          text: systemAlertMessage
-        });
-        emitGlobalNotification(receiverId, systemMsg);
-        emitGlobalNotification(senderId, systemMsg);
-      }
-    } catch (msgErr) {
-      console.error('Failed to send verification system message:', msgErr);
-
-    }
-
-    res.status(200).json({
-      success: true,
-      status: overallStatus,
-      scorePercentage,
-      verifiedCount,
-      totalProofs: storedProofs.length
-    });
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Error verifying ownership:', error);
     res.status(500).json({ success: false, message: 'Server error during verification' });

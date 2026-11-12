@@ -5,7 +5,7 @@ const Item = require('../models/Item');
 const User = require('../models/User');
 const { verifyToken } = require('../middleware/auth.middleware');
 const { generatePoliceHandoverPDF } = require('../services/pdf.service');
-const { authorizeConversation } = require('../services/chat.service');
+const { getConversationHistory } = require('../services/chat.service');
 
 // @route   GET /api/messages/unread-count
 // @desc    Get total count of unread messages for the logged-in user
@@ -71,24 +71,9 @@ router.get('/messages/inbox', verifyToken, async (req, res) => {
 // @access  Private
 router.get('/messages/:itemId/:otherUserId', verifyToken, async (req, res) => {
   try {
-    if (!await authorizeConversation(req.userId, req.params.otherUserId, req.params.itemId)) {
-      return res.status(403).json({ message: 'Conversation access denied.' });
-    }
-    // Auto-read protocol: Mark all messages in this room sent to the user as read
-    await Message.updateMany(
-      { itemId: req.params.itemId, senderId: req.params.otherUserId, receiverId: req.userId, isRead: false },
-      { $set: { isRead: true } }
-    );
-
-    const messages = await Message.find({ 
-      itemId: req.params.itemId,
-      $or: [
-        { senderId: req.userId, receiverId: req.params.otherUserId },
-        { senderId: req.params.otherUserId, receiverId: req.userId }
-      ]
-    }).sort({ createdAt: 1 })
-      .populate('senderId', 'username profilePicture')
-      .populate('receiverId', 'username profilePicture');
+    const { itemId, otherUserId } = req.params;
+    const messages = await getConversationHistory(req.userId, otherUserId, itemId);
+    if (!messages) return res.status(403).json({ message: 'Conversation access denied.' });
     res.status(200).json(messages);
   } catch (error) {
     console.error('Database message retrieval error:', error);

@@ -1,55 +1,25 @@
-const Item = require('../models/Item');
-const User = require('../models/User');
-const Message = require('../models/Message');
-const socketService = require('./socket.service');
+const chatRepository = require('../repositories/chat.repository');
+
 
 const validId = value => typeof value === 'string' && /^[a-f0-9]{24}$/.test(value);
 const roomFor = (first, second, itemId) => [first, second].sort().join('_') + '_' + itemId;
 
 const authorizeConversation = async (userId, otherUserId, itemId) => {
   if (![userId, otherUserId, itemId].every(validId) || userId === otherUserId) return false;
-  const item = await Item.findById(itemId).select('createdBy');
-  if (!item || ![userId, otherUserId].includes(item.createdBy.toString())) return false;
-  return Boolean(await User.exists({ _id: otherUserId }));
+  const creatorId = await chatRepository.findItemCreator(itemId);
+  if (![userId, otherUserId].includes(creatorId)) return false;
+  return Boolean(await chatRepository.userExists(otherUserId));
 };
 
-const registerChatHandlers = (io, socket) => {
-  socket.on('join_room', async (roomId, ack) => {
-    const respond = result => { if (typeof ack === 'function') ack(result); };
-    try {
-      const parts = typeof roomId === 'string' ? roomId.split('_') : [];
-      const [first, second, itemId] = parts;
-      if (parts.length !== 3 || ![first, second].includes(socket.userId) || roomId !== roomFor(first, second, itemId)) {
-        return respond({ ok: false, message: 'Conversation access denied.' });
-      }
-      const otherUserId = first === socket.userId ? second : first;
-      if (!await authorizeConversation(socket.userId, otherUserId, itemId)) return respond({ ok: false, message: 'Conversation access denied.' });
-      await socket.join(roomId);
-      respond({ ok: true });
-    } catch {
-      respond({ ok: false, message: 'Unable to join conversation.' });
-    }
-  });
-
-  socket.on('leave_room', roomId => {
-    if (typeof roomId === 'string') socket.leave(roomId);
-  });
-
-  socket.on('send_message', async (data, ack) => {
-    const respond = result => { if (typeof ack === 'function') ack(result); };
-    try {
-      const { itemId, receiverId, text } = data || {};
-      if (typeof text !== 'string' || !text.trim() || text.length > 2000) return respond({ ok: false, message: 'Message must contain 1–2000 characters.' });
-      if (!await authorizeConversation(socket.userId, receiverId, itemId)) return respond({ ok: false, message: 'Conversation access denied.' });
-      // Sender identity always comes from the authenticated connection.
-      const saved = await Message.create({ itemId, senderId: socket.userId, receiverId, text: text.trim() });
-      io.to(roomFor(socket.userId, receiverId, itemId)).emit('receive_message', saved);
-      socketService.emitGlobalNotification(receiverId, saved);
-      respond({ ok: true, message: saved });
-    } catch {
-      respond({ ok: false, message: 'Unable to send message.' });
-    }
-  });
+const getConversationHistory = async (userId, otherUserId, itemId) => {
+  if (!await authorizeConversation(userId, otherUserId, itemId)) return null;
+  await chatRepository.markConversationRead(itemId, otherUserId, userId);
+  return chatRepository.findConversation(itemId, userId, otherUserId);
 };
 
-module.exports = { validId, roomFor, authorizeConversation, registerChatHandlers };
+const sendMessage = async ({ itemId, senderId, receiverId, text }) => {
+  if (!await authorizeConversation(senderId, receiverId, itemId)) return null;
+  return chatRepository.createMessage({ itemId, senderId, receiverId, text });
+};
+
+module.exports = { validId, roomFor, authorizeConversation, getConversationHistory, sendMessage };
