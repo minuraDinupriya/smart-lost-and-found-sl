@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth.middleware');
-const Notification = require('../models/Notification');
+const Notification = require('../../data-access/models/Notification');
 
 // @route   GET /api/notifications
 // @desc    Retrieve all notifications for the logged-in user

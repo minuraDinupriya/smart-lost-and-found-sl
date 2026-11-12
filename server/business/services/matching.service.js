@@ -1,9 +1,9 @@
 const stringSimilarity = require('string-similarity');
-const Item = require('../models/Item');
-const Message = require('../models/Message');
-const { calculateHammingDistance } = require('../utils/imageHash');
-const { emitGlobalNotification } = require('../services/socket.service');
-const { identifyItemFromImage } = require('../services/itemIdentification.service');
+const Item = require('../../data-access/models/Item');
+const Message = require('../../data-access/models/Message');
+const { calculateHammingDistance } = require('../../utils/imageHash');
+const { emitGlobalNotification } = require('./socket.service');
+const { identifyItemFromImage } = require('./itemIdentification.service');
 
 /**
  * Calculates match score between a Lost item and a Found item

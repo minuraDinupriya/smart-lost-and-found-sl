@@ -6,11 +6,11 @@ const path = require('path');
 const connectDB = require('./config/db');
 const { Server } = require('socket.io');
 const { getJwtSecret, getAllowedOrigins, isAllowedOrigin } = require('./config/security');
-const { registerChatHandlers } = require('./controllers/chat.socket');
+const { registerChatHandlers } = require('./presentation/controllers/chat.socket');
 getJwtSecret();
-const { authenticateSocket } = require('./middleware/socket.middleware');
-const socketService = require('./services/socket.service');
-const { startArchiveCron } = require('./services/archiveCron.service');
+const { authenticateSocket } = require('./presentation/middleware/socket.middleware');
+const socketService = require('./business/services/socket.service');
+const { startArchiveCron } = require('./business/services/archiveCron.service');
 
 // Initialize Express application
 const app = express();
@@ -33,14 +33,14 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Standard API Routes
-const authRoutes = require('./routes/auth.routes');
-const itemRoutes = require('./routes/item.routes');
-const integrationRoutes = require('./routes/api.routes');
-const tipRoutes = require('./routes/tip.routes');
-const notificationRoutes = require('./routes/notification.routes');
-const adminRoutes = require('./routes/admin.routes');
-const historyRoutes = require('./routes/history.routes');
-const handoverRoutes = require('./routes/handover.routes');
+const authRoutes = require('./presentation/routes/auth.routes');
+const itemRoutes = require('./presentation/routes/item.routes');
+const integrationRoutes = require('./presentation/routes/api.routes');
+const tipRoutes = require('./presentation/routes/tip.routes');
+const notificationRoutes = require('./presentation/routes/notification.routes');
+const adminRoutes = require('./presentation/routes/admin.routes');
+const historyRoutes = require('./presentation/routes/history.routes');
+const handoverRoutes = require('./presentation/routes/handover.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);

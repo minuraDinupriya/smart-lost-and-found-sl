@@ -1,5 +1,5 @@
-const { roomFor, authorizeConversation, sendMessage } = require('../services/chat.service');
-const socketService = require('../services/socket.service');
+const { roomFor, authorizeConversation, sendMessage } = require('../../business/services/chat.service');
+const socketService = require('../../business/services/socket.service');
 
 const registerChatHandlers = (io, socket) => {
   socket.on('join_room', async (roomId, ack) => {

@@ -2,10 +2,10 @@ const path = require('node:path');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
-const User = require('../models/User');
-const Item = require('../models/Item');
-const Message = require('../models/Message');
-const ReturnRecord = require('../models/ReturnRecord');
+const User = require('../data-access/models/User');
+const Item = require('../data-access/models/Item');
+const Message = require('../data-access/models/Message');
+const ReturnRecord = require('../data-access/models/ReturnRecord');
 
 // This command always creates its own database. It never loads .env or uses MONGO_URI.
 const start = async () => {

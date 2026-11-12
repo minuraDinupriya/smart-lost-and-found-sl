@@ -36,8 +36,8 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
     },
   };
   const dependencies = {
-    '../utils/ownershipProofs': require('../utils/ownershipProofs'),
-    '../config/security': { getJwtSecret: () => 'test-only-secret-not-used-by-mocked-jwt' },
+    '../../utils/ownershipProofs': require('../utils/ownershipProofs'),
+    '../../config/security': { getJwtSecret: () => 'test-only-secret-not-used-by-mocked-jwt' },
     '../models/Item': Item,
     '../models/Message': {
       create: async (message) => { state.messages.push(message); return message; },
@@ -45,12 +45,12 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
     },
     '../models/User': { findById: async () => ({ username: 'test-claimant' }) },
     '../models/ReturnRecord': { findOne: () => ({ populate() { return this; }, then(resolve) { return Promise.resolve(null).then(resolve); } }) },
-    '../services/socket.service': { emitGlobalNotification: (...args) => state.notifications.push(args) },
+    '../../business/services/socket.service': { emitGlobalNotification: (...args) => state.notifications.push(args) },
     'google-translate-api-x': () => { throw new Error('Unexpected translation call'); },
     cloudinary: { v2: { config() {} } },
     path: require('node:path'), fs: require('node:fs'),
-    '../utils/imageHash': {}, '../services/itemIdentification.service': {},
-    '../services/voiceReporting.service': {}, '../services/matching.service': {},
+    '../../utils/imageHash': {}, '../../business/services/itemIdentification.service': {},
+    '../../business/services/voiceReporting.service': {}, '../../business/services/matching.service': {},
     // These tests cover exact matches and selection, not the fuzzy-match algorithm.
     'string-similarity': { compareTwoStrings: () => 0 },
     jsonwebtoken: { verify: (token) => ({ id: token === 'test-creator' ? 'creator' : 'claimant' }) },
@@ -68,11 +68,14 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
     vm.runInNewContext(fs.readFileSync(filename, 'utf8'), moduleContext, { filename });
     return moduleContext.module.exports;
   };
-  dependencies['./socket.service'] = dependencies['../services/socket.service'];
-  dependencies['../repositories/ownership.repository'] = loadModule('../repositories/ownership.repository.js');
-  dependencies['../repositories/chat.repository'] = loadModule('../repositories/chat.repository.js');
-  dependencies['../services/ownership.service'] = loadModule('../services/ownership.service.js');
-  const controllerPath = path.resolve(__dirname, '../controllers/item.controller.js');
+  for (const model of ['Item', 'Message', 'User', 'ReturnRecord']) {
+    dependencies[`../../data-access/models/${model}`] = dependencies[`../models/${model}`];
+  }
+  dependencies['./socket.service'] = dependencies['../../business/services/socket.service'];
+  dependencies['../../data-access/repositories/ownership.repository'] = loadModule('../data-access/repositories/ownership.repository.js');
+  dependencies['../../data-access/repositories/chat.repository'] = loadModule('../data-access/repositories/chat.repository.js');
+  dependencies['../../business/services/ownership.service'] = loadModule('../business/services/ownership.service.js');
+  const controllerPath = path.resolve(__dirname, '../presentation/controllers/item.controller.js');
   vm.runInNewContext(fs.readFileSync(controllerPath, 'utf8'), context, { filename: controllerPath });
 
   const invoke = async (handler, { submittedProofs = [proof], creator = false, authenticated = false } = {}) => {

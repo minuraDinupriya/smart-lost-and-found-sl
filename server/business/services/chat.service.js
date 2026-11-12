@@ -1,4 +1,4 @@
-const chatRepository = require('../repositories/chat.repository');
+const chatRepository = require('../../data-access/repositories/chat.repository');
 
 
 const validId = value => typeof value === 'string' && /^[a-f0-9]{24}$/.test(value);

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth.middleware');
 const { getHandoverState, confirmFinder, confirmOwner, confirmReceipt } = require('../controllers/handover.controller');
-const { authorizeConversation } = require('../services/chat.service');
+const { authorizeConversation } = require('../../business/services/chat.service');
 
 router.use('/:itemId/:otherUserId', verifyToken, async (req, res, next) => {
   try {

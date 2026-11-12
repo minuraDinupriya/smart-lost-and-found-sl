@@ -22,8 +22,8 @@ const runSeedScript = async (scriptName, env) => {
     // Never load a developer's .env or use any real external dependencies.
     dotenv: { config() {} },
     path,
-    '../models/User': User,
-    '../models/Item': {
+    '../data-access/models/User': User,
+    '../data-access/models/Item': {
       deleteMany: async () => { result.writes.push({ operation: 'deleteItems' }); },
       insertMany: async (items) => { result.writes.push({ operation: 'insertItems', count: items.length }); },
     },

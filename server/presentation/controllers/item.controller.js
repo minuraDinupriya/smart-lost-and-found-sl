@@ -1,23 +1,23 @@
-const { validateProofs } = require('../utils/ownershipProofs');
-const ownershipService = require('../services/ownership.service');
-const { getJwtSecret } = require('../config/security');
-const Item = require('../models/Item');
-const Message = require('../models/Message');
+const { validateProofs } = require('../../utils/ownershipProofs');
+const ownershipService = require('../../business/services/ownership.service');
+const { getJwtSecret } = require('../../config/security');
+const Item = require('../../data-access/models/Item');
+const Message = require('../../data-access/models/Message');
 const translate = require('google-translate-api-x');
 const path = require('path');
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
-const { generateImageHash } = require('../utils/imageHash');
-const { identifyItemFromImage } = require('../services/itemIdentification.service');
-const { analyzeVoiceReport } = require('../services/voiceReporting.service');
-const { runAutonomousMatching } = require('../services/matching.service');
+const { generateImageHash } = require('../../utils/imageHash');
+const { identifyItemFromImage } = require('../../business/services/itemIdentification.service');
+const { analyzeVoiceReport } = require('../../business/services/voiceReporting.service');
+const { runAutonomousMatching } = require('../../business/services/matching.service');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
-const { emitGlobalNotification } = require('../services/socket.service');
+const { emitGlobalNotification } = require('../../business/services/socket.service');
 
 const createItem = async (req, res) => {
   try {
@@ -227,15 +227,15 @@ const getItemById = async (req, res) => {
     if (!item) return res.status(404).json({ message: 'Item not found' });
     
     // Fetch associated return record (if exists) populated with usernames
-    const ReturnRecord = require('../models/ReturnRecord');
+    const ReturnRecord = require('../../data-access/models/ReturnRecord');
     const returnRecord = await ReturnRecord.findOne({ itemId: item._id })
       .populate('ownerId', 'username')
       .populate('finderId', 'username');
 
     // Security check to filter private ownership details and verification history
     const jwt = require('jsonwebtoken');
-    const User = require('../models/User');
-    const Message = require('../models/Message');
+    const User = require('../../data-access/models/User');
+    const Message = require('../../data-access/models/Message');
 
     const authHeader = req.headers.authorization || req.headers.Authorization;
     let isCreator = false;
@@ -276,7 +276,7 @@ const getItemById = async (req, res) => {
     itemObj.returnRecord = returnRecord;
 
     if (returnRecord) {
-      const Tip = require('../models/Tip');
+      const Tip = require('../../data-access/models/Tip');
       const tip = await Tip.findOne({ returnRecordId: returnRecord._id, paymentStatus: 'paid' });
       itemObj.tipPaid = !!tip;
     } else {
@@ -410,7 +410,7 @@ const claimItem = async (req, res) => {
   try {
     const { itemId } = req.params;
     if (!/^[a-f0-9]{24}$/.test(itemId)) return res.status(400).json({ message: 'Invalid item ID.' });
-    const { claimDirect } = require('../services/return.service');
+    const { claimDirect } = require('../../business/services/return.service');
     const item = await claimDirect(itemId, req.userId);
 
     res.status(200).json({ message: 'Item successfully marked as Claimed', item });
@@ -518,7 +518,7 @@ const resolvePoliceItem = async (req, res) => {
  */
 const getArchivedItems = async (req, res) => {
   try {
-    const User = require('../models/User');
+    const User = require('../../data-access/models/User');
     const user = await User.findById(req.userId);
 
     const query = { archiveStatus: 'archived' };

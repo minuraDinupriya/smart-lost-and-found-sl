@@ -1,6 +1,6 @@
-const { scoreProof } = require('../utils/ownershipProofs');
-const { findItemWithProofs, saveVerification } = require('../repositories/ownership.repository');
-const { findUsername, createMessage } = require('../repositories/chat.repository');
+const { scoreProof } = require('../../utils/ownershipProofs');
+const { findItemWithProofs, saveVerification } = require('../../data-access/repositories/ownership.repository');
+const { findUsername, createMessage } = require('../../data-access/repositories/chat.repository');
 const { emitGlobalNotification } = require('./socket.service');
 
 const verifyOwnership = async ({ itemId, verifierId, submittedProofs }) => {

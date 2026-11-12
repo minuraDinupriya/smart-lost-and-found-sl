@@ -1,7 +1,7 @@
-const ReturnRecord = require('../models/ReturnRecord');
-const Item = require('../models/Item');
+const ReturnRecord = require('../../data-access/models/ReturnRecord');
+const Item = require('../../data-access/models/Item');
 
-const returnService = require('../services/return.service');
+const returnService = require('../../business/services/return.service');
 const { resolveRoles } = returnService;
 
 // @route   GET /api/handovers/:itemId/:otherUserId

@@ -1,4 +1,4 @@
-const { getJwtSecret } = require('../config/security');
+const { getJwtSecret } = require('../../config/security');
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
@@ -31,7 +31,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const User = require('../models/User');
+const User = require('../../data-access/models/User');
 
 const verifyPolice = async (req, res, next) => {
   try {

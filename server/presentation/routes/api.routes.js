@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Message = require('../models/Message');
-const Item = require('../models/Item');
-const User = require('../models/User');
+const Message = require('../../data-access/models/Message');
+const Item = require('../../data-access/models/Item');
+const User = require('../../data-access/models/User');
 const { verifyToken } = require('../middleware/auth.middleware');
-const { generatePoliceHandoverPDF } = require('../services/pdf.service');
-const { getConversationHistory } = require('../services/chat.service');
+const { generatePoliceHandoverPDF } = require('../../business/services/pdf.service');
+const { getConversationHistory } = require('../../business/services/chat.service');
 
 // @route   GET /api/messages/unread-count
 // @desc    Get total count of unread messages for the logged-in user

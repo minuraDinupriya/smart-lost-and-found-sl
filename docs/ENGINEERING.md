@@ -4,6 +4,14 @@ The portal connects people reporting lost and found items with a workflow for pr
 
 ## Architecture
 
+The backend groups its three layers under `server/`:
+
+- `presentation/` contains routes, controllers, and middleware for HTTP and Socket.IO.
+- `business/services/` contains workflow logic, including return confirmation, ownership verification, and conversation authorization.
+- `data-access/` contains Mongoose models and repositories. Some older endpoints still access models directly.
+
+`index.js` wires the layers together. Shared configuration, utilities, scripts, and tests sit alongside them.
+
 ```mermaid
 flowchart LR
   Browser["React + TypeScript PWA"] -->|"HTTP + JWT"| API["Express routes and controllers"]

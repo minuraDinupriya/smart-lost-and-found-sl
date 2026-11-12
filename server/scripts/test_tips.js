@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
-const User = require('../models/User');
-const Item = require('../models/Item');
-const ReturnRecord = require('../models/ReturnRecord');
-const Tip = require('../models/Tip');
-const Notification = require('../models/Notification');
+const User = require('../data-access/models/User');
+const Item = require('../data-access/models/Item');
+const ReturnRecord = require('../data-access/models/ReturnRecord');
+const Tip = require('../data-access/models/Tip');
+const Notification = require('../data-access/models/Notification');
 
 // Import controllers
-const tipController = require('../controllers/tip.controller');
+const tipController = require('../presentation/controllers/tip.controller');
 
 // Helper to mock req/res
 const mockResponse = () => {

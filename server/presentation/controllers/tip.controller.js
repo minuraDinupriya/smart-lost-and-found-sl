@@ -1,9 +1,9 @@
-const Tip = require('../models/Tip');
-const ReturnRecord = require('../models/ReturnRecord');
-const Notification = require('../models/Notification');
-const paymentService = require('../services/payment.service');
-const { emitGlobalNotification } = require('../services/socket.service');
-const User = require('../models/User');
+const Tip = require('../../data-access/models/Tip');
+const ReturnRecord = require('../../data-access/models/ReturnRecord');
+const Notification = require('../../data-access/models/Notification');
+const paymentService = require('../../business/services/payment.service');
+const { emitGlobalNotification } = require('../../business/services/socket.service');
+const User = require('../../data-access/models/User');
 
 /**
  * Helper to verify all tip eligibility conditions on the backend.

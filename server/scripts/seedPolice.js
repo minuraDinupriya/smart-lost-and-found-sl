@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
-const User = require('../models/User');
+const User = require('../data-access/models/User');
 
 const path = require('path');
 
