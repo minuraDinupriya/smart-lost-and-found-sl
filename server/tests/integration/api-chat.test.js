@@ -36,6 +36,7 @@ before(async () => {
   app.use(express.json());
   app.get('/api/items/:itemId', controller.getItemById);
   app.post('/api/items/:itemId/verify-ownership', verifyToken, controller.verifyOwnership);
+  app.use('/api/handovers', require('../../routes/handover.routes'));
   app.use('/api', require('../../routes/api.routes'));
   server = http.createServer(app);
   io = new Server(server, { allowRequest: (req, callback) => callback(null, isAllowedOrigin(req.headers.origin, origins)) });
@@ -72,6 +73,25 @@ const socketFor = (token, origin) => new Promise((resolve, reject) => {
   socket.once('connect_error', reject);
 });
 const emit = (socket, event, data) => new Promise((resolve, reject) => socket.timeout(3000).emit(event, data, (error, response) => error ? reject(error) : resolve(response)));
+
+test('the receipt endpoint enforces the owner role and returns the completed record on retry', async () => {
+  const { item, owner, claimant } = await fixture();
+  const record = await ReturnRecord.create({
+    itemId: item._id, ownerId: owner._id, finderId: claimant._id, status: 'OWNER_FINDER_VERIFIED',
+  });
+  const confirm = (actor, counterpart) => request(
+    `/api/handovers/${item._id}/${counterpart._id}/confirm-receipt`,
+    { method: 'POST', token: tokenFor(actor) }
+  );
+  assert.equal((await confirm(claimant, owner)).code, 403);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await confirm(owner, claimant);
+    assert.equal(response.code, 200);
+    assert.equal(response.body._id, record._id.toString());
+    assert.equal(response.body.status, 'RETURN_COMPLETED');
+  }
+  assert.equal((await User.findById(claimant._id)).karmaPoints, 50);
+});
 
 test('MongoDB projections hide values by default and preserve custom labels for explicit selection', async () => {
   const { item } = await fixture();

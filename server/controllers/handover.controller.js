@@ -1,25 +1,8 @@
 const ReturnRecord = require('../models/ReturnRecord');
 const Item = require('../models/Item');
 
-// Helper to reliably determine owner and finder based on the item type
-const resolveRoles = (item, currentUserId, otherUserId) => {
-  const creatorId = item.createdBy.toString();
-  const isLost = item.type === 'LOST';
-
-  let ownerId, finderId;
-  
-  if (isLost) {
-    ownerId = creatorId;
-    // The other person in the chat must be the finder
-    finderId = creatorId === currentUserId ? otherUserId : currentUserId;
-  } else {
-    // If it's a FOUND item, the creator is the finder
-    finderId = creatorId;
-    ownerId = creatorId === currentUserId ? otherUserId : currentUserId;
-  }
-
-  return { ownerId, finderId };
-};
+const returnService = require('../services/return.service');
+const { resolveRoles } = returnService;
 
 // @route   GET /api/handovers/:itemId/:otherUserId
 // @desc    Get current handover state for a chat
@@ -127,21 +110,10 @@ exports.confirmReceipt = async (req, res) => {
     const { itemId, otherUserId } = req.params;
     const currentUserId = req.userId;
 
-    const item = await Item.findById(itemId);
-    if (!item) return res.status(404).json({ message: 'Item not found' });
-
-    const { ownerId, finderId } = resolveRoles(item, currentUserId, otherUserId);
-
-    if (currentUserId !== ownerId) {
-      return res.status(403).json({ message: 'Only the rightful owner can confirm receipt' });
-    }
-
-    const { completeReturn } = require('../services/return.service');
-    const record = await completeReturn({ itemId, ownerId, finderId });
-
+    const record = await returnService.confirmReceipt({ itemId, currentUserId, otherUserId });
     return res.status(200).json(record);
   } catch (error) {
-    console.error('Error in confirmReceipt:', error);
+    if (!error.status || error.status >= 500) console.error('Error in confirmReceipt:', error);
     res.status(error.status || 500).json({ message: error.status ? error.message : 'Server error' });
   }
 };
