@@ -39,6 +39,8 @@ Existing custom proofs whose labels were discarded by the old schema need an own
 
 ## Return consistency
 
+Receipt confirmation crosses three backend layers. The **Presentation** layer authenticates and authorizes the conversation in `handover.routes.js` and maps the result to HTTP in `handover.controller.js`. The **Business Logic** layer in `return.service.js` determines who can confirm receipt, checks the return state, and decides when to award karma. The **Data Access** layer in `return.repository.js` runs Mongoose operations and binds them to the same transaction. Direct claims use the same transaction boundary.
+
 ```mermaid
 sequenceDiagram
   participant Client
@@ -62,7 +64,7 @@ The item document is the shared contention point across direct claims and multip
 ## Validation
 
 - 32 isolated tests cover configuration, chat handlers, input shape, exact identifiers, public/private response behavior, and seed-script configuration.
-- 16 integration tests use real MongoDB replica sets, HTTP requests, signed/expired tokens, and Socket.IO connections. They test projections, custom-field persistence, authorization, concurrency, transaction rollback, and duplicate award prevention.
+- 17 integration tests use real MongoDB replica sets, HTTP requests, signed/expired tokens, and Socket.IO connections. They test projections, custom-field persistence, authorization, concurrency, transaction rollback, and duplicate award prevention.
 - The browser walkthrough verifies message acknowledgement, rejects near-matching identifiers, accepts exact details, and displays completed returns and the awarded score.
 - `npm run demo:check --prefix server` runs real HTTP smoke checks against a local synthetic fixture. Repeating it after completion awards zero further points.
 - TypeScript/Vite/PWA builds and JavaScript parsing are separate checks. They complement behavioral tests rather than replace them.
