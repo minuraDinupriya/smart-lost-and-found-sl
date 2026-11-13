@@ -18,6 +18,16 @@ Open <http://localhost:5175>. The API uses port 5003. Stop both terminals with C
 
 Sign in with `demo_owner`, `demo_finder`, or `demo_observer`. Each uses the demo-only password `LearnWithDemo2027!`. The phone's serial number is `DEMO-4829`, and its custom receipt code is `DEMO-RECEIPT-42`.
 
+## Two-minute interview walkthrough
+
+Start with a fresh demo. Open the [finder chat](http://localhost:5175/chat/000000000000000000000101/000000000000000000000001) and [owner chat](http://localhost:5175/chat/000000000000000000000101/000000000000000000000002) in separate browser profiles so each keeps its own sign-in.
+
+1. **Show proof privacy.** In the finder chat, open **Verify item details**. Point out that the form displays field labels without revealing the saved answers. Enter the exact demo serial and receipt values to show a successful match.
+2. **Complete the return.** In the owner chat, choose **I received my item** and confirm. The finder starts at 100 karma and finishes at 150. The demo starts with mutual confirmation already recorded.
+3. **Show the retry guarantee.** Run `npm run demo:check --prefix server` after the UI confirmation. It sends 12 concurrent receipt confirmations and should report **0 additional points**. On a fresh demo where the return is still open, the same command awards 50 points total.
+
+Trace the receipt request through the [handover controller](../server/presentation/controllers/handover.controller.js), [return service](../server/business/services/return.service.js), and [return repository](../server/data-access/repositories/return.repository.js). The service returns an already completed record on retry. The repository uses the same MongoDB transaction for the item status, return record, and karma update. The [return integration tests](../server/tests/integration/returns.test.js) cover concurrent requests and rollback when the finder is missing.
+
 ## Five-minute walkthrough
 
 1. Browse the dashboard and use the LOST/FOUND filters. Explain location and category filtering without claiming a measured national deployment.
