@@ -30,13 +30,23 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: |
+            client/package-lock.json
+            server/package-lock.json
       - run: npm ci
       - run: npm run build
       - name: Install headless Chromium
         run: npm exec -- playwright install --with-deps --only-shell chromium
       - name: Run client browser tests
         run: npm test
+      - name: Install recovery API dependencies
+        run: npm ci --ignore-scripts --prefix ../server
+      - uses: actions/cache@v4
+        with:
+          path: server/node_modules/.cache/mongodb-memory-server
+          key: mongodb-${{ runner.os }}-8.2.6
+      - name: Run full-stack recovery browser test
+        run: npm run test:recovery
 
   server-syntax:
     name: Server syntax

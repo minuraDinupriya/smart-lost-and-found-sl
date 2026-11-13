@@ -69,11 +69,12 @@ From the repository root:
 npm run build --prefix client
 node client/node_modules/@playwright/test/cli.js install --only-shell chromium
 npm test --prefix client
+npm run test:recovery --prefix client
 npm run check:syntax --prefix server
 npm test --prefix server
 ```
 
-The browser install is needed once per Playwright version. To use an installed copy of Chrome, set `PLAYWRIGHT_CHANNEL=chrome` in your environment and run the client tests. The tests start Vite on `127.0.0.1:4175` and cover sign-in, sign-out, and resuming a report on a narrow screen with synthetic API responses. They require no database or service credentials.
+The browser install is needed once per Playwright version. To use an installed copy of Chrome, set `PLAYWRIGHT_CHANNEL=chrome` in your environment. The default browser suite starts Vite on `127.0.0.1:4175` and uses synthetic API responses for sign-in and direct route navigation. The recovery suite uses real HTTP and Socket.IO with a disposable MongoDB replica set. Install the server dependencies before running it. It starts the frontend on port 4176 and the API on port 5004, both on loopback. The first run may download MongoDB 8.2.6. Neither browser suite needs live service credentials.
 
 The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. `npm test --prefix server` runs isolated tests for chat, security configuration, proof matching, ownership handlers, and seed configuration. `npm run test:integration --prefix server` starts disposable MongoDB replica sets and a loopback HTTP/Socket.IO server to test actual projections, response privacy, JWT validation, messaging authorization, concurrent awards, and rollback. Neither suite loads `.env` or uses `MONGO_URI`; integration tests may download MongoDB 8.2.6 on first use. CI runs both suites as separate jobs.
 

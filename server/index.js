@@ -88,7 +88,8 @@ io.on('connection', (socket) => {
 app.get('/', (req, res) => res.send('SL-SLFMS API & Socket Server Active...'));
 
 const PORT = process.env.PORT || 5001;
-connectDB().then(() => server.listen(PORT, () => {
+const demoHost = process.env.DEMO_MODE === 'true' ? process.env.DEMO_HOST || undefined : undefined;
+connectDB().then(() => server.listen(PORT, demoHost, () => {
   console.log(`Server and WebSockets running synchronously on port ${PORT}`);
   // Start the Item Expiry & Auto Archive daily cron job
   startArchiveCron();

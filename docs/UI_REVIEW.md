@@ -54,10 +54,10 @@ Before: [previous dashboard](media/01-dashboard.jpg).
 
 ## Limits and follow-up
 
-- This is manual browser validation, not an automated frontend regression suite or a formal accessibility audit.
+- The checks above were manual. Playwright also covers sign-in, direct navigation to analytics and admin, and the full recovery flow against a disposable database. A formal accessibility audit remains open.
 - Google OAuth, microphone recording, AI services, real payments, and role-specific admin/police operations were not exercised. Their existing integration/configuration requirements remain.
 - Some older feature pages still use English-only text. This change does not claim complete localization of every existing feature.
-- Vite still reports the existing large-bundle warning and stale Browserslist data. Frontend linting still requires the configuration noted in the README.
+- Analytics, admin, police, and smart-tag routes now load in separate chunks. The production entry bundle dropped from 413.47 kB to 279.71 kB gzipped (32%). This measures the entry JavaScript file. The service worker still precaches route chunks in the background. Vite still reports a large-bundle warning and stale Browserslist data. Frontend linting still requires the configuration noted in the README.
 - The older screenshot walkthrough demonstrates the recovery logic and predates this visual redesign.
 
 ## Interview discussion
