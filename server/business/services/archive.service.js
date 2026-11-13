@@ -1,4 +1,4 @@
-const Item = require('../../data-access/models/Item');
+const { archiveExpiredReports } = require('../../data-access/repositories/item.repository');
 
 /**
  * Item Expiry & Auto Archive Feature
@@ -10,20 +10,13 @@ const Item = require('../../data-access/models/Item');
  */
 const archiveExpiredItems = async () => {
   try {
-    const result = await Item.updateMany(
-      {
-        archiveStatus: 'active',
-        expiresAt: { $lte: new Date() },
-        type: { $ne: 'SMART_TAG' }, // Smart Tags are permanent registrations, not expiring reports
-      },
-      { $set: { archiveStatus: 'archived' } }
-    );
+    const result = await archiveExpiredReports(new Date());
 
     const matched = result.matchedCount ?? result.n ?? 0;
     const modified = result.modifiedCount ?? result.nModified ?? 0;
 
     if (modified > 0) {
-      console.log(`[Auto Archive] Archived ${modified}/${matched} expired item(s).`);
+      console.info(`[Auto Archive] Archived ${modified}/${matched} expired item(s).`);
     }
 
     return { matched, modified };

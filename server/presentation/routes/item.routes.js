@@ -2,24 +2,18 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyPolice } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem, getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems, identifyItem, analyzeVoiceReport, verifyOwnership } = require('../controllers/item.controller');
+const {
+  createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem,
+  getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem,
+  getArchivedItems, identifyItem, analyzeVoiceReport, verifyOwnership, listIdentificationModels,
+} = require('../controllers/item.controller');
 const { getHotspots } = require('../controllers/hotspot.controller');
 
 
 // @route   GET /api/items/debug-ai
 // @desc    Debug AI models available to the API key
 // @access  Public
-router.get('/debug-ai', async (req, res) => {
-  const apiKey = process.env.ITEM_IDENTIFICATION_API_KEY || process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.json({ error: 'No API key' });
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.json({ error: err.message });
-  }
-});
+router.get('/debug-ai', listIdentificationModels);
 
 // @route   POST /api/items/identify
 // @desc    Analyze uploaded item image with AI and suggest attributes
@@ -100,10 +94,5 @@ router.delete('/:itemId', verifyToken, deleteItem);
 // @desc    Mark an item as Claimed (Awards Karma Points)
 // @access  Private (Creator only)
 router.put('/:itemId/claim', verifyToken, claimItem);
-
-// @route   POST /api/items/:itemId/verify-ownership
-// @desc    Verify ownership proof fields
-// @access  Private (Authenticated users only)
-router.post('/:itemId/verify-ownership', verifyToken, verifyOwnership);
 
 module.exports = router;

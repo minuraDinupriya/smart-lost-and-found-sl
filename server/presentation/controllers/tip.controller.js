@@ -1,380 +1,81 @@
-const Tip = require('../../data-access/models/Tip');
-const ReturnRecord = require('../../data-access/models/ReturnRecord');
-const Notification = require('../../data-access/models/Notification');
-const paymentService = require('../../business/services/payment.service');
-const { emitGlobalNotification } = require('../../business/services/socket.service');
-const User = require('../../data-access/models/User');
+const tipService = require('../../business/services/tip.service');
 
-/**
- * Helper to verify all tip eligibility conditions on the backend.
- */
-const checkTipEligibility = async (returnRecord, userId) => {
-  if (!returnRecord) {
-    return { eligible: false, reason: 'Return record not found.' };
-  }
-  
-  if (!returnRecord.itemId) {
-    return { eligible: false, reason: 'Associated item not found.' };
-  }
+const validId = id => {
+  const value = typeof id?.toHexString === 'function' ? id.toHexString() : id;
+  return typeof value === 'string' && /^[a-f0-9]{24}$/i.test(value);
+};
 
-  // Handle populated or unpopulated ownerId and finderId
-  const ownerIdString = returnRecord.ownerId._id ? returnRecord.ownerId._id.toString() : returnRecord.ownerId.toString();
-  const finderIdString = returnRecord.finderId._id ? returnRecord.finderId._id.toString() : returnRecord.finderId.toString();
-
-  // 1. Logged in user must be the rightful owner
-  if (ownerIdString !== userId.toString()) {
-    return { eligible: false, reason: 'Only the rightful owner can give a tip.' };
-  }
-
-  // 2. Finder must be a valid user and not the owner itself
-  if (ownerIdString === finderIdString) {
-    return { eligible: false, reason: 'You cannot give a tip to yourself.' };
-  }
-
-  const finder = await User.findById(finderIdString);
-  if (!finder) {
-    return { eligible: false, reason: 'The finder user does not exist.' };
-  }
-
-  // 3. Handover status must be successfully completed (Mutual Verification Protocol)
-  if (returnRecord.status !== 'RETURN_COMPLETED' && returnRecord.status !== 'Returned' && returnRecord.status !== 'Completed') {
-    return { eligible: false, reason: 'Handover status is not completed.' };
-  }
-
-  // Ensure mutual verification actually occurred (Security against forced statuses)
-  if (returnRecord.status === 'RETURN_COMPLETED') {
-    if (!returnRecord.finderConfirmedAt || !returnRecord.ownerConfirmedAt || !returnRecord.ownerReceivedAt) {
-      return { eligible: false, reason: 'Mutual verification steps are incomplete. Both parties must confirm.' };
+const handleTip = (errorMessage, handler) => async (req, res) => {
+  try {
+    return await handler(req, res);
+  } catch (error) {
+    if (error instanceof tipService.TipError) {
+      return res.status(error.status).json({ message: error.message });
     }
+    console.error(errorMessage, error);
+    return res.status(500).json({ message: errorMessage });
+  }
+};
+
+const createTip = handleTip('Server error while initiating tip.', async (req, res) => {
+  const { returnRecordId, amount, thankYouMessage } = req.body || {};
+  if (!returnRecordId) return res.status(400).json({ message: 'Return record ID is required.' });
+  if (!validId(returnRecordId)) return res.status(400).json({ message: 'Invalid return record ID.' });
+
+  const numericAmount = typeof amount === 'number' || typeof amount === 'string' ? Number(amount) : NaN;
+  if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+    return res.status(400).json({ message: 'Amount must be greater than zero.' });
+  }
+  if (thankYouMessage != null && typeof thankYouMessage !== 'string') {
+    return res.status(400).json({ message: 'Thank-you message must be text.' });
   }
 
-  // 4. Item status must be successfully claimed/returned
-  if (returnRecord.itemId.status !== 'Claimed') {
-    return { eligible: false, reason: 'The item has not been marked as Claimed/Returned.' };
-  }
-
-  // 5. No completed tip already exists
-  const existingTip = await Tip.findOne({ 
-    returnRecordId: returnRecord._id, 
-    paymentStatus: { $in: ['paid', 'completed'] } 
+  const hostUrl = req.headers?.origin || process.env.CLIENT_URL || 'http://localhost:5173';
+  const result = await tipService.createTip({
+    returnRecordId, userId: req.userId, amount: numericAmount, thankYouMessage: thankYouMessage || '', hostUrl,
   });
-  if (existingTip) {
-    return { eligible: false, reason: 'A tip has already been paid for this return.' };
+  return res.status(200).json({ message: 'Payment session created successfully.', ...result });
+});
+
+const getTipById = handleTip('Server error retrieving tip.', async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: 'Invalid tip ID.' });
+  return res.status(200).json(await tipService.getTipById(req.params.id, req.userId));
+});
+
+const getUserTips = handleTip('Server error retrieving user tip history.', async (req, res) =>
+  res.status(200).json(await tipService.getUserTips(req.params.id, req.userId))
+);
+
+const paymentMessages = {
+  already_paid: 'Payment already verified.',
+  paid: 'Payment verified and notifications sent.',
+  failed: 'Payment verification failed.',
+  pending: 'Payment is still pending.',
+};
+
+const updateTipPaymentStatus = handleTip('Server error during payment verification.', async (req, res) => {
+  const { paymentReference } = req.body || {};
+  if (typeof paymentReference !== 'string' || !paymentReference.trim()) {
+    return res.status(400).json({ message: 'Payment reference is required.' });
   }
 
-  return { eligible: true, reason: '' };
-};
+  const { outcome, tip } = await tipService.updateTipPaymentStatus(paymentReference);
+  const status = outcome === 'failed' ? 400 : 200;
+  return res.status(status).json({ message: paymentMessages[outcome], tip });
+});
 
-/**
- * Creates a new Tip record (or updates an existing pending one) and initiates payment.
- */
-const createTip = async (req, res) => {
-  try {
-    const { returnRecordId, amount, thankYouMessage } = req.body;
+const getReturnRecordById = handleTip('Server error retrieving return record.', async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: 'Invalid return record ID.' });
+  return res.status(200).json(await tipService.getReturnRecordById(req.params.id, req.userId));
+});
 
-    // 1. Basic validation
-    if (!returnRecordId) {
-      return res.status(400).json({ message: 'Return record ID is required.' });
-    }
-    if (!amount || parseFloat(amount) <= 0) {
-      return res.status(400).json({ message: 'Amount must be greater than zero.' });
-    }
+const skipTip = handleTip('Server error while skipping tip.', async (req, res) => {
+  const { returnRecordId } = req.body || {};
+  if (!returnRecordId) return res.status(400).json({ message: 'Return record ID is required.' });
+  if (!validId(returnRecordId)) return res.status(400).json({ message: 'Invalid return record ID.' });
 
-    // 2. Fetch ReturnRecord and verify existence
-    const returnRecord = await ReturnRecord.findById(returnRecordId).populate('itemId');
-    if (!returnRecord) {
-      return res.status(404).json({ message: 'Return record not found.' });
-    }
+  const tip = await tipService.skipTip(returnRecordId, req.userId);
+  return res.status(200).json({ message: 'Tip successfully marked as skipped.', tip });
+});
 
-    // 3. Security eligibility check on the backend
-    const eligibility = await checkTipEligibility(returnRecord, req.userId);
-    if (!eligibility.eligible) {
-      return res.status(400).json({ message: eligibility.reason });
-    }
-
-    // 4. If no tip exists, create one. If a pending one exists, update it.
-    let tip = await Tip.findOne({ returnRecordId });
-    if (!tip) {
-      tip = new Tip({
-        returnRecordId,
-        ownerId: returnRecord.ownerId,
-        finderId: returnRecord.finderId,
-        amount: parseFloat(amount),
-        thankYouMessage: thankYouMessage || '',
-        paymentStatus: 'pending',
-      });
-    } else {
-      tip.amount = parseFloat(amount);
-      tip.thankYouMessage = thankYouMessage || '';
-      tip.paymentStatus = 'pending';
-      tip.paymentReference = ''; // Reset reference for retry
-    }
-
-    await tip.save();
-
-    // 5. Initiate Payment Checkout Session
-    const hostUrl = req.headers.origin || process.env.CLIENT_URL || 'http://localhost:5173';
-    const paymentSession = await paymentService.createCheckoutSession(tip, hostUrl);
-
-    // Save payment reference
-    tip.paymentReference = paymentSession.reference;
-    await tip.save();
-
-    res.status(200).json({
-      message: 'Payment session created successfully.',
-      tip,
-      checkoutUrl: paymentSession.url,
-      isMock: paymentSession.isMock,
-    });
-  } catch (error) {
-    console.error('Create tip error:', error);
-    res.status(500).json({ message: 'Server error while initiating tip.' });
-  }
-};
-
-/**
- * Retrieves details of a single tip. Restricted to owner or finder.
- */
-const getTipById = async (req, res) => {
-  try {
-    const tip = await Tip.findById(req.params.id)
-      .populate('ownerId', 'username')
-      .populate('finderId', 'username')
-      .populate({
-        path: 'returnRecordId',
-        populate: { path: 'itemId', select: 'title imageUrl' }
-      });
-
-    if (!tip) {
-      return res.status(404).json({ message: 'Tip record not found.' });
-    }
-
-    // Security: Only owner (sender) or finder (receiver) can view
-    if (tip.ownerId._id.toString() !== req.userId && tip.finderId._id.toString() !== req.userId) {
-      return res.status(403).json({ message: 'Unauthorized to view this tip details.' });
-    }
-
-    res.status(200).json(tip);
-  } catch (error) {
-    console.error('Get tip by ID error:', error);
-    res.status(500).json({ message: 'Server error retrieving tip.' });
-  }
-};
-
-/**
- * Retrieves a user's sent and received paid tips.
- */
-const getUserTips = async (req, res) => {
-  try {
-    const userId = req.params.id;
-
-    // Security: Users can only query their own tip history
-    if (userId !== req.userId) {
-      return res.status(403).json({ message: 'Unauthorized to access this user\'s tip logs.' });
-    }
-
-    // Retrieve tips where user is the sender (owner) and status is paid
-    const sent = await Tip.find({ ownerId: userId, paymentStatus: 'paid' })
-      .populate('finderId', 'username')
-      .populate({
-        path: 'returnRecordId',
-        populate: { path: 'itemId', select: 'title imageUrl type' }
-      })
-      .sort({ createdAt: -1 });
-
-    // Retrieve tips where user is the receiver (finder) and status is paid
-    const received = await Tip.find({ finderId: userId, paymentStatus: 'paid' })
-      .populate('ownerId', 'username')
-      .populate({
-        path: 'returnRecordId',
-        populate: { path: 'itemId', select: 'title imageUrl type' }
-      })
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({ sent, received });
-  } catch (error) {
-    console.error('Get user tips error:', error);
-    res.status(500).json({ message: 'Server error retrieving user tip history.' });
-  }
-};
-
-/**
- * Verifies and updates payment status.
- */
-const updateTipPaymentStatus = async (req, res) => {
-  try {
-    const { paymentReference } = req.body;
-
-    if (!paymentReference) {
-      return res.status(400).json({ message: 'Payment reference is required.' });
-    }
-
-    const tip = await Tip.findOne({ paymentReference });
-    if (!tip) {
-      return res.status(404).json({ message: 'Tip record not found for this reference.' });
-    }
-
-    // If already paid, just return success
-    if (tip.paymentStatus === 'paid') {
-      return res.status(200).json({ message: 'Payment already verified.', tip });
-    }
-
-    // Call payment service to check status
-    const verification = await paymentService.verifyPayment(paymentReference);
-
-    if (verification.status === 'paid') {
-      tip.paymentStatus = 'paid';
-      await tip.save();
-
-      // Retrieve owner and finder info to build messages
-      const owner = await User.findById(tip.ownerId);
-      const finder = await User.findById(tip.finderId);
-      const returnRec = await ReturnRecord.findById(tip.returnRecordId).populate('itemId');
-      const itemTitle = returnRec?.itemId?.title || 'Returned Item';
-
-      // Check for Bank Details and Handle Payout
-      let finderMessage = '';
-      if (finder.bankDetails && finder.bankDetails.accountNumber) {
-        // Initiate payout immediately
-        const payoutResult = await paymentService.initiatePayout(tip, finder);
-        if (payoutResult.status === 'completed') {
-          tip.payoutStatus = 'completed';
-          finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! The money has been transferred to your bank account.`;
-        } else {
-          tip.payoutStatus = 'pending';
-          finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'}! We had trouble transferring it to your bank. Please check your bank details in your profile.`;
-        }
-      } else {
-        // Hold in escrow
-        tip.payoutStatus = 'pending';
-        finderMessage = `🎉 You received a reward of Rs. ${tip.amount} from @${owner?.username || 'Owner'} for "${itemTitle}"! Please add your bank details in your Profile to receive the money.`;
-      }
-      
-      await tip.save();
-
-      // 1. Notify Finder (Receiver)
-      const finderNotification = await Notification.create({
-        userId: tip.finderId,
-        message: finderMessage,
-        type: 'TIP_RECEIVED',
-      });
-
-      // Send Real-Time Socket
-      emitGlobalNotification(tip.finderId, {
-        _id: finderNotification._id,
-        text: finderMessage,
-        type: 'TIP_RECEIVED',
-        createdAt: finderNotification.createdAt,
-      });
-
-      // 2. Notify Owner (Sender)
-      const ownerMessage = `Your reward tip of Rs. ${tip.amount} to @${finder?.username || 'Finder'} for "${itemTitle}" was sent successfully.`;
-      const ownerNotification = await Notification.create({
-        userId: tip.ownerId,
-        message: ownerMessage,
-        type: 'TIP_SENT',
-      });
-
-      // Send Real-Time Socket
-      emitGlobalNotification(tip.ownerId, {
-        _id: ownerNotification._id,
-        text: ownerMessage,
-        type: 'TIP_SENT',
-        createdAt: ownerNotification.createdAt,
-      });
-
-      return res.status(200).json({ message: 'Payment verified and notifications sent.', tip });
-    } else if (verification.status === 'failed') {
-      tip.paymentStatus = 'failed';
-      await tip.save();
-      return res.status(400).json({ message: 'Payment verification failed.', tip });
-    }
-
-    res.status(200).json({ message: 'Payment is still pending.', tip });
-  } catch (error) {
-    console.error('Verify payment status error:', error);
-    res.status(500).json({ message: 'Server error during payment verification.' });
-  }
-};
-
-const getReturnRecordById = async (req, res) => {
-  try {
-    const returnRecord = await ReturnRecord.findById(req.params.id)
-      .populate('itemId')
-      .populate('ownerId', 'username')
-      .populate('finderId', 'username');
-
-    if (!returnRecord) {
-      return res.status(404).json({ message: 'Return record not found.' });
-    }
-
-    // Security check: Only the owner (sender of the tip) or finder (receiver of the tip) can see it
-    if (returnRecord.ownerId._id.toString() !== req.userId && returnRecord.finderId._id.toString() !== req.userId) {
-      return res.status(403).json({ message: 'Unauthorized to view this return record.' });
-    }
-
-    // Backend independently verifies all eligibility conditions
-    const eligibility = await checkTipEligibility(returnRecord, req.userId);
-
-    const recordObj = returnRecord.toObject();
-    recordObj.isEligible = eligibility.eligible;
-    recordObj.ineligibilityReason = eligibility.reason;
-
-    res.status(200).json(recordObj);
-  } catch (error) {
-    console.error('Get return record by ID error:', error);
-    res.status(500).json({ message: 'Server error retrieving return record.' });
-  }
-};
-
-/**
- * Logs a skipped tip status in the database.
- */
-const skipTip = async (req, res) => {
-  try {
-    const { returnRecordId } = req.body;
-    if (!returnRecordId) {
-      return res.status(400).json({ message: 'Return record ID is required.' });
-    }
-
-    const returnRecord = await ReturnRecord.findById(returnRecordId).populate('itemId');
-    if (!returnRecord) {
-      return res.status(404).json({ message: 'Return record not found.' });
-    }
-
-    // Verify eligibility before saving skipped status
-    const eligibility = await checkTipEligibility(returnRecord, req.userId);
-    if (!eligibility.eligible) {
-      return res.status(400).json({ message: eligibility.reason });
-    }
-
-    let tip = await Tip.findOne({ returnRecordId });
-    if (!tip) {
-      tip = new Tip({
-        returnRecordId,
-        ownerId: returnRecord.ownerId,
-        finderId: returnRecord.finderId,
-        amount: 0,
-        paymentStatus: 'skipped',
-      });
-    } else {
-      tip.paymentStatus = 'skipped';
-      tip.amount = 0;
-    }
-
-    await tip.save();
-    res.status(200).json({ message: 'Tip successfully marked as skipped.', tip });
-  } catch (error) {
-    console.error('Skip tip error:', error);
-    res.status(500).json({ message: 'Server error while skipping tip.' });
-  }
-};
-
-module.exports = {
-  createTip,
-  getTipById,
-  getUserTips,
-  updateTipPaymentStatus,
-  getReturnRecordById,
-  skipTip,
-};
+module.exports = { createTip, getTipById, getUserTips, updateTipPaymentStatus, getReturnRecordById, skipTip };

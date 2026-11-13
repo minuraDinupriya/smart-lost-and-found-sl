@@ -1,12 +1,9 @@
 const PDFDocument = require('pdfkit');
+const { findItemById } = require('../../data-access/repositories/item.repository');
+const { findUsername } = require('../../data-access/repositories/chat.repository');
 
-const generatePoliceHandoverPDF = (item, user, res) => {
+const generatePoliceHandoverPDF = (item, username) => {
   const doc = new PDFDocument({ margin: 50 });
-
-  // Stream PDF directly to Express Response without storing physically
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="Handover_Declaration_${item._id}.pdf"`);
-  doc.pipe(res);
 
   // --- HEADER ---
   doc.rect(0, 0, 612, 85).fill('#800000'); // Maroon Brand Background
@@ -48,7 +45,7 @@ const generatePoliceHandoverPDF = (item, user, res) => {
   doc.fillColor('#000000').moveDown(0.5);
   
   doc.fontSize(12).font('Helvetica-Bold').text('Verified Username (Network Poster): ', { continued: true });
-  doc.font('Helvetica').text(user.username);
+  doc.font('Helvetica').text(username);
   doc.moveDown(0.5);
 
   doc.fontSize(12).font('Helvetica-Bold').text('Contact Number Provided: ', { continued: true });
@@ -76,8 +73,17 @@ const generatePoliceHandoverPDF = (item, user, res) => {
   doc.text('Police Station Officer Stamp & Signature', 350, signatureY + 10);
 
   doc.end();
+  return doc;
 };
 
-module.exports = {
-  generatePoliceHandoverPDF
+const preparePoliceHandover = async (itemId, userId) => {
+  const item = await findItemById(itemId);
+  if (!item) return { error: 'ITEM_NOT_FOUND' };
+
+  const username = await findUsername(userId);
+  if (!username) return { error: 'USER_NOT_FOUND' };
+
+  return { itemId: item._id, document: generatePoliceHandoverPDF(item, username) };
 };
+
+module.exports = { preparePoliceHandover };

@@ -9,11 +9,10 @@ const { archiveExpiredItems } = require('./archive.service');
 const startArchiveCron = () => {
   // "0 0 * * *" => At 00:00 (midnight) every day
   cron.schedule('0 0 * * *', async () => {
-    console.log('[Auto Archive] Running scheduled midnight archive check...');
     await archiveExpiredItems();
   });
 
-  console.log('[Auto Archive] Daily midnight archive cron job scheduled.');
+  console.info('[Auto Archive] Daily midnight archive cron job scheduled.');
 };
 
 module.exports = { startArchiveCron };

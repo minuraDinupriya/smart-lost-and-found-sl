@@ -1,327 +1,111 @@
-const { getJwtSecret } = require('../../config/security');
-const User = require('../../data-access/models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
-const fs = require('fs');
-const cloudinary = require('cloudinary').v2;
+const authService = require('../../business/services/auth.service');
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
+const hasCredentials = body =>
+  typeof body?.username === 'string' && body.username.trim() !== '' &&
+  typeof body.password === 'string' && body.password !== '';
 
 const register = async (req, res) => {
+  if (!hasCredentials(req.body)) {
+    return res.status(400).json({ message: 'Username and password are required.' });
+  }
+
   try {
     const { username, password } = req.body;
-
-    // 1. Check if user already exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
+    if (!await authService.register({ username, password })) {
       return res.status(400).json({ message: 'Username already exists.' });
     }
-
-    // 2. Hash the password with salt round of 10
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // 3. Create and save the new user
-    const newUser = new User({
-      username,
-      password: hashedPassword,
-    });
-    await newUser.save();
-
-    res.status(201).json({ message: 'User registered successfully.' });
+    return res.status(201).json({ message: 'User registered successfully.' });
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ message: 'Server error during registration.' });
+    return res.status(500).json({ message: 'Server error during registration.' });
   }
 };
 
 const login = async (req, res) => {
+  if (!hasCredentials(req.body)) return res.status(400).json({ message: 'Invalid credentials.' });
+
   try {
     const { username, password } = req.body;
-
-    // 1. Find user by username
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials.' });
-    }
-
-    // 2. Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials.' });
-    }
-
-    // 3. Sign JWT containing the user's id
-    const secret = getJwtSecret();
-    const token = jwt.sign({ id: user._id }, secret, { expiresIn: '7d' });
-
-    // 4. Return token, username, and userId
-    res.status(200).json({
-      token,
-      username: user.username,
-      userId: user._id,
-      role: user.role,
-      policeStationName: user.policeStationName,
-      profilePicture: user.profilePicture,
-    });
+    const session = await authService.login({ username, password });
+    if (!session) return res.status(400).json({ message: 'Invalid credentials.' });
+    return res.status(200).json(session);
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login.' });
+    return res.status(500).json({ message: 'Server error during login.' });
   }
 };
 
 const googleLogin = async (req, res) => {
+  const token = req.body?.token;
+  if (typeof token !== 'string' || !token.trim()) {
+    return res.status(400).json({ message: 'Google token is required.' });
+  }
+
   try {
-    const { token } = req.body;
-    
-    // Verify Google token
-    const ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    const { sub: googleId, email, name, picture } = payload;
-
-    // Check if user already exists
-    let user = await User.findOne({ 
-      $or: [{ googleId }, { email }]
-    });
-
-    if (!user) {
-      // Check if username is taken, if so, append random string
-      let username = name.replace(/\s+/g, '').toLowerCase();
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        username = `${username}${Math.floor(Math.random() * 10000)}`;
-      }
-
-      // Create new user without a password
-      user = new User({
-        username,
-        googleId,
-        email,
-        profilePicture: picture,
-      });
-      await user.save();
-    } else if (!user.googleId) {
-      // Link Google account to existing user by email
-      user.googleId = googleId;
-      user.profilePicture = picture;
-      await user.save();
-    }
-
-    // Sign JWT
-    const secret = getJwtSecret();
-    const jwtToken = jwt.sign({ id: user._id }, secret, { expiresIn: '7d' });
-
-    res.status(200).json({
-      token: jwtToken,
-      username: user.username,
-      userId: user._id,
-      role: user.role,
-      policeStationName: user.policeStationName,
-      profilePicture: user.profilePicture,
-    });
+    return res.status(200).json(await authService.googleLogin(token));
   } catch (error) {
     console.error('Google Login error:', error);
-    res.status(500).json({ message: 'Server error during Google Login.' });
+    return res.status(500).json({ message: 'Server error during Google Login.' });
   }
 };
 
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
-// @access  Private
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
-    res.status(200).json({ user });
+    return res.status(200).json({ user: await authService.getProfile(req.userId) });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error('Get profile error:', error);
+    return res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Get top users by karma points
-// @route   GET /api/auth/leaderboard
-// @access  Public
 const getLeaderboard = async (req, res) => {
   try {
-    const users = await User.find()
-      .select('username karmaPoints')
-      .sort({ karmaPoints: -1 })
-      .limit(10);
-    res.status(200).json({ leaderboard: users });
+    return res.status(200).json({ leaderboard: await authService.getLeaderboard() });
   } catch (error) {
     console.error('Leaderboard error:', error);
-    res.status(500).json({ message: 'Server Error' });
+    return res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Update user profile (username & profile picture)
-// @route   PUT /api/auth/profile
-// @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const { username } = req.body;
-    const userId = req.userId;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      if (req.file) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (err) {
-          console.error("Failed to clean up file:", err);
-        }
-      }
-      return res.status(404).json({ message: 'User not found.' });
+    const result = await authService.updateProfile(req.userId, { username: req.body?.username, file: req.file });
+    if (result.error === 'INVALID_USERNAME') {
+      return res.status(400).json({ message: 'Username must be a string.' });
     }
-
-    // 1. If username is being changed, verify uniqueness
-    if (username && username !== user.username) {
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        // Clean up uploaded file if validation fails
-        if (req.file) {
-          try {
-            fs.unlinkSync(req.file.path);
-          } catch (err) {
-            console.error("Failed to clean up file after username validation error:", err);
-          }
-        }
-        return res.status(400).json({ message: 'Username is already taken.' });
-      }
-      user.username = username;
+    if (result.error === 'USERNAME_TAKEN') {
+      return res.status(400).json({ message: 'Username is already taken.' });
     }
-
-    // 2. Handle Profile Picture upload if provided
-    if (req.file) {
-      // Check if Cloudinary is configured
-      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-        try {
-          const result = await cloudinary.uploader.upload(req.file.path);
-          user.profilePicture = result.secure_url;
-
-          // Clean up the temporary local file
-          try {
-            fs.unlinkSync(req.file.path);
-          } catch (err) {
-            console.error("Failed to clean up temporary local file:", err);
-          }
-        } catch (cloudinaryErr) {
-          console.error("Cloudinary upload failed, falling back to local storage:", cloudinaryErr);
-          // Fallback to local url
-          const localUrl = `/uploads/${req.file.filename}`;
-          user.profilePicture = localUrl;
-        }
-      } else {
-        // Fallback: use local upload static URL
-        const localUrl = `/uploads/${req.file.filename}`;
-        user.profilePicture = localUrl;
-      }
-    }
-
-    await user.save();
-
-    // Return the updated user (excluding password)
-    const updatedUser = await User.findById(userId).select('-password');
-    res.status(200).json({
-      message: 'Profile updated successfully.',
-      user: updatedUser
-    });
+    if (result.error === 'USER_NOT_FOUND') return res.status(404).json({ message: 'User not found.' });
+    return res.status(200).json({ message: 'Profile updated successfully.', user: result.user });
   } catch (error) {
     console.error('Update profile error:', error);
-    // Clean up uploaded file if error occurs
-    if (req.file) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (err) {
-        console.error("Failed to clean up file after error:", err);
-      }
-    }
-    res.status(500).json({ message: 'Server error during profile update.' });
+    return res.status(500).json({ message: 'Server error during profile update.' });
   }
 };
 
-// @desc    Update user bank details
-// @route   PUT /api/auth/profile/bank
-// @access  Private
 const updateBankDetails = async (req, res) => {
+  const { bankName, branchName, accountName, accountNumber } = req.body || {};
+  if ([bankName, branchName, accountName, accountNumber].some(value => value != null && typeof value !== 'string')) {
+    return res.status(400).json({ message: 'Bank details must be strings.' });
+  }
+
   try {
-    const { bankName, branchName, accountName, accountNumber } = req.body;
-    const userId = req.userId;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    user.bankDetails = {
+    const result = await authService.updateBankDetails(req.userId, {
       bankName: bankName || '',
       branchName: branchName || '',
       accountName: accountName || '',
       accountNumber: accountNumber || '',
-    };
-    await user.save();
-
-    // After updating bank details, check if there are any tips stuck in pending payout
-    // and initiate the payout!
-    const Tip = require('../../data-access/models/Tip');
-    const paymentService = require('../../business/services/payment.service');
-    const Notification = require('../../data-access/models/Notification');
-    const { emitGlobalNotification } = require('../../business/services/socket.service');
-
-    const pendingTips = await Tip.find({ finderId: userId, paymentStatus: 'paid', payoutStatus: 'pending' });
-    
-    let processedCount = 0;
-    for (const tip of pendingTips) {
-      const payoutResult = await paymentService.initiatePayout(tip, user);
-      if (payoutResult.status === 'completed') {
-        tip.payoutStatus = 'completed';
-        await tip.save();
-        processedCount++;
-
-        const msg = `🎉 Your pending reward of Rs. ${tip.amount} has been successfully transferred to your newly added bank account!`;
-        const notification = await Notification.create({
-          userId: tip.finderId,
-          message: msg,
-          type: 'TIP_RECEIVED',
-        });
-        emitGlobalNotification(tip.finderId, {
-          _id: notification._id,
-          text: msg,
-          type: 'TIP_RECEIVED',
-          createdAt: notification.createdAt,
-        });
-      }
-    }
-
-    const updatedUser = await User.findById(userId).select('-password');
-    res.status(200).json({
-      message: `Bank details updated successfully. ${processedCount > 0 ? `Initiated ${processedCount} pending payout(s)!` : ''}`,
-      user: updatedUser
     });
-  } catch (error) {
-    console.error('Update bank details error:', error);
-    res.status(500).json({ message: 'Server error during bank details update.' });
+    if (!result) return res.status(404).json({ message: 'User not found.' });
+
+    const { user, processedCount } = result;
+    const payoutMessage = processedCount > 0 ? `Initiated ${processedCount} pending payout(s)!` : '';
+    return res.status(200).json({ message: `Bank details updated successfully. ${payoutMessage}`, user });
+  } catch {
+    console.error('Update bank details failed.');
+    return res.status(500).json({ message: 'Server error during bank details update.' });
   }
 };
 
-module.exports = {
-  register,
-  login,
-  googleLogin,
-  getMe,
-  getLeaderboard,
-  updateProfile,
-  updateBankDetails,
-};
-
+module.exports = { register, login, googleLogin, getMe, getLeaderboard, updateProfile, updateBankDetails };

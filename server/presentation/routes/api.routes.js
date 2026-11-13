@@ -1,102 +1,65 @@
 const express = require('express');
-const router = express.Router();
-const Message = require('../../data-access/models/Message');
-const Item = require('../../data-access/models/Item');
-const User = require('../../data-access/models/User');
 const { verifyToken } = require('../middleware/auth.middleware');
-const { generatePoliceHandoverPDF } = require('../../business/services/pdf.service');
-const { getConversationHistory } = require('../../business/services/chat.service');
+const chatService = require('../../business/services/chat.service');
+const { preparePoliceHandover } = require('../../business/services/pdf.service');
 
-// @route   GET /api/messages/unread-count
-// @desc    Get total count of unread messages for the logged-in user
-// @access  Private
+const router = express.Router();
+
 router.get('/messages/unread-count', verifyToken, async (req, res) => {
   try {
-    const count = await Message.countDocuments({ receiverId: req.userId, isRead: false });
-    res.status(200).json({ count });
+    const count = await chatService.countUnread(req.userId);
+    return res.status(200).json({ count });
   } catch (error) {
     console.error('Unread count error:', error);
-    res.status(500).json({ message: 'Internal error fetching unread count.' });
+    return res.status(500).json({ message: 'Internal error fetching unread count.' });
   }
 });
 
-// @route   PUT /api/messages/mark-all-read
-// @desc    Mark all messages for the logged-in user as read
-// @access  Private
 router.put('/messages/mark-all-read', verifyToken, async (req, res) => {
   try {
-    await Message.updateMany(
-      { receiverId: req.userId, isRead: false },
-      { $set: { isRead: true } }
-    );
-    res.status(200).json({ message: 'All messages marked as read.' });
+    await chatService.markAllRead(req.userId);
+    return res.status(200).json({ message: 'All messages marked as read.' });
   } catch (error) {
     console.error('Mark all read error:', error);
-    res.status(500).json({ message: 'Internal error marking messages as read.' });
+    return res.status(500).json({ message: 'Internal error marking messages as read.' });
   }
 });
 
-// @route   GET /api/messages/inbox
-// @desc    Fetch latest messages for all active chat threads of the user
-// @access  Private
 router.get('/messages/inbox', verifyToken, async (req, res) => {
   try {
-    const messages = await Message.find({
-      $or: [{ senderId: req.userId }, { receiverId: req.userId }]
-    })
-    .sort({ createdAt: -1 })
-    .populate('itemId', 'title imageUrl type')
-    .populate('senderId', 'username')
-    .populate('receiverId', 'username');
-
-    // Deduplicate by itemId to get only the latest message per thread
-    const seenItems = new Set();
-    const inboxThreads = [];
-    for (const msg of messages) {
-      if (msg.itemId && !seenItems.has(msg.itemId._id.toString())) {
-        seenItems.add(msg.itemId._id.toString());
-        inboxThreads.push(msg);
-      }
-    }
-
-    res.status(200).json(inboxThreads);
+    const threads = await chatService.getInbox(req.userId);
+    return res.status(200).json(threads);
   } catch (error) {
-    console.error('Inbox aggregation error:', error);
-    res.status(500).json({ message: 'Internal error fetching inbox.' });
+    console.error('Inbox retrieval error:', error);
+    return res.status(500).json({ message: 'Internal error fetching inbox.' });
   }
 });
 
-// @route   GET /api/messages/:itemId/:otherUserId
-// @desc    Fetch comprehensive chat history for an item's negotiation room
-// @access  Private
 router.get('/messages/:itemId/:otherUserId', verifyToken, async (req, res) => {
   try {
     const { itemId, otherUserId } = req.params;
-    const messages = await getConversationHistory(req.userId, otherUserId, itemId);
+    const messages = await chatService.getConversationHistory(req.userId, otherUserId, itemId);
     if (!messages) return res.status(403).json({ message: 'Conversation access denied.' });
-    res.status(200).json(messages);
+    return res.status(200).json(messages);
   } catch (error) {
     console.error('Database message retrieval error:', error);
-    res.status(500).json({ message: 'Internal error fetching chat logs.' });
+    return res.status(500).json({ message: 'Internal error fetching chat logs.' });
   }
 });
 
-// @route   GET /api/items/:itemId/download-pdf
-// @desc    Trigger pdfkit generation and stream Police Handover Declaration
-// @access  Private
 router.get('/items/:itemId/download-pdf', verifyToken, async (req, res) => {
   try {
-    const item = await Item.findById(req.params.itemId);
-    if (!item) return res.status(404).json({ message: 'Item lookup failed' });
-    
-    const user = await User.findById(req.userId); // req.userId extracted securely by middleware
-    if (!user) return res.status(404).json({ message: 'User verification failed' });
+    const result = await preparePoliceHandover(req.params.itemId, req.userId);
+    if (result.error === 'ITEM_NOT_FOUND') return res.status(404).json({ message: 'Item lookup failed' });
+    if (result.error === 'USER_NOT_FOUND') return res.status(404).json({ message: 'User verification failed' });
 
-    // Stream the generated PDF directly out through the HTTP response pipe
-    generatePoliceHandoverPDF(item, user, res);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Handover_Declaration_${result.itemId}.pdf"`);
+    result.document.on('error', error => res.destroy(error));
+    return result.document.pipe(res);
   } catch (error) {
     console.error('PDF Generation Service Error:', error);
-    res.status(500).json({ message: 'Engine failure generating official PDF document' });
+    return res.status(500).json({ message: 'Engine failure generating official PDF document' });
   }
 });
 
