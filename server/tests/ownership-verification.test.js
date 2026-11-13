@@ -5,6 +5,9 @@ const test = require('node:test');
 const vm = require('node:vm');
 
 const proof = { _id: 'proof-1', proofType: 'serialNumber', proofValue: 'PRIVATE-SERIAL-481' };
+const itemId = '000000000000000000000001';
+const creatorId = '000000000000000000000002';
+const claimantId = '000000000000000000000003';
 
 const loadController = ({ proofs = [proof], missing = false } = {}) => {
   const state = { saves: 0, queries: 0, messages: [], notifications: [] };
@@ -15,20 +18,14 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
       return {
         select(fields) { includeProofs = fields.split(/\s+/).includes('+ownershipProofs'); return this; },
         populate() { return this; },
+        lean() { return this; },
         then(resolve, reject) {
           const item = {
-            _id: 'item-1', createdBy: { _id: 'creator', toString: () => 'creator' },
+            _id: itemId, createdBy: { _id: creatorId, toString: () => creatorId },
             status: 'Available', verificationHistory: [],
             // Model the schema's select:false projection, without a database.
             ...(includeProofs ? { ownershipProofs: proofs } : {}),
             async save() { state.saves++; state.savedItem = this; },
-            toObject() {
-              return {
-                _id: this._id, createdBy: this.createdBy, status: this.status,
-                verificationHistory: this.verificationHistory,
-                ...(includeProofs ? { ownershipProofs: proofs } : {}),
-              };
-            },
           };
           return Promise.resolve(missing ? null : item).then(resolve, reject);
         },
@@ -37,23 +34,30 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
   };
   const dependencies = {
     '../../utils/ownershipProofs': require('../utils/ownershipProofs'),
-    '../../config/security': { getJwtSecret: () => 'test-only-secret-not-used-by-mocked-jwt' },
+    '../validation/item.validation': require('../presentation/validation/item.validation'),
     '../models/Item': Item,
     '../models/Message': {
       create: async (message) => { state.messages.push(message); return message; },
       exists: async () => false,
     },
     '../models/User': { findById: async () => ({ username: 'test-claimant' }) },
-    '../models/ReturnRecord': { findOne: () => ({ populate() { return this; }, then(resolve) { return Promise.resolve(null).then(resolve); } }) },
-    '../../business/services/socket.service': { emitGlobalNotification: (...args) => state.notifications.push(args) },
-    'google-translate-api-x': () => { throw new Error('Unexpected translation call'); },
-    cloudinary: { v2: { config() {} } },
-    path: require('node:path'), fs: require('node:fs'),
-    '../../utils/imageHash': {}, '../../business/services/itemIdentification.service': {},
-    '../../business/services/voiceReporting.service': {}, '../../business/services/matching.service': {},
-    // These tests cover exact matches and selection, not the fuzzy-match algorithm.
-    'string-similarity': { compareTwoStrings: () => 0 },
-    jsonwebtoken: { verify: (token) => ({ id: token === 'test-creator' ? 'creator' : 'claimant' }) },
+    '../../data-access/repositories/user.repository': { findUserRole: async () => ({ role: 'user' }) },
+    '../../data-access/repositories/return.repository': { findReturnRecordForItem: async () => null },
+    '../../data-access/repositories/tip.repository': {},
+    '../../data-access/integrations/image-storage': {},
+    '../../data-access/integrations/police-stations': {},
+    '../../data-access/integrations/report-translation': {},
+    '../../data-access/integrations/gemini-models': {},
+    './socket.service': { emitGlobalNotification: (...args) => state.notifications.push(args) },
+    'node:fs/promises': {},
+    '../../utils/imageHash': {},
+    '../../data-access/integrations/gemini-identification': {},
+    '../../data-access/integrations/gemini-voice': {},
+    './matching.service': {},
+    '../../business/services/return.service': {},
+    '../../business/services/session.service': {
+      verifyTokenIdentity: token => token === 'test-creator' ? creatorId : claimantId,
+    },
   };
   const context = {
     module: { exports: {} }, process: { env: {} }, console: { error() {} },
@@ -68,20 +72,18 @@ const loadController = ({ proofs = [proof], missing = false } = {}) => {
     vm.runInNewContext(fs.readFileSync(filename, 'utf8'), moduleContext, { filename });
     return moduleContext.module.exports;
   };
-  for (const model of ['Item', 'Message', 'User', 'ReturnRecord']) {
-    dependencies[`../../data-access/models/${model}`] = dependencies[`../models/${model}`];
-  }
-  dependencies['./socket.service'] = dependencies['../../business/services/socket.service'];
+  dependencies['../../data-access/repositories/item.repository'] = loadModule('../data-access/repositories/item.repository.js');
   dependencies['../../data-access/repositories/ownership.repository'] = loadModule('../data-access/repositories/ownership.repository.js');
   dependencies['../../data-access/repositories/chat.repository'] = loadModule('../data-access/repositories/chat.repository.js');
   dependencies['../../business/services/ownership.service'] = loadModule('../business/services/ownership.service.js');
+  dependencies['../../business/services/item.service'] = loadModule('../business/services/item.service.js');
   const controllerPath = path.resolve(__dirname, '../presentation/controllers/item.controller.js');
   vm.runInNewContext(fs.readFileSync(controllerPath, 'utf8'), context, { filename: controllerPath });
 
   const invoke = async (handler, { submittedProofs = [proof], creator = false, authenticated = false } = {}) => {
     const response = { code: 200, body: null, status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
     await context.module.exports[handler]({
-      params: { itemId: 'item-1' }, body: { submittedProofs }, userId: 'claimant',
+      params: { itemId }, body: { submittedProofs }, userId: claimantId,
       headers: creator ? { authorization: 'Bearer test-creator' } : authenticated ? { authorization: 'Bearer test-claimant' } : {},
     }, response);
     return response;

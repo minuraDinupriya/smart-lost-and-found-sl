@@ -6,11 +6,11 @@ The portal connects people reporting lost and found items with a workflow for pr
 
 The backend groups its three layers under `server/`:
 
-- `presentation/` contains routes, controllers, and middleware for HTTP and Socket.IO.
-- `business/services/` contains workflow logic, including return confirmation, ownership verification, and conversation authorization.
-- `data-access/` contains Mongoose models and repositories. Some older endpoints still access models directly.
+- `presentation/` contains HTTP routes, controllers, middleware, and Socket.IO handlers. It validates request input and maps service outcomes to responses.
+- `business/services/` contains use cases and business rules, including account administration, item recovery, conversation authorization, and tip processing.
+- `data-access/` contains Mongoose models, repositories for queries and transactions, and adapters for external integrations.
 
-`index.js` wires the layers together. Shared configuration, utilities, scripts, and tests sit alongside them.
+`index.js` wires the layers together. Shared configuration, utilities, scripts, and tests sit alongside them. Runtime requests go through Presentation and Business Logic before reaching Data Access. The server test suite checks that presentation modules cannot import Data Access directly and that business services use repositories for database access.
 
 ```mermaid
 flowchart LR
@@ -73,8 +73,8 @@ The item document is the shared contention point across direct claims and multip
 
 ## Validation
 
-- 32 isolated tests cover configuration, chat handlers, input shape, exact identifiers, public/private response behavior, and seed-script configuration.
-- 18 integration tests use real MongoDB replica sets, HTTP requests, signed/expired tokens, and Socket.IO connections. They test projections, custom-field persistence, authorization, conversation read state, concurrency, transaction rollback, and duplicate award prevention.
+- 33 isolated tests cover layer imports, configuration, chat handlers, input shape, proof matching, response privacy, and seed-script configuration.
+- 25 integration tests use disposable MongoDB replica sets, HTTP requests, and Socket.IO connections. They cover account and admin access, reports and hotspots, messaging and notifications, handovers and PDF downloads, tip history, and transactional return retries and rollback.
 - The browser walkthrough verifies message acknowledgement, rejects near-matching identifiers, accepts exact details, and displays completed returns and the awarded score.
 - `npm run demo:check --prefix server` runs real HTTP smoke checks against a local synthetic fixture. Repeating it after completion awards zero further points.
 - TypeScript/Vite/PWA builds and JavaScript parsing are separate checks. They complement behavioral tests rather than replace them.

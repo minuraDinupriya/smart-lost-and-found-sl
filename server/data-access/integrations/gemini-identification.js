@@ -162,7 +162,6 @@ Rules:
             finalDescription = `${descColor} ${descTitle} (${finalCategory}) identified from uploaded image.`.replace(/\s+/g, ' ').trim();
           }
 
-          console.log(`[AI Service] Successfully identified item using model ${modelName}:`, finalItemName);
 
           return {
             success: true,

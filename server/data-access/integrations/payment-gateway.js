@@ -50,7 +50,6 @@ class PaymentService {
       }
     } else {
       // Mock Payment Gateway Fallback
-      console.log('Stripe not configured. Falling back to Mock Payment Mode.');
       const mockReference = `mock_ref_${Math.random().toString(36).substring(2, 15)}`;
       const mockUrl = `${cleanClientUrl}/tips/payment/${tip._id}?reference=${mockReference}&mock=true`;
 
@@ -118,25 +117,8 @@ class PaymentService {
       return { status: 'failed' };
     }
 
-    if (stripe) {
-      try {
-        // In a real production app, this would use Stripe Connect Transfers:
-        // await stripe.transfers.create({
-        //   amount: Math.round(tip.amount * 100),
-        //   currency: 'lkr',
-        //   destination: finder.stripeAccountId,
-        // });
-        console.log(`[STRIPE MOCK] Successfully transferred Rs. ${tip.amount} to account ${finder.bankDetails.accountNumber} at ${finder.bankDetails.bankName}`);
-        return { status: 'completed' };
-      } catch (error) {
-        console.error('Stripe Payout Error:', error);
-        return { status: 'failed' };
-      }
-    } else {
-      // Mock mode payout
-      console.log(`[MOCK PAYOUT] Successfully transferred Rs. ${tip.amount} to account ${finder.bankDetails.accountNumber} at ${finder.bankDetails.bankName}`);
-      return { status: 'completed' };
-    }
+    // The payout simulator also runs when Stripe Checkout is enabled.
+    return { status: 'completed' };
   }
 }
 

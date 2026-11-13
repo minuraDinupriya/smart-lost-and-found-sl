@@ -1,6 +1,5 @@
 const chatRepository = require('../../data-access/repositories/chat.repository');
 
-
 const validId = value => typeof value === 'string' && /^[a-f0-9]{24}$/.test(value);
 const roomFor = (first, second, itemId) => [first, second].sort().join('_') + '_' + itemId;
 
@@ -22,4 +21,18 @@ const sendMessage = async ({ itemId, senderId, receiverId, text }) => {
   return chatRepository.createMessage({ itemId, senderId, receiverId, text });
 };
 
-module.exports = { validId, roomFor, authorizeConversation, getConversationHistory, sendMessage };
+const getInbox = async userId => {
+  const messages = await chatRepository.findInboxMessages(userId);
+  const latestByItem = new Map();
+  for (const message of messages) {
+    if (!message.itemId) continue;
+    const itemId = message.itemId._id.toString();
+    if (!latestByItem.has(itemId)) latestByItem.set(itemId, message);
+  }
+  return [...latestByItem.values()];
+};
+
+module.exports = {
+  validId, roomFor, authorizeConversation, getConversationHistory, sendMessage, getInbox,
+  countUnread: chatRepository.countUnread, markAllRead: chatRepository.markAllRead,
+};

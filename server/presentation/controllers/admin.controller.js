@@ -1,266 +1,127 @@
-const Item = require('../../data-access/models/Item');
-const User = require('../../data-access/models/User');
+const adminService = require('../../business/services/admin.service');
 
-// @desc    Get system-wide statistics for Admin Dashboard
-// @route   GET /api/admin/stats
-// @access  Private (Admin only)
+const validId = value => typeof value === 'string' && /^[a-f0-9]{24}$/i.test(value);
+const validOptionalText = value => value == null || typeof value === 'string';
+
+const parseFilters = (query, fields) => {
+  const page = query.page === undefined ? 1 : Number(query.page);
+  const limit = query.limit === undefined ? 15 : Number(query.limit);
+  if ([query.page, query.limit].some(value => value !== undefined && typeof value !== 'string') ||
+      !Number.isSafeInteger(page) || page < 1 ||
+      !Number.isSafeInteger(limit) || limit < 1 || limit > 100 ||
+      !Number.isSafeInteger((page - 1) * limit)) {
+    return null;
+  }
+
+  const filters = { page, limit };
+  for (const field of fields) {
+    const value = query[field];
+    if (!validOptionalText(value) || value?.length > 200) return null;
+    filters[field] = value;
+  }
+  return filters;
+};
+
 const getAdminStats = async (req, res) => {
   try {
-    const [
-      totalItems,
-      activeItems,
-      claimedItems,
-      lostItems,
-      foundItems,
-      smartTags,
-      totalUsers,
-      policeUsers,
-      adminUsers,
-      regularUsers,
-    ] = await Promise.all([
-      Item.countDocuments(),
-      Item.countDocuments({ archiveStatus: 'active' }),
-      Item.countDocuments({ status: 'Claimed' }),
-      Item.countDocuments({ type: 'LOST' }),
-      Item.countDocuments({ type: 'FOUND' }),
-      Item.countDocuments({ type: 'SMART_TAG' }),
-      User.countDocuments(),
-      User.countDocuments({ role: 'police' }),
-      User.countDocuments({ role: 'admin' }),
-      User.countDocuments({ role: 'user' }),
-    ]);
-
-    res.status(200).json({
-      stats: {
-        totalItems,
-        activeItems,
-        claimedItems,
-        lostItems,
-        foundItems,
-        smartTags,
-        totalUsers,
-        policeUsers,
-        adminUsers,
-        regularUsers,
-      },
-    });
+    return res.status(200).json({ stats: await adminService.getAdminStats() });
   } catch (error) {
     console.error('Admin stats error:', error);
-    res.status(500).json({ message: 'Failed to retrieve admin stats.' });
+    return res.status(500).json({ message: 'Failed to retrieve admin stats.' });
   }
 };
 
-// @desc    Get all items with pagination, search, and filters for admin moderation
-// @route   GET /api/admin/items
-// @access  Private (Admin only)
 const getAllItemsAdmin = async (req, res) => {
+  const filters = parseFilters(req.query, ['search', 'type', 'status', 'archiveStatus']);
+  if (!filters) return res.status(400).json({ message: 'Invalid item filters or pagination.' });
+
   try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 15;
-    const skip = (page - 1) * limit;
-
-    const { search, type, status, archiveStatus } = req.query;
-
-    const query = {};
-
-    if (type && type !== 'ALL') {
-      query.type = type;
-    }
-
-    if (status && status !== 'ALL') {
-      query.status = status;
-    }
-
-    if (archiveStatus && archiveStatus !== 'ALL') {
-      query.archiveStatus = archiveStatus;
-    }
-
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { city: { $regex: search, $options: 'i' } },
-        { district: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const totalItems = await Item.countDocuments(query);
-    const items = await Item.find(query)
-      .populate('createdBy', 'username email role profilePicture')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    res.status(200).json({
-      items,
-      totalPages: Math.ceil(totalItems / limit),
-      currentPage: page,
-      totalItems,
-    });
+    return res.status(200).json(await adminService.getAdminItems(filters));
   } catch (error) {
     console.error('Get all items admin error:', error);
-    res.status(500).json({ message: 'Failed to fetch items.' });
+    return res.status(500).json({ message: 'Failed to fetch items.' });
   }
 };
 
-// @desc    Update item status or archive status (Admin control)
-// @route   PATCH /api/admin/items/:id/status
-// @access  Private (Admin only)
 const updateItemStatusAdmin = async (req, res) => {
+  const { id } = req.params;
+  if (!validId(id)) return res.status(400).json({ message: 'Invalid item ID.' });
+  const { status, archiveStatus } = req.body || {};
+  if (status && !['Available', 'Pending Verification', 'Claimed', 'At Police Station'].includes(status)) {
+    return res.status(400).json({ message: 'Invalid item status.' });
+  }
+  if (archiveStatus && !['active', 'archived'].includes(archiveStatus)) {
+    return res.status(400).json({ message: 'Invalid archive status.' });
+  }
+
   try {
-    const { id } = req.params;
-    const { status, archiveStatus } = req.body;
-
-    const item = await Item.findById(id);
-    if (!item) {
-      return res.status(404).json({ message: 'Item not found.' });
-    }
-
-    if (status) {
-      item.status = status;
-    }
-    if (archiveStatus) {
-      item.archiveStatus = archiveStatus;
-    }
-
-    await item.save();
-
-    const updatedItem = await Item.findById(id).populate('createdBy', 'username email role profilePicture');
-
-    res.status(200).json({
-      message: 'Post updated successfully.',
-      item: updatedItem,
-    });
+    const item = await adminService.updateAdminItem(id, { status, archiveStatus });
+    if (!item) return res.status(404).json({ message: 'Item not found.' });
+    return res.status(200).json({ message: 'Post updated successfully.', item });
   } catch (error) {
     console.error('Update item status admin error:', error);
-    res.status(500).json({ message: 'Failed to update item.' });
+    return res.status(500).json({ message: 'Failed to update item.' });
   }
 };
 
-// @desc    Delete any item post from system (Admin removal)
-// @route   DELETE /api/admin/items/:id
-// @access  Private (Admin only)
 const deleteItemAdmin = async (req, res) => {
+  const { id } = req.params;
+  if (!validId(id)) return res.status(400).json({ message: 'Invalid item ID.' });
+
   try {
-    const { id } = req.params;
-
-    const item = await Item.findById(id);
-    if (!item) {
-      return res.status(404).json({ message: 'Item not found.' });
-    }
-
-    await Item.findByIdAndDelete(id);
-
-    res.status(200).json({ message: 'Post successfully deleted by admin.' });
+    if (!await adminService.deleteAdminItem(id)) return res.status(404).json({ message: 'Item not found.' });
+    return res.status(200).json({ message: 'Post successfully deleted by admin.' });
   } catch (error) {
     console.error('Delete item admin error:', error);
-    res.status(500).json({ message: 'Failed to delete post.' });
+    return res.status(500).json({ message: 'Failed to delete post.' });
   }
 };
 
-// @desc    Get all registered users for admin management
-// @route   GET /api/admin/users
-// @access  Private (Admin only)
 const getAllUsersAdmin = async (req, res) => {
+  const filters = parseFilters(req.query, ['search', 'role']);
+  if (!filters) return res.status(400).json({ message: 'Invalid user filters or pagination.' });
+
   try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 15;
-    const skip = (page - 1) * limit;
-
-    const { search, role } = req.query;
-
-    const query = {};
-
-    if (role && role !== 'ALL') {
-      query.role = role;
-    }
-
-    if (search) {
-      query.$or = [
-        { username: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { policeStationName: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const totalUsers = await User.countDocuments(query);
-    const users = await User.find(query)
-      .select('-password')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    res.status(200).json({
-      users,
-      totalPages: Math.ceil(totalUsers / limit),
-      currentPage: page,
-      totalUsers,
-    });
+    return res.status(200).json(await adminService.getAdminUsers(filters));
   } catch (error) {
     console.error('Get all users admin error:', error);
-    res.status(500).json({ message: 'Failed to fetch users.' });
+    return res.status(500).json({ message: 'Failed to fetch users.' });
   }
 };
 
-// @desc    Update user role & details (Admin operation)
-// @route   PATCH /api/admin/users/:id/role
-// @access  Private (Admin only)
 const updateUserRoleAdmin = async (req, res) => {
+  const { id } = req.params;
+  if (!validId(id)) return res.status(400).json({ message: 'Invalid user ID.' });
+  const { role, policeStationName } = req.body || {};
+  if (!validOptionalText(policeStationName)) {
+    return res.status(400).json({ message: 'Police station name must be a string.' });
+  }
+
   try {
-    const { id } = req.params;
-    const { role, policeStationName } = req.body;
-
-    if (!['user', 'police', 'admin'].includes(role)) {
-      return res.status(400).json({ message: 'Invalid user role.' });
-    }
-
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    user.role = role;
-    if (role === 'police' && policeStationName !== undefined) {
-      user.policeStationName = policeStationName;
-    }
-
-    await user.save();
-
-    const updatedUser = await User.findById(id).select('-password');
-
-    res.status(200).json({
-      message: 'User role updated successfully.',
-      user: updatedUser,
-    });
+    const result = await adminService.updateAdminUserRole(id, { role, policeStationName });
+    if (result.error === 'INVALID_ROLE') return res.status(400).json({ message: 'Invalid user role.' });
+    if (result.error === 'USER_NOT_FOUND') return res.status(404).json({ message: 'User not found.' });
+    return res.status(200).json({ message: 'User role updated successfully.', user: result.user });
   } catch (error) {
     console.error('Update user role admin error:', error);
-    res.status(500).json({ message: 'Failed to update user role.' });
+    return res.status(500).json({ message: 'Failed to update user role.' });
   }
 };
 
-// @desc    Delete a user account (Admin action)
-// @route   DELETE /api/admin/users/:id
-// @access  Private (Admin only)
 const deleteUserAdmin = async (req, res) => {
-  try {
-    const { id } = req.params;
+  const { id } = req.params;
+  if (!validId(id)) return res.status(400).json({ message: 'Invalid user ID.' });
 
-    if (req.userId === id) {
+  try {
+    const result = await adminService.deleteAdminUser(req.userId, id);
+    if (result.error === 'SELF_DELETE') {
       return res.status(400).json({ message: 'Admin cannot delete their own account via admin dashboard.' });
     }
-
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    await User.findByIdAndDelete(id);
-
-    res.status(200).json({ message: 'User account successfully deleted.' });
+    if (result.error === 'USER_NOT_FOUND') return res.status(404).json({ message: 'User not found.' });
+    return res.status(200).json({ message: 'User account successfully deleted.' });
   } catch (error) {
     console.error('Delete user admin error:', error);
-    res.status(500).json({ message: 'Failed to delete user.' });
+    return res.status(500).json({ message: 'Failed to delete user.' });
   }
 };
 

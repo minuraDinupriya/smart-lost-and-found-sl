@@ -1,4 +1,6 @@
-const { findItem, withReturnTransaction } = require('../../data-access/repositories/return.repository');
+const {
+  findItem, findRecord, recordFinderConfirmation, recordOwnerConfirmation, withReturnTransaction,
+} = require('../../data-access/repositories/return.repository');
 
 const fail = (status, message) => Object.assign(new Error(message), { status });
 
@@ -42,14 +44,46 @@ const completeReturn = async ({ itemId, ownerId, finderId }) => withReturnTransa
   return record;
 });
 
-const confirmReceipt = async ({ itemId, currentUserId, otherUserId }) => {
+const getParticipants = async ({ itemId, currentUserId, otherUserId }) => {
   const item = await findItem(itemId);
   if (!item) throw fail(404, 'Item not found');
 
-  const { ownerId, finderId } = resolveRoles(item, currentUserId, otherUserId);
-  if (currentUserId !== ownerId) throw fail(403, 'Only the rightful owner can confirm receipt');
-
-  return completeReturn({ itemId, ownerId, finderId });
+  return { itemId, ...resolveRoles(item, currentUserId, otherUserId) };
 };
 
-module.exports = { claimDirect, completeReturn, confirmReceipt, resolveRoles };
+const getHandoverState = async request => {
+  const participants = await getParticipants(request);
+  return {
+    record: await findRecord(participants) || null,
+    isOwner: request.currentUserId === participants.ownerId,
+    isFinder: request.currentUserId === participants.finderId,
+  };
+};
+
+const confirmFinder = async request => {
+  const participants = await getParticipants(request);
+  if (request.currentUserId !== participants.finderId) {
+    throw fail(403, 'Only the finder can perform this action');
+  }
+  return recordFinderConfirmation(participants, new Date());
+};
+
+const confirmOwner = async request => {
+  const participants = await getParticipants(request);
+  if (request.currentUserId !== participants.ownerId) {
+    throw fail(403, 'Only the rightful owner can perform this action');
+  }
+  const record = await findRecord(participants);
+  if (!record?.finderConfirmedAt) throw fail(400, 'Finder must confirm first');
+  return recordOwnerConfirmation(record._id, new Date());
+};
+
+const confirmReceipt = async request => {
+  const participants = await getParticipants(request);
+  if (request.currentUserId !== participants.ownerId) {
+    throw fail(403, 'Only the rightful owner can confirm receipt');
+  }
+  return completeReturn(participants);
+};
+
+module.exports = { claimDirect, completeReturn, getHandoverState, confirmFinder, confirmOwner, confirmReceipt };
