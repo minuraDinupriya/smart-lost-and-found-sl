@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, MapPin, Tag } from 'lucide-react';
+import { Package, Tag } from 'lucide-react';
 import api from '../../../services/api';
 
 interface ItemLinkPreviewProps {

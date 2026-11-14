@@ -71,11 +71,25 @@ sequenceDiagram
 
 The item document is the shared contention point across direct claims and multiple candidate handovers. Transactions prevent a crash between item, record, and karma updates from leaving a partial success. Retries return an existing completed record, while a competing completed flow produces a conflict. This requires a replica set. Existing data is not rewritten, and historical duplicate awards are not automatically corrected.
 
+## Report search and pagination
+
+The dashboard calls `GET /api/items/browse`. Presentation validates the filters and page options; the service applies the public report rules and uses the caller's identity for **My posts**; the repository filters, sorts, and projects the data for cards. The default page is 12 reports, capped at 48. Sorting by creation time and then report ID keeps the order deterministic when timestamps match. A highlighted report opens the page where it appears under the active filters.
+
+Search matches literal, case-insensitive text in the source, Sinhala, and Tamil titles and descriptions. The map uses the same filters but loads coordinates separately, on demand, and shows a notice if its 250-marker cap applies. Found-item markers use approximate locations. The previous list endpoint remains available for clients deployed before the dashboard change.
+
+In an integration fixture with 261 synthetic reports, the old list response was 254,492 bytes and the first page was 7,886 bytes, about 97% smaller. This measures uncompressed JSON payload size, not latency. Broad substring searches and counts can still scan records; this change bounds the response and browser work.
+
+## API operating controls
+
+Authentication attempts share 30 requests per 15 minutes per IP. Signed-in users have separate per-account budgets of 10 ownership checks per 10 minutes and eight AI requests per five minutes. The AI cap runs before upload processing, and the model diagnostic endpoint requires an admin. Requests over a limit receive `429` with `Retry-After`.
+
+Render can probe `/readyz`, which checks MongoDB with a two-second budget and returns `503` when the database is unavailable. These quotas are per process and forwarded addresses are ignored by default. See the [API operations notes](../README.md#api-operations) for the hosting prerequisites.
+
 ## Validation
 
-- 33 isolated tests cover layer imports, configuration, chat handlers, input shape, proof matching, response privacy, and seed-script configuration.
-- 25 integration tests use disposable MongoDB replica sets, HTTP requests, and Socket.IO connections. They cover account and admin access, reports and hotspots, messaging and notifications, handovers and PDF downloads, tip history, and transactional return retries and rollback.
-- The browser walkthrough verifies message acknowledgement, rejects near-matching identifiers, accepts exact details, and displays completed returns and the awarded score.
+- Isolated tests cover layer imports, configuration, chat handlers, input shape, proof matching, response privacy, and seed-script configuration.
+- Integration tests use disposable MongoDB replica sets, HTTP, and Socket.IO to cover access, browse behavior, quota responses, readiness, and transactional return retries and rollback.
+- The browser tests check sign-in, browsing, keyboard and mobile reporting and recovery in all three languages, direct links, and a real database-backed return with a receipt retry. The recording shows both users' actions and visual results.
 - `npm run demo:check --prefix server` runs real HTTP smoke checks against a local synthetic fixture. Repeating it after completion awards zero further points.
 - TypeScript/Vite/PWA builds and JavaScript parsing are separate checks. They complement behavioral tests rather than replace them.
 
@@ -83,7 +97,7 @@ The item document is the shared contention point across direct claims and multip
 
 Finder payouts are simulated. No production traffic, recovery-rate improvement, load-test capacity, or security certification is claimed. The test database is MongoDB 8.2.6; deployments should verify compatibility with their configured Atlas version. Tests do not exercise live Gemini, Google OAuth, Cloudinary, payment processing, or real police systems.
 
-Rate limiting and abuse prevention, a working frontend ESLint gate, dependency-vulnerability remediation, multi-instance socket delivery, and accessibility testing remain follow-up work. Tokens are still stored in localStorage; evaluating cookie-based sessions would require an explicit design and CSRF strategy. The repository contains contributions from several people; commit and PR history should be used to distinguish individual contributions.
+Dependency updates, multi-instance socket delivery, and a full accessibility audit remain follow-up work. Tokens are still stored in localStorage; evaluating cookie-based sessions would require an explicit design and CSRF strategy. The repository contains contributions from several people; commit and PR history should be used to distinguish individual contributions.
 
 ## Interview discussion prompts
 

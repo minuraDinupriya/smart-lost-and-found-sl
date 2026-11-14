@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../../services/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
-import { Activity, CheckCircle, Search, Map, BarChart3 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { Activity, CheckCircle, Search, Map as MapIcon, BarChart3 } from 'lucide-react';
 import PageNavigation from '../../../components/common/PageNavigation';
 
 interface AnalyticsData {
@@ -102,7 +102,7 @@ const AnalyticsPage: React.FC = () => {
             <h2 className="text-4xl font-black text-blue-600 dark:text-blue-300">{data.totalFound}</h2>
           </div>
           <div className="bg-blue-50 p-4 rounded-2xl text-blue-400 dark:bg-blue-900/25 dark:text-blue-300">
-             <Map className="w-8 h-8" />
+             <MapIcon className="w-8 h-8" />
           </div>
         </div>
 

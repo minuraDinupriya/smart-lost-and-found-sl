@@ -10,14 +10,72 @@ const saveItem = item => item.save();
 const updateItemById = (itemId, data) => Item.findByIdAndUpdate(itemId, { $set: data }, { new: true });
 const deleteItemById = itemId => Item.findByIdAndDelete(itemId);
 
-const findPublicReports = filter => Item.find({
+const activeReportFilter = filter => ({
   ...filter,
   status: { $ne: 'Claimed' },
   archiveStatus: { $ne: 'archived' },
-})
+});
+
+const findPublicReports = filter => Item.find(activeReportFilter(filter))
   .select('-verificationHistory')
   .sort({ createdAt: -1 })
   .populate('createdBy', 'username')
+  .lean();
+
+const reportOrder = { createdAt: -1, _id: -1 };
+const searchableFields = ['title', 'description', 'titleSi', 'descriptionSi', 'titleTa', 'descriptionTa'];
+const browseReportFilter = ({ q, ...filters }) => {
+  if (!q) return activeReportFilter(filters);
+  // Interpret user input as literal text across the original and translated report fields.
+  const textPattern = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  return activeReportFilter({ ...filters, $or: searchableFields.map(field => ({ [field]: textPattern })) });
+};
+
+const browseReports = async (filters, { page, pageSize, highlight }) => {
+  const filter = browseReportFilter(filters);
+  const [total, highlighted] = await Promise.all([
+    Item.countDocuments(filter),
+    highlight && Item.findOne({ ...filter, _id: highlight }).select('createdAt').lean(),
+  ]);
+
+  if (highlighted) {
+    // Count the matching rows that sort before this report using the same tie breaker as the list.
+    const before = highlighted.createdAt ? {
+      $or: [
+        { createdAt: { $gt: highlighted.createdAt } },
+        { createdAt: highlighted.createdAt, _id: { $gt: highlighted._id } },
+      ],
+    } : {
+      $or: [
+        { createdAt: { $type: 'date' } },
+        { createdAt: null, _id: { $gt: highlighted._id } },
+      ],
+    };
+    const earlier = await Item.countDocuments({ $and: [filter, before] });
+    page = Math.floor(earlier / pageSize) + 1;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const rows = await Item.find(filter)
+    .select('title titleSi titleTa description descriptionSi descriptionTa type category imageUrl date city district status handedToPolice policeStationName createdBy')
+    .sort(reportOrder)
+    .skip((currentPage - 1) * pageSize)
+    .limit(pageSize)
+    .populate('createdBy', 'username')
+    .lean();
+
+  return { items: rows, total, page: currentPage, totalPages };
+};
+
+const findBrowseLocations = (filters, limit) => Item.find({
+  ...browseReportFilter(filters),
+  latitude: { $gte: -90, $lte: 90 },
+  longitude: { $gte: -180, $lte: 180 },
+})
+  .select('title type city district latitude longitude')
+  .sort(reportOrder)
+  .limit(limit)
   .lean();
 
 const findSmartTags = createdBy => Item.find({ type: 'SMART_TAG', createdBy }).sort({ createdAt: -1 });
@@ -74,6 +132,6 @@ const archiveExpiredReports = now => Item.updateMany(
 
 module.exports = {
   findItemById, findItemDetails, createItem, saveItem, updateItemById, deleteItemById,
-  findPublicReports, findSmartTags, findPoliceInventory, findArchivedItems,
+  findPublicReports, browseReports, findBrowseLocations, findSmartTags, findPoliceInventory, findArchivedItems,
   findLocatedReports, getReportStatistics, findMatchCandidates, archiveExpiredReports,
 };

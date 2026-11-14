@@ -80,6 +80,104 @@ const socketFor = (token, origin) => new Promise((resolve, reject) => {
 });
 const emit = (socket, event, data) => new Promise((resolve, reject) => socket.timeout(3000).emit(event, data, (error, response) => error ? reject(error) : resolve(response)));
 
+test('report search returns a bounded, stable page and locates matching highlights without fetching earlier pages', async t => {
+  const { item } = await fixture();
+  const { _id, ...report } = item.toObject();
+  const createdAt = new Date('2025-01-01T00:00:00Z');
+  await Item.insertMany(Array.from({ length: 260 }, (_, index) => ({
+    ...report,
+    title: `Public report ${index + 1}`,
+    description: 'Synthetic test report. '.repeat(16),
+    createdAt,
+    latitude: 6.92345,
+    longitude: 79.85321,
+  })));
+  await Item.insertMany([
+    { ...report, status: 'Claimed', title: 'Claimed public report' },
+    { ...report, archiveStatus: 'archived', title: 'Archived public report' },
+    { ...report, type: 'SMART_TAG', title: 'Public report tag' },
+  ]);
+
+  const route = '/api/items/browse?q=public+report';
+  const [first, next, last, legacy] = await Promise.all([
+    request(route), request(`${route}&page=2`), request(`${route}&page=99999`), request('/api/items'),
+  ]);
+  assert.equal(first.code, 200);
+  assert.equal(first.body.total, 260);
+  assert.equal(first.body.totalPages, 22);
+  assert.equal(first.body.items.length, 12);
+  assert.equal(first.body.items[0].title, 'Public report 260');
+  assert.equal(next.body.page, 2);
+  assert.equal(next.body.items[0].title, 'Public report 248');
+  assert.equal(last.body.page, 22);
+  assert.equal(last.body.items.length, 8);
+  assert.equal(first.body.items[0].createdBy.username, 'owner');
+  for (const field of ['securityQuestion', 'contactNumber', 'ownershipProofs', 'verificationHistory', 'latitude', 'longitude']) {
+    assert.equal(Object.hasOwn(first.body.items[0], field), false);
+  }
+
+  const target = next.body.items[6];
+  const [highlighted, excluded] = await Promise.all([
+    request(`${route}&highlight=${target._id}`),
+    request(`/api/items/browse?q=abc&highlight=${target._id}`),
+  ]);
+  assert.equal(highlighted.body.page, 2);
+  assert.deepEqual(highlighted.body.items, next.body.items);
+  assert.deepEqual(excluded.body, { items: [], total: 0, page: 1, totalPages: 1 });
+
+  const firstUnfiltered = await request('/api/items/browse');
+  const legacyBytes = Buffer.byteLength(JSON.stringify(legacy.body));
+  const pageBytes = Buffer.byteLength(JSON.stringify(firstUnfiltered.body));
+  t.diagnostic(`Uncompressed first page with ${legacy.body.length} synthetic reports: ${legacyBytes} → ${pageBytes} JSON bytes`);
+  assert.ok(pageBytes < legacyBytes);
+
+  const map = await request('/api/items/locations?q=public+report');
+  assert.equal(map.code, 200);
+  assert.equal(map.body.truncated, true);
+  assert.equal(map.body.locations.length, 250);
+  assert.ok(map.body.locations.some(location => location._id === target._id));
+  assert.deepEqual(Object.keys(map.body.locations[0]).sort(), ['_id', 'city', 'district', 'latitude', 'longitude', 'title', 'type']);
+});
+
+test('report filters search translations literally and keep the signed-in and map scopes consistent', async () => {
+  const { owner, claimant, item } = await fixture();
+  const { _id, ...report } = item.toObject();
+  const fields = {
+    title: 'Phone [demo]', titleSi: 'නිල් දුරකථනය', descriptionTa: 'நீல உறை',
+    longitude: 79.85321, latitude: 6.92345, type: 'FOUND',
+  };
+  await Item.create({ ...report, ...fields });
+  await Item.create({ ...report, ...fields, city: 'Kandy', createdBy: claimant._id });
+  const filters = 'province=Western&district=Colombo&city=Colombo&type=FOUND&category=Electronics';
+
+  for (const query of ['  phone [DEMO]  ', 'දුරකථනය', 'நீல']) {
+    const q = encodeURIComponent(query);
+    const [listed, mapped] = await Promise.all([
+      request(`/api/items/browse?${filters}&q=${q}`),
+      request(`/api/items/locations?${filters}&q=${q}`),
+    ]);
+    assert.equal(listed.body.total, 1);
+    assert.equal(mapped.body.locations.length, 1);
+    assert.equal(mapped.body.locations[0]._id, listed.body.items[0]._id);
+    assert.equal(mapped.body.locations[0].isFuzzy, true);
+    assert.equal(mapped.body.locations[0].latitude, 6.92);
+    assert.equal(mapped.body.locations[0].longitude, 79.85);
+  }
+
+  const unauthenticated = await request('/api/items/browse?mine=true');
+  assert.equal(unauthenticated.code, 401);
+  const mine = await request(`/api/items/browse?mine=true&createdBy=${claimant._id}`, { token: tokenFor(owner) });
+  assert.equal(mine.body.total, 2);
+  assert.ok(mine.body.items.every(item => item.createdBy._id === owner._id.toString()));
+});
+
+test('report query validation rejects ambiguous or out-of-range inputs', async () => {
+  for (const query of ['page=0', 'page=1.5', 'pageSize=49', 'type=SMART_TAG', 'q=first&q=second', 'category=unknown', 'highlight=bad-id', `q=${'a'.repeat(121)}`]) {
+    const response = await request(`/api/items/browse?${query}`);
+    assert.equal(response.code, 400, query);
+  }
+});
+
 test('the receipt endpoint enforces the owner role and returns the completed record on retry', async () => {
   const { item, owner, claimant } = await fixture();
   const record = await ReturnRecord.create({

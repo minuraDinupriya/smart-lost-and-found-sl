@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import LocationSelector, { LocationState } from '../components/LocationSelector';
-import ItemCard, { ItemProps } from '../components/ItemCard';
+import ItemCard, { ReportCardItem } from '../components/ItemCard';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
@@ -26,44 +26,68 @@ L.Marker.prototype.options.icon = L.icon({
   iconAnchor: [12, 41],
 });
 const CATEGORIES = ['Electronics', 'Documents', 'Keys', 'Bags', 'Wallets', 'Pets', 'Others'];
-const PAGE_SIZE = 12;
+const MAX_SEARCH_LENGTH = 120;
+type ReportPage = { items: ReportCardItem[]; total: number; page: number; totalPages: number };
+type ReportLocation = {
+  _id: string; title: string; type: string; city: string; district: string;
+  latitude: number; longitude: number; isFuzzy?: boolean;
+};
+type ReportMap = { locations: ReportLocation[]; truncated: boolean };
+const EMPTY_PAGE: ReportPage = { items: [], total: 0, page: 1, totalPages: 1 };
+const EMPTY_MAP: ReportMap = { locations: [], truncated: false };
+const EMPTY_LOCATION: LocationState = { province: '', district: '', city: '' };
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
-  const [items, setItems] = useState<ItemProps[]>([]);
+  const [reportPage, setReportPage] = useState<ReportPage>(EMPTY_PAGE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   const [draft, setDraft] = useState(params.get('q') || '');
-  const [location, setLocation] = useState<LocationState>({ province: '', district: '', city: '' });
+  const [location, setLocation] = useState<LocationState>(EMPTY_LOCATION);
   const [locationKey, setLocationKey] = useState(0);
-  const [page, setPage] = useState(1);
   const [mapOpen, setMapOpen] = useState(false);
+  const [reportMap, setReportMap] = useState<ReportMap>(EMPTY_MAP);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState(false);
+  const [mapRetry, setMapRetry] = useState(0);
   const query = params.get('q') || '';
   const category = params.get('category') || '';
-  const tab = ['ALL', 'LOST', 'FOUND', 'MY_POSTS'].includes(params.get('tab') || '')
-    ? params.get('tab')!
-    : 'ALL';
+  const requestedTab = params.get('tab');
+  const canViewOwnReports = Boolean(user?._id && user.role !== 'police');
+  const tab = requestedTab === 'LOST' || requestedTab === 'FOUND' || (requestedTab === 'MY_POSTS' && canViewOwnReports)
+    ? requestedTab : 'ALL';
+  const highlightedId = params.get('highlight');
+  const highlight = highlightedId && /^[a-f\d]{24}$/i.test(highlightedId) ? highlightedId.toLowerCase() : undefined;
+  const requestedPage = params.get('page') || '1';
+  const page = Number.isSafeInteger(Number(requestedPage)) && /^[1-9]\d*$/.test(requestedPage) ? Number(requestedPage) : 1;
   const filtersOpen = params.get('openFilter') === 'true';
+  const mapVisible = filtersOpen && mapOpen;
   const activeFilters = Boolean(
     query || category || location.province || location.district || location.city
   );
+
+  const browseFilters = useMemo(() => ({
+    ...location,
+    // Truncating a shared URL must not send half of a surrogate pair.
+    q: query.trim().slice(0, MAX_SEARCH_LENGTH).replace(/[\uD800-\uDBFF]$/, '') || undefined,
+    category: CATEGORIES.includes(category) ? category : undefined,
+    type: tab === 'LOST' || tab === 'FOUND' ? tab : undefined,
+    mine: tab === 'MY_POSTS' ? true : undefined,
+  }), [location, query, category, tab]);
 
   useEffect(() => {
     setDraft(query);
   }, [query]);
   useEffect(() => {
-    setPage(1);
-  }, [query, category, tab, location.province, location.district, location.city]);
-  useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError(false);
     api
-      .get('/items', { params: location, signal: controller.signal })
-      .then((response) => setItems(response.data))
+      .get<ReportPage>('/items/browse', { params: { ...browseFilters, page, highlight }, signal: controller.signal })
+      .then(({ data }) => { if (!controller.signal.aborted) setReportPage(data); })
       .catch(() => {
         if (!controller.signal.aborted) setError(true);
       })
@@ -71,61 +95,50 @@ const DashboardPage: React.FC = () => {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [location.province, location.district, location.city, retry]);
+  }, [browseFilters, page, highlight, retry]);
+
+  useEffect(() => {
+    if (!mapVisible) return;
+    const controller = new AbortController();
+    setMapLoading(true);
+    setMapError(false);
+    api.get<ReportMap>('/items/locations', { params: browseFilters, signal: controller.signal })
+      .then(({ data }) => { if (!controller.signal.aborted) setReportMap(data); })
+      .catch(() => { if (!controller.signal.aborted) setMapError(true); })
+      .finally(() => { if (!controller.signal.aborted) setMapLoading(false); });
+    return () => controller.abort();
+  }, [browseFilters, mapVisible, mapRetry, retry]);
 
   const updateParam = (name: string, value: string) => {
     const next = new URLSearchParams(params);
+    if (name === 'q' || name === 'category' || name === 'tab') next.delete('page');
+    if (name !== 'openFilter') next.delete('highlight');
     if (value) next.set(name, value);
     else next.delete(name);
     setParams(next);
+  };
+  const updateLocation = (next: LocationState) => {
+    if (next.province === location.province && next.district === location.district && next.city === location.city) return;
+    setLocation(next);
+    if (params.has('page') || params.has('highlight')) updateParam('page', '');
   };
   const resetFilters = () => {
     const next = new URLSearchParams(params);
     next.delete('q');
     next.delete('category');
     next.delete('highlight');
+    next.delete('page');
     setParams(next);
     setDraft('');
-    setLocation({ province: '', district: '', city: '' });
+    setLocation(EMPTY_LOCATION);
     setLocationKey((key) => key + 1);
-    setPage(1);
   };
-  const filtered = items.filter((item) => {
-    const creatorId = typeof item.createdBy === 'object' ? item.createdBy?._id : item.createdBy;
-    const typeMatches =
-      tab === 'MY_POSTS'
-        ? Boolean(user && creatorId === user._id)
-        : tab === 'ALL' || item.type === tab;
-    const words = query.trim().toLocaleLowerCase();
-    return (
-      typeMatches &&
-      (!category || item.category === category) &&
-      (!words ||
-        [
-          item.title,
-          item.description,
-          item.titleSi,
-          item.descriptionSi,
-          item.titleTa,
-          item.descriptionTa,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLocaleLowerCase()
-          .includes(words))
-    );
-  });
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const { items: visible, total, page: currentPage, totalPages } = reportPage;
+  const reportIsHighlighted = Boolean(highlight && visible.some(item => item._id === highlight));
 
   useEffect(() => {
-    const highlight = params.get('highlight');
-    if (!highlight || loading) return;
-    const index = filtered.findIndex((item) => item._id === highlight);
-    if (index < 0) return;
-    setPage(Math.floor(index / PAGE_SIZE) + 1);
-    const timer = window.setTimeout(() => {
+    if (!highlight || !reportIsHighlighted || loading) return;
+    const frame = window.requestAnimationFrame(() => {
       document
         .getElementById('item-' + highlight)
         ?.scrollIntoView({
@@ -134,9 +147,9 @@ const DashboardPage: React.FC = () => {
             ? 'auto'
             : 'smooth',
         });
-    }, 100);
-    return () => window.clearTimeout(timer);
-  }, [params.get('highlight'), loading, items]);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [highlight, loading, reportIsHighlighted]);
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -197,6 +210,7 @@ const DashboardPage: React.FC = () => {
             <input
               id="item-search"
               type="search"
+              maxLength={MAX_SEARCH_LENGTH}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder={t('ui.searchPlaceholder')}
@@ -239,7 +253,7 @@ const DashboardPage: React.FC = () => {
             <LocationSelector
               key={locationKey}
               initialLocation={location}
-              onLocationChange={setLocation}
+              onLocationChange={updateLocation}
             />
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
               <div className="flex-1">
@@ -265,12 +279,22 @@ const DashboardPage: React.FC = () => {
               </button>
             </div>
             <details
+              open={mapOpen}
               onToggle={(event) => setMapOpen(event.currentTarget.open)}
               className="border-t border-slate-200 pt-4 dark:border-slate-700"
             >
               <summary className="cursor-pointer rounded-lg text-sm font-semibold">
                 {t('ui.showMap')}
               </summary>
+              <p role="status" className="ui-muted mt-2 text-sm">
+                {mapLoading ? t('common.loading') : mapError ? t('ui.mapError') :
+                  reportMap.truncated ? t('ui.mapLimit', { count: reportMap.locations.length }) : ''}
+              </p>
+              {mapError && !mapLoading && (
+                <button type="button" className="ui-secondary mt-2" onClick={() => setMapRetry(value => value + 1)}>
+                  {t('ui.tryAgain')}
+                </button>
+              )}
               <div className="relative z-0 mt-4 h-64 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600">
                 {mapOpen && (
                   <MapContainer
@@ -283,12 +307,7 @@ const DashboardPage: React.FC = () => {
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       attribution="&copy; OpenStreetMap"
                     />
-                    {filtered
-                      .filter(
-                        (item) =>
-                          typeof item.latitude === 'number' && typeof item.longitude === 'number'
-                      )
-                      .map((item) => {
+                    {!mapLoading && !mapError && reportMap.locations.map((item) => {
                         const popup = (
                           <Popup>
                             <Link className="font-semibold" to={'/items/' + item._id}>
@@ -302,14 +321,14 @@ const DashboardPage: React.FC = () => {
                         return item.type === 'FOUND' && item.isFuzzy ? (
                           <Circle
                             key={item._id}
-                            center={[item.latitude!, item.longitude!]}
+                            center={[item.latitude, item.longitude]}
                             radius={1000}
                             pathOptions={{ color: '#047857', fillOpacity: 0.2 }}
                           >
                             {popup}
                           </Circle>
                         ) : (
-                          <Marker key={item._id} position={[item.latitude!, item.longitude!]}>
+                          <Marker key={item._id} position={[item.latitude, item.longitude]}>
                             {popup}
                           </Marker>
                         );
@@ -329,7 +348,7 @@ const DashboardPage: React.FC = () => {
               {t('ui.recentReports')}
             </h2>
             <p className="ui-muted mt-1 text-sm" aria-live="polite">
-              {loading ? t('common.loading') : t('ui.results', { count: filtered.length })}
+              {loading ? t('common.loading') : error ? '' : t('ui.results', { count: total })}
             </p>
           </div>
           <div
@@ -337,7 +356,7 @@ const DashboardPage: React.FC = () => {
             role="group"
             aria-label={t('ui.reportType')}
           >
-            {['ALL', 'LOST', 'FOUND', ...(user && user.role !== 'police' ? ['MY_POSTS'] : [])].map(
+            {['ALL', 'LOST', 'FOUND', ...(canViewOwnReports ? ['MY_POSTS'] : [])].map(
               (value) => (
                 <button
                   key={value}
@@ -396,7 +415,7 @@ const DashboardPage: React.FC = () => {
                 key={item._id}
                 className={
                   'min-w-0 scroll-mt-24 rounded-2xl ' +
-                  (params.get('highlight') === item._id
+                  (highlight === item._id
                     ? 'ring-2 ring-brand-700 ring-offset-4 dark:ring-brand-300 dark:ring-offset-slate-900'
                     : '')
                 }
@@ -420,17 +439,17 @@ const DashboardPage: React.FC = () => {
             )}
           </div>
         )}
-        {!loading && !error && totalPages > 1 && (
+        {!error && totalPages > 1 && (
           <nav
             aria-label={t('ui.pagination')}
             className="mt-7 flex items-center justify-center gap-4"
           >
             <button
               type="button"
-              className="ui-secondary h-11 w-11 px-0"
-              disabled={currentPage === 1}
+              className="ui-secondary h-11 w-11 px-0 aria-disabled:opacity-60"
+              aria-disabled={loading || currentPage === 1}
               aria-label={t('ui.previousPage')}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              onClick={() => { if (!loading && currentPage > 1) updateParam('page', String(currentPage - 1)); }}
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -439,10 +458,10 @@ const DashboardPage: React.FC = () => {
             </span>
             <button
               type="button"
-              className="ui-secondary h-11 w-11 px-0"
-              disabled={currentPage === totalPages}
+              className="ui-secondary h-11 w-11 px-0 aria-disabled:opacity-60"
+              aria-disabled={loading || currentPage === totalPages}
               aria-label={t('ui.nextPage')}
-              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              onClick={() => { if (!loading && currentPage < totalPages) updateParam('page', String(currentPage + 1)); }}
             >
               <ChevronRight className="h-5 w-5" />
             </button>

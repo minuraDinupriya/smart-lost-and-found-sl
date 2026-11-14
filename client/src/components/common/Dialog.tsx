@@ -1,11 +1,15 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, RefObject, useEffect, useRef } from 'react';
 
 export default function Dialog({
   titleId,
+  descriptionId,
+  initialFocusRef,
   onClose,
   children,
 }: {
   titleId: string;
+  descriptionId?: string;
+  initialFocusRef?: RefObject<HTMLElement>;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -16,15 +20,17 @@ export default function Dialog({
     const trigger = document.activeElement as HTMLElement | null;
     const element = dialog.current;
     element?.showModal();
+    initialFocusRef?.current?.focus();
     return () => {
       element?.close();
       trigger?.focus();
     };
-  }, []);
+  }, [initialFocusRef]);
   return (
     <dialog
       ref={dialog}
       aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       onCancel={(event) => {
         event.preventDefault();
         close.current();

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../../context/SocketContext';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
-import { Send, FileText, AlertCircle, ShieldCheck, ShieldQuestion, X } from 'lucide-react';
+import { Send, FileText, ShieldCheck, ShieldQuestion, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { motion } from 'framer-motion';
 import ItemLinkPreview from '../components/ItemLinkPreview';
@@ -20,9 +21,11 @@ interface Message {
 }
 
 const ChatPage: React.FC = () => {
+  const { t } = useTranslation();
   const { itemId, otherUserId } = useParams<{ itemId: string; otherUserId: string }>();
   const { socket } = useSocket();
   const { user, loading: authLoading } = useAuth();
+  const userId = user?._id;
   const route = useLocation();
   const [loadError, setLoadError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -42,6 +45,7 @@ const ChatPage: React.FC = () => {
   const [verificationError, setVerificationError] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const firstProofInput = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
@@ -74,19 +78,17 @@ const ChatPage: React.FC = () => {
 
         // Dynamically determine the correct receiverName
         let computedReceiverName = itemRes.data.createdBy.username || 'User';
-        if (user && fetchedMessages.length > 0) {
+        if (userId && fetchedMessages.length > 0) {
           const relevantMsg = fetchedMessages.find(
             (m: any) =>
-              (m.senderId && (m.senderId._id || m.senderId) === user._id) ||
-              (m.receiverId && (m.receiverId._id || m.receiverId) === user._id)
+              (m.senderId && (m.senderId._id || m.senderId) === userId) ||
+              (m.receiverId && (m.receiverId._id || m.receiverId) === userId)
           );
           if (relevantMsg) {
             const sender = relevantMsg.senderId;
             const receiver = relevantMsg.receiverId;
             const senderIdStr = sender._id || sender;
-            const receiverIdStr = receiver._id || receiver;
-
-            if (senderIdStr === user._id) {
+            if (senderIdStr === userId) {
               computedReceiverName = receiver.username || computedReceiverName;
             } else {
               computedReceiverName = sender.username || computedReceiverName;
@@ -100,17 +102,17 @@ const ChatPage: React.FC = () => {
         if (active) setLoading(false);
       }
     };
-    if (itemId && user?._id) initChat();
+    if (itemId && userId) initChat();
     return () => {
       active = false;
     };
-  }, [itemId, otherUserId, user?._id, retry]);
+  }, [itemId, otherUserId, userId, retry]);
 
   // Hook into WebSocket Real-Time Broadcasts
   useEffect(() => {
-    if (socket && itemId && otherUserId && user) {
+    if (socket && itemId && otherUserId && userId) {
       // Create deterministic room ID sorting both user IDs so both users join the same channel
-      const roomId = [user._id, otherUserId].sort().join('_') + '_' + itemId;
+      const roomId = [userId, otherUserId].sort().join('_') + '_' + itemId;
 
       // Fire immediately (will buffer if not connected)
       const joinRoom = () =>
@@ -126,8 +128,8 @@ const ChatPage: React.FC = () => {
       socket.on('receive_message', (newMessage: Message) => {
         setMessages((prev) => {
           // Prevent duplicates or misdirected messages from other rooms
-          if (newMessage.senderId !== otherUserId && newMessage.senderId !== user._id) return prev;
-          if (newMessage.receiverId !== otherUserId && newMessage.receiverId !== user._id)
+          if (newMessage.senderId !== otherUserId && newMessage.senderId !== userId) return prev;
+          if (newMessage.receiverId !== otherUserId && newMessage.receiverId !== userId)
             return prev;
           if (prev.some((msg) => msg._id === newMessage._id)) return prev;
           return [...prev, newMessage];
@@ -140,7 +142,7 @@ const ChatPage: React.FC = () => {
         socket.off('receive_message');
       };
     }
-  }, [socket, itemId, otherUserId, user]);
+  }, [socket, itemId, otherUserId, userId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -257,10 +259,6 @@ const ChatPage: React.FC = () => {
     (lastVerification.overallStatus === 'VERIFIED' ||
       lastVerification.overallStatus === 'PARTIALLY_VERIFIED');
 
-  // We no longer lock the chat based on user feedback. The system allows free chat, but keeps the verification badge.
-  const isChatLocked = false;
-  const isOwnerLocked = false;
-
   if (authLoading)
     return (
       <p role="status" className="ui-muted p-10 text-center">
@@ -311,7 +309,7 @@ const ChatPage: React.FC = () => {
               </h1>
               <p className="text-xs text-emerald-600 font-medium flex items-center mt-0.5 dark:text-emerald-300">
                 <ShieldCheck className="mr-1.5 h-3 w-3" />
-                Private conversation
+                {t('recovery.privateConversation')}
               </p>
             </div>
           </div>
@@ -374,7 +372,7 @@ const ChatPage: React.FC = () => {
                 }}
                 className="ui-primary"
               >
-                Verify item details
+                {t('recovery.verifyDetails')}
               </button>
             )}
           </div>
@@ -478,20 +476,20 @@ const ChatPage: React.FC = () => {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
                   sendMessage(e);
                 }
               }}
-              placeholder="Write a message…"
+              placeholder={t('recovery.writeMessage')}
               className="ui-field min-w-0 flex-1 resize-none"
-              aria-label="Message"
+              aria-label={t('recovery.message')}
               rows={2}
             />
             <button
               type="submit"
               disabled={!inputText.trim() || isSending || !socket?.connected}
-              aria-label={isSending ? 'Sending message' : 'Send message'}
+              aria-label={t(isSending ? 'recovery.sending' : 'recovery.send')}
               className="p-3 bg-brand-700 text-white rounded-xl hover:bg-brand-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-brand-700/20 flex items-center justify-center h-12 w-12 flex-shrink-0"
             >
               <Send className="w-5 h-5 ml-0.5" />
@@ -501,7 +499,12 @@ const ChatPage: React.FC = () => {
 
         {/* Verification Modal */}
         {isVerificationModalOpen && item && item.ownershipProofs && (
-          <Dialog titleId="verification-title" onClose={() => setIsVerificationModalOpen(false)}>
+          <Dialog
+            titleId="verification-title"
+            descriptionId="verification-help"
+            initialFocusRef={firstProofInput}
+            onClose={() => setIsVerificationModalOpen(false)}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -509,7 +512,7 @@ const ChatPage: React.FC = () => {
             >
               <button
                 onClick={() => setIsVerificationModalOpen(false)}
-                aria-label="Close verification"
+                aria-label={t('recovery.closeVerification')}
                 className="ui-quiet absolute right-2 top-2"
               >
                 <X className="w-5 h-5" />
@@ -521,10 +524,10 @@ const ChatPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 id="verification-title" className="pr-6 text-lg font-bold">
-                    Verify ownership
+                    {t('recovery.verifyOwnership')}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">
-                    Provide details matching the registered proofs
+                  <p id="verification-help" className="text-xs text-gray-500 dark:text-slate-400">
+                    {t('recovery.verifyHelp')}
                   </p>
                 </div>
               </div>
@@ -539,7 +542,7 @@ const ChatPage: React.FC = () => {
                   </p>
                 )}
                 <div className="max-h-[300px] overflow-y-auto pr-1 space-y-3.5">
-                  {item.ownershipProofs.map((proof: any) => {
+                  {item.ownershipProofs.map((proof: any, index: number) => {
                     const label =
                       proof.proofType === 'custom'
                         ? proof.customLabel
@@ -553,6 +556,7 @@ const ChatPage: React.FC = () => {
                         </label>
                         <input
                           id={'proof-' + proof._id}
+                          ref={index === 0 ? firstProofInput : undefined}
                           required
                           type="text"
                           placeholder={`Enter ${label.toLowerCase()}...`}
@@ -576,14 +580,14 @@ const ChatPage: React.FC = () => {
                     onClick={() => setIsVerificationModalOpen(false)}
                     className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition text-sm font-semibold dark:border-slate-700 dark:text-slate-300"
                   >
-                    Cancel
+                    {t('recovery.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={isVerifying}
                     className="flex-1 px-4 py-2.5 bg-brand-700 text-white rounded-xl hover:bg-brand-800 transition text-sm font-semibold disabled:opacity-75"
                   >
-                    {isVerifying ? 'Verifying...' : 'Submit Proof'}
+                    {t(isVerifying ? 'recovery.verifying' : 'recovery.submit')}
                   </button>
                 </div>
               </form>

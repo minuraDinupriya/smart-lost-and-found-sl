@@ -30,6 +30,7 @@ import api from '../../services/api';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const userId = user?._id;
   const { socket } = useSocket();
   const { theme, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
@@ -43,7 +44,7 @@ const Navbar: React.FC = () => {
     setMenuOpen(false);
   }, [location.pathname, location.search]);
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setUnreadCount(0);
       return;
     }
@@ -57,7 +58,7 @@ const Navbar: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [user?._id]);
+  }, [userId]);
   useEffect(() => {
     if (!socket) return;
     const onNotification = (data: any) => {

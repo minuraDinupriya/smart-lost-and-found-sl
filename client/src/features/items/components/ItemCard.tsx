@@ -17,7 +17,7 @@ import Swal from 'sweetalert2';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 
-export interface ItemProps {
+export interface ReportCardItem {
   _id: string;
   title: string;
   titleSi?: string;
@@ -29,24 +29,16 @@ export interface ItemProps {
   category: string;
   imageUrl?: string;
   date: string;
-  province: string;
   district: string;
   city: string;
-  contactNumber: string;
-  securityQuestion?: string;
   status: string;
   handedToPolice?: boolean;
   policeStationName?: string;
-  createdBy: any;
+  createdBy: { _id: string; username?: string } | string | null;
   archiveStatus?: 'active' | 'archived';
-  expiresAt?: string;
-  createdAt?: string;
-  latitude?: number;
-  longitude?: number;
-  isFuzzy?: boolean;
 }
 
-const ItemCard: React.FC<{ item: ItemProps; onChange?: () => void }> = ({ item, onChange }) => {
+const ItemCard: React.FC<{ item: ReportCardItem; onChange?: () => void }> = ({ item, onChange }) => {
   const { t, i18n } = useTranslation();
   const { user, fetchMe } = useAuth();
   const navigate = useNavigate();

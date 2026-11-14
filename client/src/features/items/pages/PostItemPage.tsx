@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -16,9 +17,6 @@ import {
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
-  Sparkles,
-  MapPin,
-  FileCheck,
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../../../context/AuthContext';
@@ -60,6 +58,7 @@ const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon
 };
 
 const PostItemPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const route = useLocation();
@@ -70,34 +69,40 @@ const PostItemPage: React.FC = () => {
   );
   const [stepError, setStepError] = useState('');
   const stepHeading = React.useRef<HTMLHeadingElement>(null);
-  const firstRender = React.useRef(true);
+  const reportForm = React.useRef<HTMLFormElement>(null);
+  const previousStep = React.useRef(currentStep);
   React.useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    setStepError('');
+    if (previousStep.current === currentStep) return;
+    previousStep.current = currentStep;
     stepHeading.current?.focus();
   }, [currentStep]);
+  const goToStep = (step: number, error = '') => {
+    setStepError(error);
+    setCurrentStep(step);
+  };
+  const focusField = (name: string) => {
+    reportForm.current?.querySelector<HTMLElement>(`[name="${name}"]`)?.focus();
+  };
   const nextStep = () => {
     if (
       currentStep === 2 &&
       (!formData.title.trim() || !formData.description.trim() || !formData.date)
     ) {
-      setStepError('Enter a title, description, and the date the item was lost or found.');
+      setStepError(t('report.detailsRequired'));
       const name = !formData.title.trim()
         ? 'title'
         : !formData.description.trim()
           ? 'description'
           : 'date';
-      document.getElementsByName(name)[0]?.focus();
+      focusField(name);
       return;
     }
     if (currentStep === 3 && (!location.province || !location.district || !location.city)) {
-      setStepError('Select a province, district, and city.');
+      setStepError(t('report.locationRequired'));
+      focusField(!location.province ? 'province' : !location.district ? 'district' : 'city');
       return;
     }
-    setCurrentStep((step) => step + 1);
+    goToStep(currentStep + 1);
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<LocationState>({
@@ -274,10 +279,6 @@ const PostItemPage: React.FC = () => {
     }
   }, [mapPosition, formData.type]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) setImageFile(e.target.files[0]);
-  };
-
   const handleApplyAIResults = (details: {
     title: string;
     category: string;
@@ -338,13 +339,12 @@ const PostItemPage: React.FC = () => {
       return;
     }
     if (!formData.contactNumber.trim()) {
-      setStepError('Enter a contact number.');
-      document.getElementsByName('contactNumber')[0]?.focus();
+      setStepError(t('report.phoneRequired'));
+      focusField('contactNumber');
       return;
     }
     if (!location.province || !location.district || !location.city) {
-      setCurrentStep(3);
-      setStepError('Select a province, district, and city.');
+      goToStep(3, t('report.locationRequired'));
       return;
     }
 
@@ -423,15 +423,15 @@ const PostItemPage: React.FC = () => {
       >
         <div className="mb-8 border-b border-gray-100 dark:border-slate-700 pb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-            Report an item
+            {t('report.heading')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Share a few details to help an item find its way home.
+            {t('report.intro')}
           </p>
         </div>
 
-        <ol aria-label="Report progress" className="mb-8 grid grid-cols-4 gap-2">
-          {['Report type', 'Item details', 'Location', 'Contact'].map((label, index) => (
+        <ol aria-label={t('report.progress')} className="mb-8 grid grid-cols-4 gap-2">
+          {['type', 'details', 'location', 'contact'].map((label, index) => (
             <li
               key={label}
               aria-current={currentStep === index + 1 ? 'step' : undefined}
@@ -455,17 +455,20 @@ const PostItemPage: React.FC = () => {
                     : 'ui-muted')
                 }
               >
-                {label}
+                {t(`report.${label}`)}
               </span>
             </li>
           ))}
         </ol>
 
         <h2 ref={stepHeading} tabIndex={-1} className="mb-4 text-xl font-semibold outline-none">
-          Step {currentStep} of 4:{' '}
-          {['Report type', 'Item details', 'Location', 'Contact & ownership'][currentStep - 1]}
+          {t('report.step', {
+            step: currentStep,
+            label: t(`report.${['type', 'details', 'location', 'contactAndOwnership'][currentStep - 1]}`),
+          })}
         </h2>
         <form
+          ref={reportForm}
           onSubmit={handleSubmit}
           noValidate
           aria-busy={isSubmitting}
@@ -493,30 +496,30 @@ const PostItemPage: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setFormData({ ...formData, type: 'LOST' });
-                  setCurrentStep(2);
+                  goToStep(2);
                 }}
                 className="ui-panel flex flex-col items-center justify-center p-6 text-center hover:border-brand-700 focus-visible:border-brand-700"
               >
                 <div className="mb-4 rounded-xl bg-brand-50 p-3 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">
                   <Search className="h-7 w-7" />
                 </div>
-                <h3 className="mb-2 text-xl font-bold">I Lost Something</h3>
-                <p className="ui-muted">Describe what you lost so others can help you find it.</p>
+                <span className="mb-2 text-xl font-bold">{t('report.lost')}</span>
+                <span className="ui-muted">{t('report.lostHelp')}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
                   setFormData({ ...formData, type: 'FOUND' });
-                  setCurrentStep(2);
+                  goToStep(2);
                 }}
                 className="ui-panel flex flex-col items-center justify-center p-6 text-center hover:border-brand-700 focus-visible:border-brand-700"
               >
                 <div className="mb-4 rounded-xl bg-brand-50 p-3 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">
                   <CheckCircle2 className="h-7 w-7" />
                 </div>
-                <h3 className="mb-2 text-xl font-bold">I Found Something</h3>
-                <p className="ui-muted">Report an item you found to help return it to its owner.</p>
+                <span className="mb-2 text-xl font-bold">{t('report.found')}</span>
+                <span className="ui-muted">{t('report.foundHelp')}</span>
               </button>
             </motion.div>
           )}
@@ -529,7 +532,7 @@ const PostItemPage: React.FC = () => {
             >
               <details className="ui-panel p-4">
                 <summary className="min-h-[44px] cursor-pointer text-sm font-semibold">
-                  Optional: use voice or a photo to fill item details
+                  {t('report.voiceOrPhoto')}
                 </summary>
                 <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
                   {/* Smart Voice Reporting Section */}
@@ -546,7 +549,7 @@ const PostItemPage: React.FC = () => {
               {/* Item details */}
               <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-brand-700 pl-3">
-                  Item details
+                  {t('report.details')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -554,7 +557,7 @@ const PostItemPage: React.FC = () => {
                       htmlFor="report-category"
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                     >
-                      Category
+                      {t('report.category')}
                     </label>
                     <select
                       id="report-category"
@@ -563,13 +566,9 @@ const PostItemPage: React.FC = () => {
                       onChange={handleInputChange}
                       className="ui-field"
                     >
-                      <option value="Electronics">Electronics (Phones, Laptops)</option>
-                      <option value="Documents">Official Documents (NIC, Passport)</option>
-                      <option value="Keys">Keys</option>
-                      <option value="Bags">Bags & Luggage</option>
-                      <option value="Wallets">Wallets & Purses</option>
-                      <option value="Pets">Pets</option>
-                      <option value="Others">Others</option>
+                      {['Electronics', 'Documents', 'Keys', 'Bags', 'Wallets', 'Pets', 'Others'].map((category) => (
+                        <option key={category} value={category}>{t(`categories.${category}`)}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -578,7 +577,7 @@ const PostItemPage: React.FC = () => {
                     htmlFor="report-title"
                     className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                   >
-                    Title
+                    {t('report.title')}
                   </label>
                   <input
                     id="report-title"
@@ -598,7 +597,7 @@ const PostItemPage: React.FC = () => {
                       htmlFor="report-color"
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                     >
-                      Color (Optional)
+                      {t('report.color')}
                     </label>
                     <input
                       id="report-color"
@@ -615,7 +614,7 @@ const PostItemPage: React.FC = () => {
                       htmlFor="report-brand"
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                     >
-                      Brand (Optional)
+                      {t('report.brand')}
                     </label>
                     <input
                       id="report-brand"
@@ -632,7 +631,7 @@ const PostItemPage: React.FC = () => {
                       htmlFor="report-model"
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                     >
-                      Model (Optional)
+                      {t('report.model')}
                     </label>
                     <input
                       id="report-model"
@@ -651,7 +650,7 @@ const PostItemPage: React.FC = () => {
                     htmlFor="report-description"
                     className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                   >
-                    Description
+                    {t('report.description')}
                   </label>
                   <textarea
                     id="report-description"
@@ -669,7 +668,7 @@ const PostItemPage: React.FC = () => {
                     htmlFor="report-date"
                     className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                   >
-                    Date
+                    {t('report.date')}
                   </label>
                   <input
                     id="report-date"
@@ -690,19 +689,20 @@ const PostItemPage: React.FC = () => {
               {/* Location & Interactive Map */}
               <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-brand-700 pl-3">
-                  Location
+                  {t('report.location')}
                 </h3>
                 <LocationSelector
                   initialLocation={location}
                   onLocationChange={setLocation}
                   externalLocation={externalLocation}
+                  required
                 />
 
                 <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Mark the location on the map (optional)
-                  </label>
-                  <div className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-600 z-0 relative shadow-inner mb-2">
+                  <p id="report-map-label" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    {t('report.markLocation')}
+                  </p>
+                  <div role="group" aria-labelledby="report-map-label" className="h-72 w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-600 z-0 relative shadow-inner mb-2">
                     <MapContainer
                       center={[7.8731, 80.7718]}
                       zoom={7}
@@ -926,7 +926,7 @@ const PostItemPage: React.FC = () => {
               {/* Security / Blind Claim */}
               <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-700">
                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-l-4 border-brand-700 pl-3">
-                  Verification & Contact
+                  {t('report.contactAndOwnership')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -934,7 +934,7 @@ const PostItemPage: React.FC = () => {
                       htmlFor="report-contactNumber"
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                     >
-                      Contact Number
+                      {t('report.phone')}
                     </label>
                     <input
                       id="report-contactNumber"
@@ -953,7 +953,7 @@ const PostItemPage: React.FC = () => {
                       htmlFor="report-securityQuestion"
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
                     >
-                      Ownership question (optional)
+                      {t('report.ownershipQuestion')}
                     </label>
                     <input
                       id="report-securityQuestion"
@@ -978,12 +978,12 @@ const PostItemPage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-3 mt-10 pt-6 border-t border-gray-100 dark:border-slate-700">
               <button
                 type="button"
-                onClick={() => setCurrentStep((prev) => prev - 1)}
+                onClick={() => goToStep(currentStep - 1)}
                 disabled={isSubmitting}
                 className="ui-secondary shrink-0 px-3"
               >
                 <ChevronLeft className="h-4 w-4 shrink-0" />
-                Back
+                {t('report.back')}
               </button>
 
               {/* Separate keys prevent the same click from activating the new submit button. */}
@@ -994,7 +994,7 @@ const PostItemPage: React.FC = () => {
                   onClick={nextStep}
                   className="ui-primary px-3"
                 >
-                  Next step
+                  {t('report.next')}
                   <ChevronRight className="h-4 w-4 shrink-0" />
                 </button>
               ) : (
@@ -1004,7 +1004,7 @@ const PostItemPage: React.FC = () => {
                   disabled={isSubmitting}
                   className="ui-primary px-3"
                 >
-                  {isSubmitting ? 'Publishing...' : 'Publish report'}
+                  {isSubmitting ? t('report.publishing') : t('report.publish')}
                 </button>
               )}
             </div>

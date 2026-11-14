@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyPolice } = require('../middleware/auth.middleware');
+const { verifyAdmin } = require('../middleware/admin.middleware');
+const { limitOwnershipVerification, limitAiRequests } = require('../middleware/rate-limit.middleware');
 const upload = require('../middleware/upload.middleware');
 const {
-  createItem, getAllItems, getItemById, updateItem, deleteItem, claimItem,
+  createItem, getAllItems, getBrowseItems, getBrowseLocations, getItemById, updateItem, deleteItem, claimItem,
   getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem,
   getArchivedItems, identifyItem, analyzeVoiceReport, verifyOwnership, listIdentificationModels,
 } = require('../controllers/item.controller');
@@ -12,23 +14,23 @@ const { getHotspots } = require('../controllers/hotspot.controller');
 
 // @route   GET /api/items/debug-ai
 // @desc    Debug AI models available to the API key
-// @access  Public
-router.get('/debug-ai', listIdentificationModels);
+// @access  Private (Admin only)
+router.get('/debug-ai', verifyToken, verifyAdmin, limitAiRequests, listIdentificationModels);
 
 // @route   POST /api/items/identify
 // @desc    Analyze uploaded item image with AI and suggest attributes
 // @access  Private
-router.post('/identify', verifyToken, upload.single('image'), identifyItem);
+router.post('/identify', verifyToken, limitAiRequests, upload.single('image'), identifyItem);
 
 // @route   POST /api/items/voice-analyze
 // @desc    Analyze uploaded voice report with AI and extract structured data
 // @access  Private
-router.post('/voice-analyze', verifyToken, upload.single('audio'), analyzeVoiceReport);
+router.post('/voice-analyze', verifyToken, limitAiRequests, upload.single('audio'), analyzeVoiceReport);
 
 // @route   POST /api/items/:itemId/verify-ownership
 // @desc    Verify digital ownership proofs for an item
 // @access  Private
-router.post('/:itemId/verify-ownership', verifyToken, verifyOwnership);
+router.post('/:itemId/verify-ownership', verifyToken, limitOwnershipVerification, verifyOwnership);
 
 // @route   GET /api/items/hotspots
 // @desc    Get aggregated hotspots for high-frequency lost items
@@ -44,6 +46,9 @@ router.post('/', verifyToken, upload.single('image'), createItem);
 // @desc    Fetch items (supports ?province=X&district=Y&city=Z filtering)
 // @access  Public
 router.get('/', getAllItems);
+
+router.get('/browse', getBrowseItems);
+router.get('/locations', getBrowseLocations);
 
 // @route   GET /api/items/my/smart-tags
 // @desc    Fetch smart tags created by logged in user

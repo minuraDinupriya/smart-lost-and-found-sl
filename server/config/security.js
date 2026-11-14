@@ -23,4 +23,13 @@ const getAllowedOrigins = (env = process.env) => {
 };
 
 const isAllowedOrigin = (origin, allowedOrigins) => !origin || allowedOrigins.includes(origin);
-module.exports = { getJwtSecret, getAllowedOrigins, isAllowedOrigin };
+
+const getTrustedProxyHops = (env = process.env) => {
+  const value = env.TRUST_PROXY_HOPS?.trim() || '0';
+  if (!/^[0-5]$/.test(value)) {
+    throw new Error('TRUST_PROXY_HOPS must be an integer between 0 and 5.');
+  }
+  return Number(value) || false;
+};
+
+module.exports = { getJwtSecret, getAllowedOrigins, isAllowedOrigin, getTrustedProxyHops };

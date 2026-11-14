@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../../../services/api';
 import Swal from 'sweetalert2';
 import { ShieldCheck, CheckCircle2, Gift, Clock, Loader2, ThumbsUp, AlertTriangle } from 'lucide-react';
@@ -11,12 +12,13 @@ interface HandoverBannerProps {
 
 const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [state, setState] = useState<any>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchState = async () => {
+  const fetchState = useCallback(async () => {
     setLoading(true);
     setError(false);
     try {
@@ -27,13 +29,13 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemId, otherUserId]);
 
   useEffect(() => {
     if (itemId && otherUserId) {
       fetchState();
     }
-  }, [itemId, otherUserId]);
+  }, [itemId, otherUserId, fetchState]);
 
   const handleConfirmFinder = async () => {
     setActionLoading(true);
@@ -61,12 +63,13 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
 
   const handleConfirmReceipt = async () => {
     const result = await Swal.fire({
-      title: 'Confirm Item Received',
-      text: "Please confirm that you have physically received your lost item from this person.",
+      title: t('recovery.confirmReceipt'),
+      text: t('recovery.receiptHelp'),
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Yes, I Received It',
-      cancelButtonText: 'Cancel',
+      focusCancel: true,
+      confirmButtonText: t('recovery.confirmReceived'),
+      cancelButtonText: t('recovery.cancel'),
       confirmButtonColor: '#10B981',
     });
 
@@ -113,13 +116,13 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
           </div>
           <div>
             <h3 className="font-bold text-gray-900 text-sm dark:text-slate-100">
-              Return progress
+              {t('recovery.progress')}
             </h3>
-            <p className="text-xs text-gray-500 font-medium dark:text-slate-400">
-              {!record && "Confirm who found the item to begin."}
-              {status === 'FINDER_CONFIRMED' && "Finder confirmed · Waiting for owner"}
-              {status === 'OWNER_FINDER_VERIFIED' && "Both people confirmed · Ready to return"}
-              {status === 'RETURN_COMPLETED' && "Item returned"}
+            <p role="status" className="text-xs text-gray-500 font-medium dark:text-slate-400">
+              {!record && t('recovery.start')}
+              {status === 'FINDER_CONFIRMED' && t('recovery.finderConfirmed')}
+              {status === 'OWNER_FINDER_VERIFIED' && t('recovery.bothConfirmed')}
+              {status === 'RETURN_COMPLETED' && t('recovery.returned')}
             </p>
           </div>
         </div>
@@ -137,13 +140,13 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
                   className="ui-primary w-full sm:w-auto"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ThumbsUp className="w-4 h-4" />}
-                  I found this item
+                  {t('recovery.foundItem')}
                 </button>
               )}
               {status === 'FINDER_CONFIRMED' && (
                 <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold border border-blue-100 flex items-center gap-2 w-full sm:w-auto dark:bg-blue-900/25 dark:text-blue-300 dark:border-blue-800">
                   <Clock className="h-4 w-4" />
-                  Waiting for owner
+                  {t('recovery.waitingForOwner')}
                 </div>
               )}
             </>
@@ -159,7 +162,7 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
                   className="ui-primary w-full sm:w-auto"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
-                  This is my item
+                  {t('recovery.myItem')}
                 </button>
               )}
 
@@ -170,7 +173,7 @@ const HandoverBanner: React.FC<HandoverBannerProps> = ({ itemId, otherUserId }) 
                   className="ui-primary w-full sm:w-auto"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  I received my item
+                  {t('recovery.received')}
                 </button>
               )}
 

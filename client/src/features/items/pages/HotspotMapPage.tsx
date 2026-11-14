@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
+import { MapContainer, TileLayer, Popup, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../../../services/api';
-import { Map, AlertCircle, Filter, Loader } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Map as MapIcon, AlertCircle, Filter, Loader } from 'lucide-react';
 import PageNavigation from '../../../components/common/PageNavigation';
 
 // Fix Leaflet's default icon issue
@@ -31,7 +30,6 @@ interface Hotspot {
 }
 
 const HotspotMapPage: React.FC = () => {
-  const { t } = useTranslation();
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,22 +39,24 @@ const HotspotMapPage: React.FC = () => {
   // Sri Lanka center coordinates
   const defaultCenter: [number, number] = [7.8731, 80.7718];
 
-  const fetchHotspots = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/items/hotspots', {
-        params: { period, category }
-      });
-      setHotspots(res.data.hotspots);
-    } catch (error) {
-      console.error('Error fetching hotspots:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const request = new AbortController();
+    const fetchHotspots = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get('/items/hotspots', {
+          params: { period, category },
+          signal: request.signal,
+        });
+        if (!request.signal.aborted) setHotspots(res.data.hotspots);
+      } catch (error) {
+        if (!request.signal.aborted) console.error('Error fetching hotspots:', error);
+      } finally {
+        if (!request.signal.aborted) setLoading(false);
+      }
+    };
     fetchHotspots();
+    return () => request.abort();
   }, [period, category]);
 
   const getColorByActivity = (level: string) => {
@@ -81,7 +81,7 @@ const HotspotMapPage: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2 dark:text-slate-100">
-            <Map className="w-6 h-6 text-brand-700 dark:text-brand-300" />
+            <MapIcon className="w-6 h-6 text-brand-700 dark:text-brand-300" />
             Lost Item Hotspots
           </h1>
           <p className="text-gray-500 text-sm mt-1 dark:text-slate-400">Discover high-frequency areas for lost and found reports.</p>

@@ -14,7 +14,9 @@ test.beforeEach(async ({ context, baseURL }) => {
       : route.abort();
   });
   await context.route('**/api/**', (route) => route.abort());
-  await context.route('**/api/items', (route) => route.fulfill({ json: [] }));
+  await context.route(/\/api\/items\/browse\?/, (route) => route.fulfill({
+    json: { items: [], total: 0, page: 1, totalPages: 1 },
+  }));
 });
 
 async function restoreSavedSession(page) {

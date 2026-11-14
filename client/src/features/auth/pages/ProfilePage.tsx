@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../services/api';
 import Swal from 'sweetalert2';
-import { Camera, User, Award, Shield, ArrowLeft, Check, Loader2, History, Gift, Box } from 'lucide-react';
+import { Camera, User, Award, Shield, Check, Loader2, Gift, Box } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageNavigation from '../../../components/common/PageNavigation';
 
@@ -49,13 +49,15 @@ const ProfilePage: React.FC = () => {
     }
   }, [user, navigate]);
 
+  const activeHistoryCount = activeTab === 'claimed' ? claimedHistory.length : returnedHistory.length;
   useEffect(() => {
-    if (activeTab === 'claimed' && claimedHistory.length === 0) {
+    if (activeHistoryCount > 0) return;
+    if (activeTab === 'claimed') {
       fetchClaimedHistory();
-    } else if (activeTab === 'returned' && returnedHistory.length === 0) {
+    } else if (activeTab === 'returned') {
       fetchReturnedHistory();
     }
-  }, [activeTab]);
+  }, [activeTab, activeHistoryCount]);
 
   const fetchClaimedHistory = async () => {
     setIsLoadingHistory(true);
