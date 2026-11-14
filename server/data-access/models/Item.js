@@ -170,6 +170,8 @@ const itemSchema = new mongoose.Schema(
   }
 );
 
+itemSchema.index({ createdAt: -1, _id: -1 });
+
 const Item = mongoose.model('Item', itemSchema);
 
 module.exports = Item;

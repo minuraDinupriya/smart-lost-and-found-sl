@@ -75,15 +75,39 @@ const listItems = async ({ province, district, city, type, createdBy }) => {
   if (city) filter.city = city;
 
   const reports = await items.findPublicReports(filter);
-  return reports.map(report => {
-    if (report.type !== 'FOUND' || !report.latitude || !report.longitude) return report;
-    return {
-      ...report,
-      latitude: report.latitude + (Math.random() - 0.5) * 0.018,
-      longitude: report.longitude + (Math.random() - 0.5) * 0.018,
-      isFuzzy: true,
-    };
-  });
+  return reports.map(obscureFoundLocation);
+};
+
+const obscureFoundLocation = report => {
+  if (report.type !== 'FOUND' || !Number.isFinite(report.latitude) || !Number.isFinite(report.longitude)) return report;
+  // Round to a stable grid so repeated requests do not reveal a more precise average.
+  return {
+    ...report,
+    latitude: Number(report.latitude.toFixed(2)),
+    longitude: Number(report.longitude.toFixed(2)),
+    isFuzzy: true,
+  };
+};
+
+const publicBrowseFilters = ({ q, province, district, city, type, category, mine }, viewerId) => {
+  if (mine && !viewerId) throw new ItemServiceError(401, 'Sign in to view your reports.');
+  return {
+    type: type || { $in: ['LOST', 'FOUND'] },
+    ...(q && { q }),
+    ...(province && { province }),
+    ...(district && { district }),
+    ...(city && { city }),
+    ...(category && { category }),
+    ...(mine && { createdBy: viewerId }),
+  };
+};
+
+const browseItems = (filters, pagination, viewerId) => items.browseReports(publicBrowseFilters(filters, viewerId), pagination);
+
+const browseItemLocations = async (filters, viewerId) => {
+  const locationLimit = 250;
+  const locations = await items.findBrowseLocations(publicBrowseFilters(filters, viewerId), locationLimit + 1);
+  return { locations: locations.slice(0, locationLimit).map(obscureFoundLocation), truncated: locations.length > locationLimit };
 };
 
 const getAnalytics = async () => {
@@ -183,7 +207,7 @@ const getNearestPolice = async (latitude, longitude) => {
 };
 
 module.exports = {
-  createItem, listItems, getItemDetails, updateItem, deleteItem, getAnalytics,
+  createItem, listItems, browseItems, browseItemLocations, getItemDetails, updateItem, deleteItem, getAnalytics,
   getSmartTags: items.findSmartTags, getArchivedItems, getPoliceInventory: items.findPoliceInventory,
   resolvePoliceItem, identifyItem, analyzeItemVoice, getNearestPolice, listIdentificationModels,
   ItemServiceError,

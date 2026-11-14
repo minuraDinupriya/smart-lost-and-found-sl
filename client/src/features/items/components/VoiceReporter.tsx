@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Mic, Square, Check, RotateCcw, Loader2, FileAudio, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Swal from 'sweetalert2';
+import { Mic, Square, Check, RotateCcw, Loader2, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../../../services/api';
 
 interface ExtractedData {

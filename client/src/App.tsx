@@ -35,7 +35,7 @@ const App: React.FC = () => {
   return (
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans flex flex-col antialiased transition-colors duration-200">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-brand-700 focus:px-4 focus:py-3 focus:text-white">Skip to content</a>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-brand-700 focus:px-4 focus:py-3 focus:text-white">{t('skipToContent')}</a>
       {/* Global Hot Toast Configuration */}
       <Toaster
         position="top-right"

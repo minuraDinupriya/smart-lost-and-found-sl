@@ -9,6 +9,55 @@ class ItemInputError extends Error {
 
 const isItemId = value => typeof value === 'string' && /^[a-f0-9]{24}$/i.test(value);
 
+const browseCategories = ['Electronics', 'Documents', 'Keys', 'Bags', 'Wallets', 'Pets', 'Others'];
+
+const readQueryText = (query, field, limit) => {
+  const value = query[field];
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || value.length > limit || value.includes('\0') || !value.isWellFormed()) {
+    throw new ItemInputError(`Invalid ${field}.`);
+  }
+  return value.trim() || undefined;
+};
+
+const readQueryInteger = (query, field, fallback, max) => {
+  const value = query[field];
+  if (value === undefined) return fallback;
+  if (typeof value !== 'string' || value.length > 16 || !/^[1-9][0-9]*$/.test(value)) {
+    throw new ItemInputError(`Invalid ${field}.`);
+  }
+  const number = Number(value);
+  if (!Number.isSafeInteger(number) || number > max) {
+    throw new ItemInputError(`Invalid ${field}.`);
+  }
+  return number;
+};
+
+const readBrowseFilters = query => {
+  const filters = {
+    q: readQueryText(query, 'q', 120),
+    province: readQueryText(query, 'province', 100),
+    district: readQueryText(query, 'district', 100),
+    city: readQueryText(query, 'city', 100),
+    type: readQueryText(query, 'type', 5),
+    category: readQueryText(query, 'category', 20),
+  };
+  if (filters.type && !['LOST', 'FOUND'].includes(filters.type)) throw new ItemInputError('Invalid type.');
+  if (filters.category && !browseCategories.includes(filters.category)) throw new ItemInputError('Invalid category.');
+  if (query.mine !== undefined && query.mine !== 'true') throw new ItemInputError('Invalid mine filter.');
+  return { ...filters, mine: query.mine === 'true' };
+};
+
+const readBrowsePage = query => {
+  const highlight = query.highlight;
+  if (highlight !== undefined && !isItemId(highlight)) throw new ItemInputError('Invalid highlight.');
+  return {
+    page: readQueryInteger(query, 'page', 1, Number.MAX_SAFE_INTEGER),
+    pageSize: readQueryInteger(query, 'pageSize', 12, 48),
+    highlight,
+  };
+};
+
 const textFields = [
   'title', 'description', 'type', 'category', 'color', 'brand', 'model', 'date',
   'province', 'district', 'city', 'contactNumber', 'securityQuestion', 'policeStationName',
@@ -67,4 +116,4 @@ const isCoordinate = (value, limit) => {
   return Number.isFinite(coordinate) && Math.abs(coordinate) <= limit;
 };
 
-module.exports = { ItemInputError, isItemId, readReport, isCoordinate };
+module.exports = { ItemInputError, isItemId, readReport, isCoordinate, readBrowseFilters, readBrowsePage };

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { getJwtSecret, getAllowedOrigins, isAllowedOrigin } = require('../config/security');
+const { getJwtSecret, getAllowedOrigins, isAllowedOrigin, getTrustedProxyHops } = require('../config/security');
 
 test('JWT configuration rejects missing, short, and known placeholder secrets', () => {
   for (const JWT_SECRET of [undefined, '', 'short', 'fallback_secret_for_usjp_lost_and_found_dev']) {
@@ -20,4 +20,13 @@ test('production CORS allows only configured exact origins', () => {
   assert.equal(isAllowedOrigin('https://approved-preview.vercel.app', previewOrigins), true);
   assert.throws(() => getAllowedOrigins({ NODE_ENV: 'production' }), /CLIENT_URL/);
   assert.throws(() => getAllowedOrigins({ CLIENT_URL: 'https://site.test/path' }));
+});
+
+test('proxy trust defaults to the direct connection and only accepts a fixed hop count', () => {
+  assert.equal(getTrustedProxyHops({}), false);
+  assert.equal(getTrustedProxyHops({ TRUST_PROXY_HOPS: '0' }), false);
+  assert.equal(getTrustedProxyHops({ TRUST_PROXY_HOPS: '2' }), 2);
+  for (const TRUST_PROXY_HOPS of ['true', '1,2', '-1', '6']) {
+    assert.throws(() => getTrustedProxyHops({ TRUST_PROXY_HOPS }), /TRUST_PROXY_HOPS/);
+  }
 });

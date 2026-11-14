@@ -2,22 +2,23 @@ const express = require('express');
 const router = express.Router();
 const { register, login, googleLogin, getMe, getLeaderboard, updateProfile, updateBankDetails } = require('../controllers/auth.controller');
 const { verifyToken } = require('../middleware/auth.middleware');
+const { limitAuthentication } = require('../middleware/rate-limit.middleware');
 const upload = require('../middleware/upload.middleware');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public
-router.post('/register', register);
+router.post('/register', limitAuthentication, register);
 
 // @route   POST /api/auth/login
 // @desc    Authenticate user & get token
 // @access  Public
-router.post('/login', login);
+router.post('/login', limitAuthentication, login);
 
 // @route   POST /api/auth/google
 // @desc    Authenticate user via Google
 // @access  Public
-router.post('/google', googleLogin);
+router.post('/google', limitAuthentication, googleLogin);
 
 // @route   GET /api/auth/leaderboard
 // @desc    Get leaderboard

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Wallet, ArrowUpRight, ArrowDownLeft, Gift, Calendar, User, MessageCircle } from 'lucide-react';
@@ -8,7 +7,6 @@ import PageNavigation from '../../../components/common/PageNavigation';
 
 const TipHistoryPage: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');

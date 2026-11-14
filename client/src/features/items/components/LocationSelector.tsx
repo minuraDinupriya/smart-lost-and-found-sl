@@ -12,9 +12,10 @@ interface LocationSelectorProps {
   onLocationChange: (location: LocationState) => void;
   initialLocation?: LocationState;
   externalLocation?: LocationState | null;
+  required?: boolean;
 }
 
-const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, initialLocation, externalLocation }) => {
+const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, initialLocation, externalLocation, required }) => {
   const { t } = useTranslation();
   const id = useId();
   const [province, setProvince] = useState(initialLocation?.province || '');
@@ -49,8 +50,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
   // Sync state upward to parent component whenever internal state updates
   useEffect(() => {
     onLocationChange({ province, district, city });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [province, district, city]);
+  }, [province, district, city, onLocationChange]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -58,6 +58,8 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
         <label htmlFor={id + '-province'} className="ui-label">{t('location.province')}</label>
         <select
           id={id + '-province'} value={province}
+          name="province"
+          required={required}
           onChange={handleProvinceChange}
           className="ui-field disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -72,6 +74,8 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
         <label htmlFor={id + '-district'} className="ui-label">{t('location.district')}</label>
         <select
           id={id + '-district'} value={district}
+          name="district"
+          required={required}
           onChange={handleDistrictChange}
           disabled={!province}
           className="ui-field disabled:cursor-not-allowed disabled:opacity-60"
@@ -87,6 +91,8 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, i
         <label htmlFor={id + '-city'} className="ui-label">{t('location.city')}</label>
         <select
           id={id + '-city'} value={city}
+          name="city"
+          required={required}
           onChange={(e) => setCity(e.target.value)}
           disabled={!district}
           className="ui-field disabled:cursor-not-allowed disabled:opacity-60"

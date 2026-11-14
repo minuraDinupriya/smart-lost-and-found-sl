@@ -6,14 +6,14 @@ import { motion } from 'framer-motion';
 import api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import PageNavigation from '../../../components/common/PageNavigation';
-import ItemCard, { ItemProps } from '../components/ItemCard';
+import ItemCard, { ReportCardItem } from '../components/ItemCard';
 
 const ArchivedItemsPage: React.FC = () => {
   const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  const [items, setItems] = useState<ItemProps[]>([]);
+  const [items, setItems] = useState<ReportCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -10,11 +10,12 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const { user, token } = useAuth(); // Hook directly into our global auth state
+  const { user, token } = useAuth();
+  const userId = user?._id;
 
   useEffect(() => {
     // Only establish a persistent connection if a user is authenticated
-    if (user && token) {
+    if (userId && token) {
       const socketBaseUrl = import.meta.env.VITE_API_URL 
         ? import.meta.env.VITE_API_URL.replace('/api', '') 
         : 'http://localhost:5001';
@@ -32,13 +33,8 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         socketInstance.disconnect();
         setSocket(null);
       };
-    } else if (socket) {
-      // Fallback disconnect if logout is triggered mid-session
-      socket.disconnect();
-      setSocket(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, token]);
+  }, [userId, token]);
 
   return (
     <SocketContext.Provider value={{ socket }}>

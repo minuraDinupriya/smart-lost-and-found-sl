@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import {
@@ -21,13 +21,10 @@ import {
   Users,
   Search,
   Trash2,
-  Edit,
   CheckCircle,
-  AlertTriangle,
   Archive,
   RefreshCw,
   Eye,
-  Filter,
   UserCheck,
   Shield,
   Building,
@@ -40,7 +37,6 @@ import {
 import Swal from 'sweetalert2';
 import PageNavigation from '../../../components/common/PageNavigation';
 import { toast } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -57,6 +53,7 @@ const AdminDashboardPage: React.FC = () => {
   const [items, setItems] = useState<AdminItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState<boolean>(false);
   const [itemSearch, setItemSearch] = useState<string>('');
+  const [appliedItemSearch, setAppliedItemSearch] = useState('');
   const [itemTypeFilter, setItemTypeFilter] = useState<string>('ALL');
   const [itemStatusFilter, setItemStatusFilter] = useState<string>('ALL');
   const [itemArchiveFilter, setItemArchiveFilter] = useState<string>('ALL');
@@ -68,6 +65,7 @@ const AdminDashboardPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [usersLoading, setUsersLoading] = useState<boolean>(false);
   const [userSearch, setUserSearch] = useState<string>('');
+  const [appliedUserSearch, setAppliedUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<string>('ALL');
   const [userPage, setUserPage] = useState<number>(1);
   const [userTotalPages, setUserTotalPages] = useState<number>(1);
@@ -99,13 +97,13 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   // Fetch Items
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setItemsLoading(true);
     try {
       const data = await getAdminItems(
         itemPage,
         15,
-        itemSearch,
+        appliedItemSearch,
         itemTypeFilter,
         itemStatusFilter,
         itemArchiveFilter
@@ -119,13 +117,13 @@ const AdminDashboardPage: React.FC = () => {
     } finally {
       setItemsLoading(false);
     }
-  };
+  }, [itemPage, appliedItemSearch, itemTypeFilter, itemStatusFilter, itemArchiveFilter]);
 
   // Fetch Users
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setUsersLoading(true);
     try {
-      const data = await getAdminUsers(userPage, 15, userSearch, userRoleFilter);
+      const data = await getAdminUsers(userPage, 15, appliedUserSearch, userRoleFilter);
       setUsers(data.users);
       setUserTotalPages(data.totalPages);
       setUserTotalCount(data.totalUsers);
@@ -135,7 +133,7 @@ const AdminDashboardPage: React.FC = () => {
     } finally {
       setUsersLoading(false);
     }
-  };
+  }, [userPage, appliedUserSearch, userRoleFilter]);
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -147,13 +145,25 @@ const AdminDashboardPage: React.FC = () => {
     if (user?.role === 'admin' && activeTab === 'posts') {
       fetchItems();
     }
-  }, [user, activeTab, itemPage, itemTypeFilter, itemStatusFilter, itemArchiveFilter]);
+  }, [user, activeTab, fetchItems]);
 
   useEffect(() => {
     if (user?.role === 'admin' && activeTab === 'users') {
       fetchUsers();
     }
-  }, [user, activeTab, userPage, userRoleFilter]);
+  }, [user, activeTab, fetchUsers]);
+
+  const searchItems = () => {
+    if (itemPage === 1 && appliedItemSearch === itemSearch) return fetchItems();
+    setItemPage(1);
+    setAppliedItemSearch(itemSearch);
+  };
+
+  const searchUsers = () => {
+    if (userPage === 1 && appliedUserSearch === userSearch) return fetchUsers();
+    setUserPage(1);
+    setAppliedUserSearch(userSearch);
+  };
 
   // Handle Post Deletion
   const handleDeletePost = (id: string, title: string) => {
@@ -544,7 +554,7 @@ const AdminDashboardPage: React.FC = () => {
                   placeholder="Search posts..."
                   value={itemSearch}
                   onChange={(e) => setItemSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && fetchItems()}
+                  onKeyDown={(e) => e.key === 'Enter' && searchItems()}
                   className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-700/20"
                 />
               </div>
@@ -594,7 +604,7 @@ const AdminDashboardPage: React.FC = () => {
                 </select>
 
                 <button
-                  onClick={() => fetchItems()}
+                  onClick={searchItems}
                   className="bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-brand-800 transition"
                 >
                   Search
@@ -786,7 +796,7 @@ const AdminDashboardPage: React.FC = () => {
                   placeholder="Search user by name or email..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
+                  onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
                   className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-700/20"
                 />
               </div>
@@ -808,7 +818,7 @@ const AdminDashboardPage: React.FC = () => {
                 </select>
 
                 <button
-                  onClick={() => fetchUsers()}
+                  onClick={searchUsers}
                   className="bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-brand-800 transition"
                 >
                   Filter Users

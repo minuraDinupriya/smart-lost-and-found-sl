@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
-import { CheckCircle2, ChevronRight, ShoppingBag, History } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ShoppingBag, History as HistoryIcon } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const SuccessPage: React.FC = () => {
@@ -87,7 +87,7 @@ const SuccessPage: React.FC = () => {
             onClick={() => navigate('/tips/history')}
             className="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2 shadow-sm"
           >
-            <History className="w-4 h-4" />
+            <HistoryIcon className="w-4 h-4" />
             <span>View Tip History</span>
             <ChevronRight className="w-4 h-4 opacity-55" />
           </button>

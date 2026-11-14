@@ -5,15 +5,18 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 const { Server } = require('socket.io');
-const { getJwtSecret, getAllowedOrigins, isAllowedOrigin } = require('./config/security');
+const { getJwtSecret, getAllowedOrigins, isAllowedOrigin, getTrustedProxyHops } = require('./config/security');
 const { registerChatHandlers } = require('./presentation/controllers/chat.socket');
 getJwtSecret();
 const { authenticateSocket } = require('./presentation/middleware/socket.middleware');
 const socketService = require('./business/services/socket.service');
 const { startArchiveCron } = require('./business/services/archiveCron.service');
+const { isDatabaseReady } = require('./data-access/repositories/database-health.repository');
+const { createHealthRoutes } = require('./presentation/routes/health.routes');
 
 // Initialize Express application
 const app = express();
+app.set('trust proxy', getTrustedProxyHops());
 
 
 // Middlewares
@@ -27,8 +30,10 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['Retry-After', 'RateLimit', 'RateLimit-Policy'],
 }));
+app.use(createHealthRoutes(isDatabaseReady));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

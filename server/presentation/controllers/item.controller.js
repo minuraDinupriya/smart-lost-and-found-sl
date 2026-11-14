@@ -3,7 +3,7 @@ const itemService = require('../../business/services/item.service');
 const ownershipService = require('../../business/services/ownership.service');
 const { claimDirect } = require('../../business/services/return.service');
 const { verifyTokenIdentity } = require('../../business/services/session.service');
-const { ItemInputError, isItemId, readReport, isCoordinate } = require('../validation/item.validation');
+const { ItemInputError, isItemId, readReport, isCoordinate, readBrowseFilters, readBrowsePage } = require('../validation/item.validation');
 
 const sendError = (res, error, fallback) => {
   if (error instanceof ItemInputError || error instanceof itemService.ItemServiceError) {
@@ -58,6 +58,27 @@ const getMySmartTags = async (req, res) => {
     return res.status(200).json(await itemService.getSmartTags(req.userId));
   } catch (error) {
     return sendError(res, error, 'Server error while fetching smart tags.');
+  }
+};
+
+const getBrowseItems = async (req, res) => {
+  try {
+    const filters = readBrowseFilters(req.query);
+    const pagination = readBrowsePage(req.query);
+    const result = await itemService.browseItems(filters, pagination, filters.mine ? readViewerId(req.headers) : null);
+    return res.json(result);
+  } catch (error) {
+    return sendError(res, error, 'Server error while fetching reports.');
+  }
+};
+
+const getBrowseLocations = async (req, res) => {
+  try {
+    const filters = readBrowseFilters(req.query);
+    const result = await itemService.browseItemLocations(filters, filters.mine ? readViewerId(req.headers) : null);
+    return res.json(result);
+  } catch (error) {
+    return sendError(res, error, 'Server error while fetching report locations.');
   }
 };
 
@@ -210,7 +231,7 @@ const verifyOwnership = async (req, res) => {
 };
 
 module.exports = {
-  createItem, getAllItems, verifyOwnership, getItemById, updateItem, deleteItem, claimItem,
+  createItem, getAllItems, getBrowseItems, getBrowseLocations, verifyOwnership, getItemById, updateItem, deleteItem, claimItem,
   getMySmartTags, getAnalytics, getNearestPolice, getPoliceInventory, resolvePoliceItem, getArchivedItems,
   identifyItem, analyzeVoiceReport, listIdentificationModels,
 };

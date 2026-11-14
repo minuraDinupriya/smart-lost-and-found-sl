@@ -155,6 +155,8 @@
   "refineSearch": "Refine your search",
   "closeFilters": "Close filters",
   "showMap": "Show report locations",
+  "mapError": "Report locations could not be loaded.",
+  "mapLimit": "Showing the {{count}} newest locations. Use filters to narrow the map.",
   "recentReports": "Recent reports",
   "results_one": "{{count}} report",
   "results_other": "{{count}} reports",

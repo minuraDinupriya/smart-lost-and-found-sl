@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../../../services/api';
-import { useAuth } from '../../../context/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 import { Download, PlusCircle, ShieldCheck, Tag } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -15,7 +14,6 @@ interface SmartTag {
 }
 
 const QRTagsPage: React.FC = () => {
-  const { user } = useAuth();
   const [tags, setTags] = useState<SmartTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
