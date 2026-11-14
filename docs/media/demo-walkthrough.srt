@@ -1,27 +1,55 @@
 1
-00:00:00,000 --> 00:00:06,000
-Sri Lanka Smart Lost & Found: local demo with synthetic reports.
+00:00:00,016 --> 00:00:04,022
+Sri Lanka Smart Lost & Found · Isolated demo with synthetic reports
 
 2
-00:00:06,000 --> 00:00:12,000
-Owners and finders coordinate through an authorized private conversation.
+00:00:04,022 --> 00:00:11,246
+Finder: open a private conversation from a lost phone report.
 
 3
-00:00:12,000 --> 00:00:18,000
-The claim form displays labels while saved answers remain private.
+00:00:11,246 --> 00:00:17,306
+The finder starts with 100 karma points.
 
 4
-00:00:18,000 --> 00:00:24,000
-A one-character identifier mismatch is rejected: 0 of 2 details matched.
+00:00:17,306 --> 00:00:23,685
+Verification shows the field labels. Saved proof values stay private.
 
 5
-00:00:24,000 --> 00:00:30,000
-Exact synthetic details verify successfully: 2 of 2 details matched.
+00:00:23,685 --> 00:00:31,640
+A one-character difference in each identifier fails verification.
 
 6
-00:00:30,000 --> 00:00:36,000
-The return is completed through the API; the UI shows the completed handover.
+00:00:31,640 --> 00:00:37,857
+The exact demo serial number and receipt code match.
 
 7
-00:00:36,000 --> 00:00:42,000
-12 concurrent receipt requests award 50 points once: the demo score moves from 100 to 150.
+00:00:37,857 --> 00:00:43,040
+The finder confirms the phone was found. The return still needs the owner.
+
+8
+00:00:43,052 --> 00:00:48,058
+Owner: open the same conversation in a separate browser session.
+
+9
+00:00:48,058 --> 00:00:53,799
+Both people have confirmed. The owner can now acknowledge receipt.
+
+10
+00:00:53,799 --> 00:00:58,057
+The owner confirms the physical handover.
+
+11
+00:00:58,057 --> 00:01:05,320
+One MongoDB transaction marks the item returned and awards 50 points.
+
+12
+00:01:05,328 --> 00:01:10,754
+Back in the finder session: the score went from 100 to 150.
+
+13
+00:01:10,754 --> 00:01:17,472
+Replay the same authorized receipt request: no second return or award.
+
+14
+00:01:17,472 --> 00:01:23,160
+150 → 150. Retrying returns the existing result without extra points.

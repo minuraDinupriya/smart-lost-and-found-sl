@@ -6,9 +6,9 @@ A web application for reporting lost and found items in Sri Lanka and coordinati
 
 ![Local demo dashboard with synthetic reports](docs/media/ui-home-desktop-light.jpg)
 
-[Watch the 42-second walkthrough](docs/media/demo-walkthrough.mp4) · [Run the isolated demo](docs/DEMO.md) · [Architecture and engineering decisions](docs/ENGINEERING.md) · [UI decisions and browser checks](docs/UI_REVIEW.md)
+[Watch the recovery walkthrough](docs/media/demo-walkthrough.mp4) · [Run the isolated demo](docs/DEMO.md) · [Architecture and engineering decisions](docs/ENGINEERING.md) · [UI decisions and browser checks](docs/UI_REVIEW.md)
 
-The walkthrough uses synthetic data and predates the current visual redesign. The engineering focus is server-enforced conversation access, private ownership checks, retry-safe return rewards, and reproducible tests. See the engineering notes for evidence and remaining limitations.
+The recording uses two browser sessions and synthetic reports. It shows private ownership checks, both sides of a return, and why retrying receipt confirmation never awards extra karma. See the engineering notes for evidence and remaining limitations.
 
 ## Project status
 
@@ -19,7 +19,7 @@ Finder payouts are currently simulated, including when Stripe checkout is config
 ## Stack and structure
 
 - `client/`: React, TypeScript, Vite, Tailwind CSS, and Leaflet. Pages are grouped by feature under `src/features/`.
-- `server/`: Express, MongoDB/Mongoose, and Socket.IO. Routes call controllers; services contain matching, AI, payment, and document generation logic.
+- `server/`: Express, MongoDB/Mongoose, and Socket.IO. Presentation handles HTTP and sockets, business services implement use cases, and data access contains MongoDB queries and external adapters.
 - `.github/`: CI workflow and contribution templates.
 
 The browser calls the Express API and connects to Socket.IO for chat. MongoDB stores users, reports, conversations, and return records. Cloudinary stores uploaded images; Gemini powers image and voice analysis.
@@ -67,6 +67,7 @@ From the repository root:
 
 ```sh
 npm run build --prefix client
+npm run lint --prefix client
 node client/node_modules/@playwright/test/cli.js install --only-shell chromium
 npm test --prefix client
 npm run test:recovery --prefix client
@@ -78,7 +79,7 @@ The browser install is needed once per Playwright version. To use an installed c
 
 The client build runs TypeScript checking, creates a production bundle, and generates the PWA service worker. The server syntax command parses JavaScript without executing it. `npm test --prefix server` runs isolated tests for chat, security configuration, proof matching, ownership handlers, and seed configuration. `npm run test:integration --prefix server` starts disposable MongoDB replica sets and a loopback HTTP/Socket.IO server to test actual projections, response privacy, JWT validation, messaging authorization, concurrent awards, and rollback. Neither suite loads `.env` or uses `MONGO_URI`; integration tests may download MongoDB 8.2.6 on first use. CI runs both suites as separate jobs.
 
-GitHub Actions runs these checks for pull requests and pushes to `main`. Passing them does **not** establish API correctness, integration availability, or production readiness. Frontend linting still needs an ESLint configuration; it is not part of the CI gate yet. Legacy scripts under `server/scripts/test_*.js` remain manual development scripts that may write to the configured database; `npm test` does not run them.
+GitHub Actions runs these checks for pull requests and pushes to `main`. They verify the covered behavior against the local test fixtures. Legacy scripts under `server/scripts/test_*.js` remain manual development scripts that may write to the configured database; `npm test` does not run them.
 
 ## Development seed scripts
 
@@ -109,6 +110,14 @@ Use local development for routine changes. When a hosted preview is needed for U
 Keep the Vercel project's Root Directory set to `client` and its production branch set to `main`. GitHub status checks are configured separately in `.github/workflows/ci.yml`; deployment is not a substitute for those checks. This policy does not make production deployment wait for CI to finish, and merging a docs-only or backend-only change into main can still trigger a frontend deployment.
 
 See [Vercel Git configuration](https://vercel.com/docs/project-configuration/git-configuration) for branch-pattern behavior.
+
+## API operations
+
+The Render configuration uses `GET /readyz` to check that the API can reach MongoDB. It returns `200` when ready or `503` when it cannot complete the database check. For an existing service not managed by the Blueprint, configure the health-check path separately during deployment.
+
+When deploying the API and frontend separately, update the API first. The new dashboard needs `/api/items/browse` and `/api/items/locations`; the previous dashboard can continue to use `/api/items`.
+
+The API returns `429` with `Retry-After` for requests that exceed its quotas. Sign-in, registration, and Google sign-in share an IP quota; ownership checks and AI requests each have a separate quota per signed-in account. These limits use in-process counters. Set `TRUST_PROXY_HOPS` only after verifying the fixed trusted proxy path for the hosted service. With the default `0`, the API uses the direct socket address, so users arriving through the same proxy share the authentication quota. Multiple API instances would need a shared store to enforce the same limit across instances.
 
 ## Contributing
 

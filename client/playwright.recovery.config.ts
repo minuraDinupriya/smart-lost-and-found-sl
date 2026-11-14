@@ -5,6 +5,9 @@ const apiOrigin = 'http://127.0.0.1:5004';
 
 export default defineConfig({
   testDir: './recovery-tests',
+  outputDir: process.env.RECORD_WALKTHROUGH ? 'test-results/recording-run' : 'test-results/recovery',
+  testMatch: process.env.RECORD_WALKTHROUGH ? '**/record-walkthrough.spec.js' : undefined,
+  testIgnore: process.env.RECORD_WALKTHROUGH ? undefined : '**/record-walkthrough.spec.js',
   forbidOnly: Boolean(process.env.CI),
   workers: 1,
   use: { baseURL, channel: process.env.PLAYWRIGHT_CHANNEL, serviceWorkers: 'block' },

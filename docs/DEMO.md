@@ -18,6 +18,8 @@ Open <http://localhost:5175>. The API uses port 5003. Stop both terminals with C
 
 Sign in with `demo_owner`, `demo_finder`, or `demo_observer`. Each uses the demo-only password `LearnWithDemo2027!`. The phone's serial number is `DEMO-4829`, and its custom receipt code is `DEMO-RECEIPT-42`.
 
+To start before either participant has confirmed, run `npm run demo --prefix server -- --full-handover` in place of the standard server command. The finder then chooses **I found this item**, and the owner chooses **This is my item** before confirming receipt.
+
 ## Two-minute interview walkthrough
 
 Start with a fresh demo. Open the [finder chat](http://localhost:5175/chat/000000000000000000000101/000000000000000000000001) and [owner chat](http://localhost:5175/chat/000000000000000000000101/000000000000000000000002) in separate browser profiles so each keeps its own sign-in.
@@ -40,9 +42,9 @@ Alternatively, with both demo processes running, run `npm run demo:check --prefi
 
 ## Captured evidence
 
-For the current interface, see [UI decisions and browser checks](UI_REVIEW.md). The video below predates the visual redesign.
+[Watch the captioned recovery walkthrough](media/demo-walkthrough.mp4) or read the [captions](media/demo-walkthrough.srt). The recording uses two separate browser sessions on the disposable demo. After both users confirm and the owner acknowledges receipt in the UI, the recording replays the same request and verifies the finder remains at 150 points.
 
-[Watch the 42-second screenshot walkthrough](media/demo-walkthrough.mp4). It is a silent, captioned sequence of actual browser screenshots, not a continuous screen recording. The receipt completion shown was triggered through the API smoke check, then verified in the browser. All screenshots use disposable local data.
+To make a new recording, install Playwright's FFmpeg using `node client/node_modules/@playwright/test/cli.js install ffmpeg`. Set `RECORD_WALKTHROUGH=1` and run `npm run test:recovery --prefix client`. It writes three raw clips and timed captions to `client/test-results/walkthrough/`. With FFmpeg and FFprobe available on your path, run `python docs/media/build-walkthrough.py` to assemble the captioned MP4 and its transcript. The normal test command excludes the recording.
 
 ![Dashboard with synthetic reports](media/01-dashboard.jpg)
 
@@ -52,4 +54,4 @@ For the current interface, see [UI decisions and browser checks](UI_REVIEW.md). 
 
 ![A single award increases the synthetic finder's score to 150](media/07-trust-score.jpg)
 
-The video can be rebuilt with FFmpeg from `docs/media/walkthrough.txt` and the caption file. The fixture's timestamps and generated IDs may vary on a new run; its explicitly assigned account and report IDs are fixed so the links remain valid.
+The fixture's timestamps and generated IDs may vary on a new run. Account and report IDs used in the links above are fixed.

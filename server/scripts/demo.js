@@ -8,6 +8,7 @@ const Message = require('../data-access/models/Message');
 const ReturnRecord = require('../data-access/models/ReturnRecord');
 
 const browserTest = process.argv.includes('--browser-test');
+const fullHandover = browserTest || process.argv.includes('--full-handover');
 const frontendOrigin = browserTest ? 'http://127.0.0.1:4176' : 'http://localhost:5175';
 const apiPort = browserTest ? '5004' : '5003';
 
@@ -27,7 +28,7 @@ const start = async () => {
   Object.assign(process.env, {
     DEMO_MODE: 'true', NODE_ENV: 'development', PORT: apiPort,
     DEMO_HOST: browserTest ? '127.0.0.1' : '',
-    MONGO_URI: database.getUri('demo'), CLIENT_URL: frontendOrigin, CLIENT_ORIGINS: '',
+    MONGO_URI: database.getUri('demo'), CLIENT_URL: frontendOrigin, CLIENT_ORIGINS: '', TRUST_PROXY_HOPS: '0',
     JWT_SECRET: 'disposable-local-demo-only-secret-01234567890123456789',
     GOOGLE_CLIENT_ID: '', GEMINI_API_KEY: '', ITEM_IDENTIFICATION_API_KEY: '',
     CLOUDINARY_CLOUD_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '', STRIPE_SECRET_KEY: '',
@@ -50,7 +51,7 @@ const start = async () => {
     { itemId: '000000000000000000000101', senderId: finderId, receiverId: ownerId, text: 'I found a blue phone near the station. Can you verify the serial number before we arrange a return?' },
     { itemId: '000000000000000000000101', senderId: ownerId, receiverId: finderId, text: 'Thank you. I have the receipt and can verify the private details here.' },
   ]);
-  if (!browserTest) {
+  if (!fullHandover) {
     await ReturnRecord.create({ itemId: '000000000000000000000101', ownerId, finderId, status: 'OWNER_FINDER_VERIFIED', finderConfirmedAt: new Date(), ownerConfirmedAt: new Date() });
   }
   console.info(`Disposable demo API: http://${process.env.DEMO_HOST || 'localhost'}:${apiPort}`);
