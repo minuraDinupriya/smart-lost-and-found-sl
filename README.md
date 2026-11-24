@@ -29,7 +29,7 @@ The browser calls the Express API and connects to Socket.IO for chat. MongoDB st
 ### Prerequisites
 
 - Node.js 24 and npm. `.nvmrc` records the version used in CI.
-- A local MongoDB instance or a separate development database.
+- A dedicated development MongoDB database. Completing returns and direct claims uses transactions and requires a replica set. To try the return flow locally, follow the [isolated demo](docs/DEMO.md), which starts its own replica set.
 - Cloudinary credentials for image uploads. Gemini and Google OAuth credentials are needed only to exercise those integrations.
 
 ### Install and configure
